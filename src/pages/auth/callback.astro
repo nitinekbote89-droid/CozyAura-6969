@@ -5,49 +5,50 @@
   import { supabase } from '/src/lib/supabaseClient';
 
   (async () => {
-    const params = new URLSearchParams(window.location.search);
-    const errMsg = params.get('error_description') || params.get('error');
-    if (errMsg) {
-      window.location.href = '/?auth_error=' + encodeURIComponent(errMsg);
-      return;
-    }
-
-    const code = params.get('code');
-    if (code) {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-      if (!error && data?.session) {
-        const s = data.session;
-        const qs = new URLSearchParams({
-          user_email: s.user.email || '',
-          user_name: s.user.user_metadata?.full_name || s.user.email?.split('@')[0] || 'User'
-        });
-        if (s.user.user_metadata?.avatar_url) qs.set('user_avatar', s.user.user_metadata.avatar_url);
-        window.location.href = '/?' + qs.toString();
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const errMsg = params.get('error_description') || params.get('error');
+      if (errMsg) {
+        window.location.href = '/?auth_error=' + encodeURIComponent(errMsg);
         return;
       }
-    }
 
-    const session = await new Promise((resolve) => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
-          subscription.unsubscribe();
-          resolve(session);
+      let session = null;
+      const code = params.get('code');
+
+      if (code) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error && data?.session) {
+          session = data.session;
         }
-      });
-      setTimeout(() => resolve(null), 10000);
-    });
+      }
 
-    if (!session) {
-      window.location.href = '/?auth_error=' + encodeURIComponent('Could not complete sign in. Try again.');
-      return;
+      if (!session) {
+        session = await new Promise((resolve) => {
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+            if (event === 'SIGNED_IN' && s) {
+              subscription.unsubscribe();
+              resolve(s);
+            }
+          });
+          setTimeout(() => resolve(null), 5000);
+        });
+      }
+
+      if (!session) {
+        window.location.href = '/?auth_error=' + encodeURIComponent('Could not complete sign in. Try again.');
+        return;
+      }
+
+      const email = session.user.email || '';
+      const name = session.user.user_metadata?.full_name || email?.split('@')[0] || 'User';
+      const avatar = session.user.user_metadata?.avatar_url || '';
+      const qs = new URLSearchParams({ user_email: email, user_name: name });
+      if (avatar) qs.set('user_avatar', avatar);
+      window.location.href = '/?' + qs.toString();
+    } catch (err) {
+      window.location.href = '/?auth_error=' + encodeURIComponent(err.message || 'Sign in failed');
     }
-
-    const email = session.user.email || '';
-    const name = session.user.user_metadata?.full_name || email?.split('@')[0] || 'User';
-    const avatar = session.user.user_metadata?.avatar_url || '';
-    const qs = new URLSearchParams({ user_email: email, user_name: name });
-    if (avatar) qs.set('user_avatar', avatar);
-    window.location.href = '/?' + qs.toString();
   })();
 </script>
 </body></html>

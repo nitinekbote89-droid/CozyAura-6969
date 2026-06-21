@@ -12,6 +12,21 @@
       return;
     }
 
+    const code = params.get('code');
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error && data?.session) {
+        const s = data.session;
+        const qs = new URLSearchParams({
+          user_email: s.user.email || '',
+          user_name: s.user.user_metadata?.full_name || s.user.email?.split('@')[0] || 'User'
+        });
+        if (s.user.user_metadata?.avatar_url) qs.set('user_avatar', s.user.user_metadata.avatar_url);
+        window.location.href = '/?' + qs.toString();
+        return;
+      }
+    }
+
     const session = await new Promise((resolve) => {
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
@@ -23,21 +38,6 @@
     });
 
     if (!session) {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
-      if (code) {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error && data?.session) {
-          const s = data.session;
-          const qs = new URLSearchParams({
-            user_email: s.user.email || '',
-            user_name: s.user.user_metadata?.full_name || s.user.email?.split('@')[0] || 'User'
-          });
-          if (s.user.user_metadata?.avatar_url) qs.set('user_avatar', s.user.user_metadata.avatar_url);
-          window.location.href = '/?' + qs.toString();
-          return;
-        }
-      }
       window.location.href = '/?auth_error=' + encodeURIComponent('Could not complete sign in. Try again.');
       return;
     }
@@ -51,3 +51,4 @@
   })();
 </script>
 </body></html>
+

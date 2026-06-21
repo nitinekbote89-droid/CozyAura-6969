@@ -375,7 +375,7 @@ export async function POST({ request }) {
         liveCoverUrl = await uploadToCloudinary(liveCoverUrl, `cover_${data.product.id}`);
       }
 
-      await supabase.from('products').upsert({
+      const { error: upsertErr } = await supabase.from('products').upsert({
         id: data.product.id,
         name: data.product.name,
         category: data.product.category,
@@ -386,6 +386,9 @@ export async function POST({ request }) {
         description: data.product.description,
         specifications: data.product.specifications
       });
+      if (upsertErr) {
+        return new Response(JSON.stringify({ success: false, error: "Failed to save product: " + upsertErr.message }), { status: 500 });
+      }
 
       const { data: existingVariants } = await supabase.from('product_variants').select('*').eq('product_id', data.product.id);
 
@@ -431,14 +434,20 @@ export async function POST({ request }) {
       if (rpcErr) {
         return new Response(JSON.stringify({ success: false, error: "Failed to save variants: " + rpcErr.message }), { status: 500 });
       }
-      await supabase.rpc('refresh_sales_view');
+      const { error: refreshErr } = await supabase.rpc('refresh_sales_view');
+      if (refreshErr) {
+        return new Response(JSON.stringify({ success: false, error: "Failed to refresh catalog: " + refreshErr.message }), { status: 500 });
+      }
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
 
     if (action === 'delete_product') {
       const { error: delProdErr } = await supabase.from('products').delete().eq('id', data.productId);
       if (delProdErr) return new Response(JSON.stringify({ success: false, error: delProdErr.message }), { status: 500 });
-      await supabase.rpc('refresh_sales_view');
+      const { error: refreshErr } = await supabase.rpc('refresh_sales_view');
+      if (refreshErr) {
+        return new Response(JSON.stringify({ success: false, error: "Failed to refresh catalog: " + refreshErr.message }), { status: 500 });
+      }
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
 

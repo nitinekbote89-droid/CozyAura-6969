@@ -1,43 +1,51 @@
 ---
+const url = new URL(Astro.request.url);
+const code = url.searchParams.get('code');
+const errorParam = url.searchParams.get('error') || url.searchParams.get('error_description');
+---
+<html><body>
+<script>
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
-const url = new URL(Astro.request.url);
-const code = url.searchParams.get('code');
-const error = url.searchParams.get('error') || url.searchParams.get('error_description');
+async function handleAuth() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error') || params.get('error_description');
 
-let redirectUrl = '/';
+  if (error) {
+    window.location.href = '/?auth_error=' + encodeURIComponent(error);
+    return;
+  }
 
-if (error) {
-  redirectUrl = '/?auth_error=' + encodeURIComponent(error);
-} else if (code) {
+  if (!code) {
+    window.location.href = '/?auth_error=' + encodeURIComponent('No auth code received');
+    return;
+  }
+
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-    
-    if (!exchangeError && data?.session) {
-      const s = data.session;
-      const email = s.user?.email || '';
-      const name = s.user?.user_metadata?.full_name || email?.split('@')[0] || 'User';
-      const avatar = s.user?.user_metadata?.avatar_url || '';
-      const qs = new URLSearchParams({ user_email: email, user_name: name });
-      if (avatar) qs.set('user_avatar', avatar);
-      redirectUrl = '/?' + qs.toString();
-    } else {
-      redirectUrl = '/?auth_error=' + encodeURIComponent(exchangeError?.message || 'Code exchange failed');
+
+    if (exchangeError) {
+      window.location.href = '/?auth_error=' + encodeURIComponent(exchangeError.message);
+      return;
     }
+
+    const s = data.session;
+    const email = s.user?.email || '';
+    const name = s.user?.user_metadata?.full_name || email?.split('@')[0] || 'User';
+    const avatar = s.user?.user_metadata?.avatar_url || '';
+    const qs = new URLSearchParams({ user_email: email, user_name: name });
+    if (avatar) qs.set('user_avatar', avatar);
+    window.location.href = '/?' + qs.toString();
   } catch (err) {
-    redirectUrl = '/?auth_error=' + encodeURIComponent(err.message || 'Server error');
+    window.location.href = '/?auth_error=' + encodeURIComponent(err.message || 'Server error');
   }
-} else {
-  redirectUrl = '/?auth_error=' + encodeURIComponent('No auth code received');
 }
 
-const metaRefresh = '<meta http-equiv="refresh" content="0; url=' + redirectUrl + '">';
----
-<html><body>
-{metaRefresh}
-<p>Redirecting...</p>
+handleAuth();
+</script>
 </body></html>

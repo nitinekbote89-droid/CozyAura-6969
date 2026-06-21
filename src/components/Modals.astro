@@ -1,0 +1,136 @@
+<div class="modal-overlay" id="productModalOverlay" onclick="window.closeProductModal()">
+  <div class="quickview-modal" onclick="event.stopPropagation()">
+    <button class="close-modal-btn" onclick="window.closeProductModal()"><span class="material-symbols-outlined">close</span></button>
+    
+    <div class="modal-gallery-pane">
+      <div class="modal-main-img-wrap" id="modalImgWrap"></div>
+    </div>
+    
+    <div class="modal-info-pane">
+      <span class="modal-category" id="modalCategory"></span>
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="modal-specs" id="modalSpecs"></div>
+      
+      <div class="modal-variant-wrapper" id="modalVariantWrapper">
+        <label>Select Scent Variant</label>
+        <div id="modalVariants" class="variant-radio-group"></div>
+      </div>
+      
+      <div class="modal-footer-action">
+        <span class="modal-price" id="modalPrice"></span>
+        <div id="modalActionContainer"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal" style="z-index: 1500;">
+  <div class="confirm-modal" onclick="event.stopPropagation()">
+    <span class="confirm-category">Account</span>
+    <h2 class="confirm-title">Log Out?</h2>
+    <p class="confirm-text">Are you sure you want to log out of your account?</p>
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-btn-cancel" onclick="document.getElementById('confirmModal').classList.remove('active')">Cancel</button>
+      <button class="confirm-btn confirm-btn-logout" id="confirmLogoutBtn">Log Out</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="celebrationModal" style="z-index: 1200;" onclick="window.closeSuccessOverlay()">
+  <div class="celebration-modal" onclick="event.stopPropagation()">
+    <button class="close-modal-btn" onclick="window.closeSuccessOverlay()"><span class="material-symbols-outlined">close</span></button>
+    <div class="celebration-icon">
+      <svg width="72" height="72" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="30" stroke="#B8975A" stroke-width="1.5" stroke-dasharray="4 2"/>
+        <path d="M22 32L29 39L42 24" stroke="#B8975A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="celebration-label">Thank You</span>
+    <h2 class="serif celebration-order-id" id="celebrationOrderId">Order #1234</h2>
+    <p class="celebration-text">Thank you, <span id="successCustomerName" style="color:var(--black);font-weight:400;"></span>. Your order has been successfully placed. We are preparing your hand-poured candle collection. An update will be sent as soon as your package ships.</p>
+    <button class="btn-primary celebration-btn" onclick="window.closeSuccessOverlay()">Track Your Order</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="notificationModal" style="z-index: 1600;">
+  <div class="confirm-modal" onclick="event.stopPropagation()" style="max-width: 420px; padding: 2.5rem 2rem; border-radius: 6px;">
+    <span class="confirm-category" id="notificationCategory">Back in Stock</span>
+    <h2 class="confirm-title" id="notificationTitle">Notify Me</h2>
+    <p class="confirm-text" id="notificationText">Enter your email address to receive an alert when this item is back in stock.</p>
+    
+    <div id="notificationInputForm" style="width: 100%; margin-top: 1rem; display: none;">
+      <div class="form-group" style="margin-bottom: 0.5rem; text-align: left;">
+        <input type="email" id="notificationEmailInput" placeholder="yourname@email.com" required style="background: var(--cream); border: 1px solid var(--sand); padding: 0.85rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.9rem; outline: none; width: 100%; border-radius: 4px;" />
+        <p id="notificationError" style="color: var(--danger); font-size: 0.75rem; margin-top: 0.4rem; display: none;"></p>
+      </div>
+    </div>
+    
+    <div class="confirm-actions" style="width: 100%; gap: 0.75rem; margin-top: 1rem;">
+      <button class="confirm-btn confirm-btn-cancel" onclick="document.getElementById('notificationModal').classList.remove('active')">Cancel</button>
+      <button class="confirm-btn confirm-btn-logout" id="notificationSubmitBtn" style="background: var(--charcoal); color: var(--warm-white);">Notify Me</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addressesPageFormModal" onclick="window.hideAddressesPageForm()">
+  <div class="confirm-modal" onclick="event.stopPropagation()" style="max-width: 600px; padding: 2.5rem 2rem; border-radius: 6px; text-align: left; align-items: stretch; max-height: 90vh; overflow-y: auto;">
+    <button class="close-modal-btn" onclick="window.hideAddressesPageForm()"><span class="material-symbols-outlined">close</span></button>
+    <h3 id="addressesPageFormTitle" style="font-family:'Jost',sans-serif; font-size: 0.88rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); font-weight: 500; margin-bottom: 1.5rem; text-align: left;">Add New Address</h3>
+    
+    <form id="addressesPageForm" class="contact-form" onsubmit="event.preventDefault()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="addr_fname">First name</label>
+          <input type="text" id="addr_fname" required/>
+        </div>
+        <div class="form-group">
+          <label for="addr_lname">Last name</label>
+          <input type="text" id="addr_lname" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="addr_phone">Phone Number</label>
+        <input type="text" id="addr_phone" maxlength="14" required/>
+      </div>
+      <div class="form-group">
+        <label for="addr_address">Address</label>
+        <input type="text" id="addr_address" required/>
+      </div>
+      <div class="form-group">
+        <label for="addr_pincode">Pincode</label>
+        <input type="text" id="addr_pincode" maxlength="6" required/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="addr_city">City</label>
+          <input type="text" id="addr_city" required/>
+        </div>
+        <div class="form-group">
+          <label for="addr_state">State</label>
+          <input type="text" id="addr_state" required/>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.2rem;">
+        <div class="form-group" style="margin-bottom: 1.2rem;">
+          <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--stone); display: block; margin-bottom: 0.4rem;">Address Label</label>
+          <div style="display: flex; gap: 10px; margin-top: 0.4rem;">
+            <button type="button" class="label-btn active" onclick="window.setAddressesPageLabel('Home')" id="addrLabelBtnHome" style="flex: 1; padding: 0.6rem; border: 1px solid var(--stone); background: var(--cream); cursor: pointer; font-size: 0.75rem; font-family: inherit; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 2px; font-weight: 500; transition: all 0.3s;">Home</button>
+            <button type="button" class="label-btn" onclick="window.setAddressesPageLabel('Work')" id="addrLabelBtnWork" style="flex: 1; padding: 0.6rem; border: 1px solid var(--sand); background: white; cursor: pointer; font-size: 0.75rem; font-family: inherit; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 2px; font-weight: 500; transition: all 0.3s;">Work</button>
+            <button type="button" class="label-btn" onclick="window.setAddressesPageLabel('Other')" id="addrLabelBtnOther" style="flex: 1; padding: 0.6rem; border: 1px solid var(--sand); background: white; cursor: pointer; font-size: 0.75rem; font-family: inherit; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 2px; font-weight: 500; transition: all 0.3s;">Other</button>
+          </div>
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 1.2rem;">
+          <input type="checkbox" id="isAddrDefault" style="width: auto; height: auto; margin: 0; cursor: pointer;" />
+          <label for="isAddrDefault" style="margin: 0; font-size: 0.8rem; cursor: pointer; text-transform: none; letter-spacing: normal; color: var(--charcoal);">Save as default address</label>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+        <button type="button" class="btn-primary" onclick="window.hideAddressesPageForm()" style="flex: 1; background: white; color: var(--stone); border: 1px solid var(--sand); padding: 1rem; cursor: pointer; font-family: inherit; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 2px; transition: all 0.3s;">Cancel</button>
+        <button type="button" class="btn-primary" onclick="window.saveAddressesPageForm()" style="flex: 2; padding: 1rem; cursor: pointer; font-family: inherit; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 2px;">Save Address</button>
+      </div>
+    </form>
+  </div>
+</div>

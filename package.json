@@ -1,0 +1,16 @@
+{
+  "name": "lumiere-store",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.0.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "astro": "^5.0.0",
+    "nodemailer": "^9.0.1"
+  }
+}

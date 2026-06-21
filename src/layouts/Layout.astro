@@ -1,0 +1,58 @@
+---
+import '/src/styles/global.css';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumière — Hand-Poured Soya Candles</title>
+  <meta name="description" content="Hand-poured 100% natural soya candles crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless — from our studio in India." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.svg" />
+  <link rel="canonical" href="https://lumierecandles.in/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Lumière" />
+  <meta property="og:title" content="Lumière — Hand-Poured Soya Candles" />
+  <meta property="og:description" content="Hand-poured 100% natural soya candles crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless — from our studio in India." />
+  <meta property="og:url" content="https://lumierecandles.in/" />
+  <meta property="og:image" content="https://lumierecandles.in/favicon.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lumière — Hand-Poured Soya Candles" />
+  <meta name="twitter:description" content="Hand-poured 100% natural soya candles crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless — from our studio in India." />
+  <meta name="twitter:image" content="https://lumierecandles.in/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://checkout.razorpay.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block" rel="stylesheet" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+  <script type="application/ld+json" is:inline>
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Lumière",
+    "url": "https://lumierecandles.in/",
+    "description": "Hand-poured 100% natural soya candles crafted in small batches.",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "hello@lumierecandles.in",
+      "telephone": "+91-98765-43210",
+      "contactType": "customer service"
+    }
+  }
+  </script>
+  <script type="application/ld+json" is:inline>
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Lumière",
+    "url": "https://lumierecandles.in/"
+  }
+  </script>
+  <slot name="head" />
+</head>
+<body>
+  <slot />
+</body>
+</html>

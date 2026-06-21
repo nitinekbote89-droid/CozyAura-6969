@@ -1,0 +1,180 @@
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Add New Product</h3>
+      <button class="btn-close" type="button" onclick="window.closeModal()" style="background:transparent; border:none; cursor:pointer; color: var(--text-main);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <form id="productForm" onsubmit="window.handleProductSubmit(event)">
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" id="prodName" required>
+      </div>
+      <div class="form-group">
+        <label>Product Cover Picture</label>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+          <input type="file" id="prodCoverImageInput" accept="image/*" onchange="window.handleCoverImageSelection(event)" style="border:none; padding:0; margin-bottom:0; flex: 1;">
+          <div id="prodCoverImagePreview" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-main); flex-shrink: 0;">
+            <span style="font-size: 0.75rem; color: var(--text-muted);">No Cover</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="prodCategory" required onchange="window.handleCategoryChange(event)"></select>
+      </div>
+      <div class="form-group" id="customCategoryGroup" style="display: none;">
+        <label>New Category Name</label>
+        <input type="text" id="prodCategoryCustom" placeholder="e.g. Citrus">
+      </div>
+      
+      <div class="form-group" style="border: 1px solid var(--border); padding: 16px; border-radius: 6px; background: var(--bg-main);">
+        <label style="font-weight: 600; color: var(--brand); margin-bottom: 4px;">Fragrance Stock & Media Allocations</label>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Toggle checkboxes to include fragrance configurations, assign inventory levels, and upload dedicated images.</p>
+        <div id="prodFragrancesStockMatrix" style="display: flex; flex-direction: column; gap: 14px;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="prodDesc" placeholder="Describe the scent notes..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Specifications</label>
+        <textarea id="prodSpecs" placeholder="e.g., Weight: 200g, Burn time: 40 hrs..."></textarea>
+      </div>
+      
+      <!-- Flex Grid containing the Price and Actual Weight Fields -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div class="form-group">
+          <label>Price (₹)</label>
+          <input type="number" id="prodPrice" required min="0">
+        </div>
+        <div class="form-group">
+          <label>Actual Weight (grams)</label>
+          <input type="number" id="prodWeight" required min="0" placeholder="e.g. 450">
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="window.closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="modalSubmitBtn">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Coupon Modal -->
+<div class="modal-overlay" id="couponModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Create New Promo Code</h3>
+      <button onclick="window.closeCouponModal()" style="background:transparent; border:none; cursor:pointer; display:flex; color: var(--text-main);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <form id="couponForm" onsubmit="window.handleCouponSubmit(event)">
+      <div class="form-group">
+        <label>Promo Code (Alphanumeric)</label>
+        <input type="text" id="cpCode" placeholder="e.g. SUMMER50" required style="text-transform: uppercase;">
+      </div>
+      <div class="form-group">
+        <label>Discount Value (%)</label>
+        <input type="number" id="cpDiscount" min="1" max="100" placeholder="e.g. 15" required>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="window.closeCouponModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Activate Coupon</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Order Receipt Modal -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3>Order Receipt <span id="modalOrderId" style="color:var(--text-muted); font-weight:400;"></span></h3>
+      <button onclick="window.closeOrderModal()" style="background:transparent; border:none; cursor:pointer; display:flex; color: var(--text-main);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>    
+    <!-- Tracking Section -->
+    <div style="margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border);">
+      <h4 style="font-weight:500; margin-bottom:12px; font-size:0.9rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Courier & Tracking Information</h4>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">Courier / Carrier Name</label>
+          <input type="text" id="modalCourierInput" placeholder="e.g. BlueDart" style="background:var(--bg-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">Tracking ID / Number</label>
+          <input type="text" id="modalTrackingInput" placeholder="e.g. AW1294819" style="background:var(--bg-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
+        </div>
+        <div class="form-group" style="grid-column: span 2; margin-bottom:0;">
+          <label style="font-size:0.8rem; color:var(--text-muted);">Tracking Link / URL (Optional)</label>
+          <input type="text" id="modalTrackingLinkInput" placeholder="e.g. https://delhivery.com/track/package/..." style="background:var(--bg-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="window.saveTrackingFromModal()" style="width:100%; justify-content:center;">Update Tracking & Ship Order</button>
+    </div>
+
+    <div style="margin-bottom:24px; font-size:0.95rem; line-height:1.6; display:grid; grid-template-columns:1fr 1fr; gap:16px; background:var(--bg-main); padding:16px; border-radius:6px; border:1px solid var(--border);">
+      <div>
+        <p style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Customer Details</p>
+        <p id="orderModalCustomer" style="font-weight:500; text-transform:capitalize;"></p>
+        <p id="orderModalEmail" style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;"></p>
+        <p id="orderModalPhone" style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;"></p>
+      </div>
+      <div style="text-align:right;">
+        <div style="margin-bottom:8px;">
+          <p style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Date Logged</p>
+          <p id="orderModalDate" style="font-weight:500;"></p>
+        </div>
+        <div style="margin-bottom:8px;">
+          <p style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Payment Method</p>
+          <p id="orderModalPayment" style="font-weight:500;">COD / Pay on Delivery</p>
+        </div>
+        <div>
+          <p style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Workflow Status</p>
+          <span id="orderModalStatus"></span>
+        </div>
+      </div>
+      <div style="grid-column: span 2;">
+        <p style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Shipping Address</p>
+        <p id="orderModalAddress" style="font-weight:400; font-size:0.9rem;"></p>
+      </div>
+    </div>
+
+    <h4 style="font-weight:500; margin-bottom:12px; font-size:0.9rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Purchased Items Summary</h4>
+    <div class="table-container" style="margin-bottom:16px;">
+      <table style="font-size:0.9rem;">
+        <thead>
+          <tr>
+            <th>Product Details</th>
+            <th>Category</th>
+            <th>Rate</th>
+            <th>Qty</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="orderItemsBody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:6px; text-align:right; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px; font-size:0.9rem;">
+       <div id="orderModalSubtotalRow" style="color:var(--text-muted);"></div>
+       <div id="orderModalPromoRow" style="color:var(--success); font-weight:500;"></div>
+    </div>
+
+    <div style="text-align:right; font-size:1.15rem; font-weight:600; color:var(--brand); margin-bottom:16px;">
+      Gross Total: <span id="orderModalTotal"></span>
+    </div>
+
+    <div class="modal-footer" style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
+      <button type="button" class="btn btn-primary" onclick="window.downloadInvoiceBill()">Download Bill</button>
+      <button type="button" class="btn btn-secondary" onclick="window.closeOrderModal()">Dismiss Window</button>
+    </div>
+  </div>
+</div>

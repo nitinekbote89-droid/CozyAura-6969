@@ -1,0 +1,996 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Modals from '../components/Modals.astro';
+
+// SSR initial catalog data to avoid client-side API round-trip
+let initialCatalog = null;
+let heroImageUrl = null;
+try {
+  const apiUrl = new URL('/api/store', Astro.request.url);
+  apiUrl.searchParams.set('siteToken', 'LUMIERE_STORE_2026');
+  apiUrl.searchParams.set('t', Date.now().toString());
+  const res = await fetch(apiUrl);
+  if (res.ok) {
+    const json = await res.json();
+    if (json.success) {
+      initialCatalog = json.data;
+      const sf = json.data.storefrontImages;
+      if (sf?.home_hero) {
+        let url = sf.home_hero;
+        if (url.includes('/image/upload/f_auto')) {
+          url = url.replace(/\/w_\d+/, '/w_600');
+        } else if (url.includes('/image/upload/')) {
+          url = url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_600/');
+        }
+        heroImageUrl = url;
+      }
+    }
+  }
+} catch (e) {
+  console.warn('SSR catalog fetch failed, will load client-side');
+}
+
+// SSR products grid HTML to eliminate CLS from JS-populated product cards
+function ssrOptimizeUrl(url, width) {
+  if (!url || !url.includes('/image/upload/')) return url;
+  if (url.includes('/image/upload/f_auto')) {
+    return url.replace(/\/w_\d+/, `/w_${width}`);
+  }
+  return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
+}
+let productsGridHtml = '';
+if (initialCatalog?.inventory) {
+  const cards = initialCatalog.inventory.map(item => {
+    let displayCategory = item.category || '';
+    if (displayCategory.toLowerCase().trim() === 'jar2') {
+      displayCategory = 'jar';
+    }
+    const imgHtml = item.coverImage
+      ? `<img src="${ssrOptimizeUrl(item.coverImage, 300)}" alt="${item.name}" width="300" height="400" style="width:100%;height:100%;object-fit:cover;">`
+      : '<div class="cream-fallback"><span class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">local_fire_department</span></div>';
+    return `<div class="product-card" onclick="window.openProductModal('${item.id}')">
+      <div class="product-img">
+        ${!item.stock || item.stock < 1 ? '<span class="badge-out">Out of Stock</span>' : ''}
+        ${imgHtml}
+      </div>
+      <h3>${item.name}</h3><div class="scent">${displayCategory}</div><div class="price">₹${item.price}</div>
+    </div>`;
+  });
+  productsGridHtml = cards.join('');
+}
+
+// SSR page state — only show the correct section to eliminate CLS from section transitions
+const initialPage = Astro.url.searchParams.get('page') || 'home';
+const pages_list = ['home', 'shop', 'cartPage', 'payment', 'about', 'contact', 'ordersPage', 'addressesPage'];
+
+const igPosts = Array.from({ length: 12 }, (_, i) => ({
+  id: i + 1,
+  gradient: [
+    'linear-gradient(135deg,#EDE5D8,#D4C4B0)',
+    'linear-gradient(135deg,#E8DDD0,#C4B5A0)',
+    'linear-gradient(135deg,#F5EDE0,#E0D4C3)',
+    'linear-gradient(135deg,#EDE5D8,#C4B5A0)',
+    'linear-gradient(135deg,#F7F0E6,#D4C4B0)',
+    'linear-gradient(135deg,#E8DDD0,#EDE0D0)'
+  ][i % 6]
+}));
+---
+
+<Layout>
+  {heroImageUrl && <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" slot="head" />}
+  <div class="page-wrapper">
+  <nav>
+    <a href="#" class="nav-logo" onclick="event.preventDefault(); window.showPage('home')">Lumi<span>ère</span></a>
+    <ul class="nav-links">
+      <li><a href="#" onclick="event.preventDefault(); window.showPage('home')">Home</a></li>
+      <li><a href="#" onclick="event.preventDefault(); window.showPage('shop')">Shop</a></li>
+      <li><a href="#" onclick="event.preventDefault(); window.showPage('about')">About</a></li>
+      <li><a href="#" onclick="event.preventDefault(); window.showPage('contact')">Contact</a></li>
+      <li><a href="#" onclick="event.preventDefault(); window.showPage('ordersPage')">Your Orders</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-account-wrap">
+        <button class="nav-account-btn" onclick="window.toggleAccountMenu()" id="navAccountBtn" title="Account"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+        <div class="account-dropdown" id="accountDropdown">
+          <div class="account-dropdown-header" id="dropdownUserInfo">Guest</div>
+          <a href="#" onclick="event.preventDefault(); window.showPage('ordersPage'); window.closeAccountMenu()">Your Orders</a>
+          <a href="#" onclick="event.preventDefault(); window.showPage('addressesPage'); window.closeAccountMenu()">Saved Address</a>
+          <a href="#" onclick="event.preventDefault(); window.showPage('contact'); window.closeAccountMenu()">Help & Support</a>
+          <a href="#" onclick="event.preventDefault(); window.handleAccountDropdownAction();" id="dropdownLogout">Log Out</a>
+        </div>
+      </div>
+      <button class="nav-cta" onclick="window.showPage('cartPage')">Checkout (0)</button>
+    </div>
+  </nav>
+
+  <main>
+  <section id="home" class={initialPage === 'home' ? 'active' : ''}>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <div class="hero-inner" style={heroImageUrl ? '' : 'grid-template-columns: 1fr;'}>
+      <div class="hero-text">
+        <span class="hero-subtitle">Meticulously Hand-Poured Soya Candles</span>
+        <h1>Where<br><em>stillness</em><br>finds its flame.</h1>
+        <p>Hand-poured 100% natural soya candles, crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless.</p>
+        <div class="hero-btns">
+          <button class="btn-primary" onclick="window.showPage('shop')">Explore the Collection</button>
+        </div>
+      </div>
+      <div class="hero-visual" style={heroImageUrl ? '' : 'display: none;'}>
+        <div class="hero-float-wrapper">
+          <div class="hero-image-frame">
+            <img src={heroImageUrl || "data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'&gt;&lt;/svg&gt;"} id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" style={heroImageUrl ? 'opacity:1' : 'opacity:0;transition:opacity 0.4s ease'} />
+            <div class="hero-frame-glow"></div>
+            <div class="hero-frame-border"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-section bestseller-sticky-section">
+      <div class="bestseller-left">
+        <div class="bestseller-sticky-header">
+          <span class="bestseller-subtitle">Curated Favorites</span>
+          <h2>Our<br><em>Bestsellers</em></h2>
+          <p>Discover our most loved hand-poured creations, ranked by our community. Each blend is meticulously crafted to bring stillness and warmth to your space.</p>
+          <button class="btn-primary" onclick="window.showPage('shop')">View All Collection</button>
+        </div>
+      </div>
+      <div class="bestseller-right" id="bestsellerStickyContainer">
+        <p style="text-align:center;color:var(--stone);padding-top:4rem;">Loading...</p>
+      </div>
+    </div>
+
+    <div class="home-section home-values">
+      <div class="section-header" style="text-align:center;justify-content:center;">
+        <h2>Why <em>Lumiere</em></h2>
+      </div>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+          <h3>100% Natural Wax</h3>
+          <p>Pure soya wax grown without pesticides, bleaching agents, or GMOs. Clean-burning from first light to last.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+          <h3>Hand-Poured in India</h3>
+          <p>Every candle is poured by hand in small batches in our Koregaon Park studio. Never mass-produced — always intentional.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <h3>Botanical Fragrances</h3>
+          <p>Essential oil and botanical-based scents free of phthalates, parabens, and synthetic dyes. Made for mindful spaces.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-section home-scent-guide">
+      <div class="section-header">
+        <h2>Find Your <em>Scent</em></h2>
+      </div>
+      <div class="scent-grid" id="homeScentGrid"></div>
+    </div>
+
+    <div class="instagram-scroll-container" id="instagramScrollContainer">
+      <div class="instagram-sticky-viewport">
+        <div class="instagram-inner">
+          <div class="instagram-header">
+            <h2>Follow <em>Along</em></h2>
+            <p style="font-size:0.88rem;color:var(--stone);font-weight:300;margin-top:0.5rem;font-family:'Jost',sans-serif;">Tag <strong>@lumierecandles</strong> to be featured</p>
+          </div>
+          <div class="social-track-wrapper">
+            <div class="social-track" id="socialTrack">
+              {igPosts.map(post => (
+                <a href="https://www.instagram.com/cozy_aura_candle/" target="_blank" rel="noopener noreferrer" class="social-post" aria-label="View Instagram post">
+                  <div class="social-post-img" id={`ig-post-${post.id}`} style={`background:${post.gradient};display:flex;align-items:center;justify-content:center;`}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--taupe)" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                  </div>
+
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-section home-testimonials">
+      <div class="section-header" style="text-align:center;justify-content:center;">
+        <h2>What Our <em>Customers</em> Say</h2>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p>"The sandalwood candle is absolutely divine. It fills the entire room with a warm, grounding scent that lasts for hours. My new favourite ritual."</p>
+          <span class="testimonial-author">— Ananya R.</span>
+        </div>
+          <div class="testimonial-card">
+            <div class="testimonial-stars">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p>"Beautifully packaged and the burn time is incredible. You can tell real care goes into every candle. Already ordered three more as gifts."</p>
+            <span class="testimonial-author">— Vikram S.</span>
+          </div>
+          <div class="testimonial-card">
+            <div class="testimonial-stars">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <p>"The lavender candle is my bedtime essential. Clean burn, no black soot, and the fragrance is perfectly balanced — not overpowering."</p>
+            <span class="testimonial-author">— Priya M.</span>
+          </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="shop" class={initialPage === 'shop' ? 'active' : ''}>
+    <div style="max-width:1300px; margin:0 auto;">
+      <div class="section-header" style="margin-bottom: 2rem;">
+        <h2>The <em>Collection</em></h2>
+      </div>
+      <div class="shop-controls" style="display: flex; justify-content: space-between; align-items: center; gap: 2rem; margin-bottom: 3rem; flex-wrap: wrap;">
+        <div class="filter-bar" id="categoryFilters" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; flex: 1; justify-content: flex-end; max-width: 600px;">
+          <div style="position: relative; display: flex; border: 1px solid var(--sand); background: white; padding: 2px; width: 100%; max-width: 320px;">
+            <input type="text" id="shopSearchInput" placeholder="Search candles..." style="border: none; padding: 0.6rem 1rem; font-family: inherit; font-size: 0.85rem; outline: none; flex: 1; background: transparent;" oninput="window.triggerSearch()">
+            <button class="btn-primary" onclick="window.triggerSearch()" style="padding: 0.6rem 1.2rem; font-size: 0.72rem; letter-spacing: 0.1em; border: none; cursor: pointer;">Search</button>
+          </div>
+          <label for="shopSortSelect" class="sr-only">Sort by</label>
+          <select id="shopSortSelect" onchange="window.triggerSearch()" style="border: 1px solid var(--sand); background: white; padding: 0.7rem 1.2rem; font-family: inherit; font-size: 0.8rem; outline: none; cursor: pointer; color: var(--stone); letter-spacing: 0.05em; text-transform: uppercase;">
+            <option value="default">Sort By: Featured</option>
+            <option value="name-asc">Alphabetical: A-Z</option>
+            <option value="name-desc">Alphabetical: Z-A</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="products-grid" id="productsGrid">{productsGridHtml ? <fragment set:html={productsGridHtml} /> : ''}</div>
+    </div>
+  </section>
+
+  <section id="cartPage" class={initialPage === 'cartPage' ? 'active' : ''}>
+    <div class="cart-inner">
+      <div class="cart-left">
+        <h2>Your <em>Order</em></h2>
+        <div class="order-items-container" id="orderItemsContainer"></div>
+      </div>
+      <div class="checkout-summary" style="position: sticky; top: 7rem;">
+        <h3>Summary</h3>
+        <div id="promoContainer"></div>
+        <div class="summary-line"><span>Subtotal</span><span id="summarySubtotal">₹0</span></div>
+        <div class="summary-line" style="display: none;"><span>Shipping Freight</span><span id="summaryShipping">₹0</span></div>
+        <div class="summary-line" id="summaryPromoLine" style="display:none;"><span>Promo</span><span id="summaryPromo">—</span></div>
+        <div class="summary-line total"><span>Total</span><span id="summaryTotal">₹0</span></div>
+        <button class="btn-primary" onclick="window.goToCheckout()" style="width:100%; margin-top:1.5rem; padding: 1rem 2rem;">Proceed to Checkout <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">arrow_forward</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="payment" class={initialPage === 'payment' ? 'active' : ''}>
+
+
+
+
+
+    <div class="checkout-container">
+      <div class="checkout-main-content">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+          <button onclick="window.goBackToCart()" class="back-to-cart-btn" style="background:none;border:none;cursor:pointer;color:var(--stone);font-family:inherit;font-size:0.8rem;display:flex;align-items:center;gap:0.3rem;padding:0;"><span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span> Back to Cart</button>
+          <h2 style="margin:0;font-size:1.8rem;font-weight:300;"><em>Checkout</em></h2>
+          <div></div>
+        </div>
+
+        <!-- Step 1: Shipping Address Form -->
+        <div id="deliveryFormContainer">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.2rem; flex-wrap:wrap; gap:10px;">
+            <h3 class="checkout-section-title" style="margin:0;font-family:'Jost',sans-serif;font-size:0.88rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--black);font-weight:500;">Delivery Address</h3>
+            <button type="button" id="googleAutofillBtn" onclick="window.checkoutGoogleLogin()" onmouseover="this.style.background='var(--cream)'; this.style.borderColor='var(--stone)';" onmouseout="this.style.background='white'; this.style.borderColor='var(--sand)';" style="display:none; align-items:center; gap:8px; background:white; border:1px solid var(--sand); padding: 8px 16px; font-size:0.75rem; cursor:pointer; font-family:'Jost',sans-serif; letter-spacing:0.08em; text-transform:uppercase; color:var(--charcoal); transition:all 0.3s; border-radius:2px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" style="vertical-align:middle;">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              <span>Autofill with Google</span>
+            </button>
+          </div>
+          <!-- Saved Addresses Selection (Zomato-style) -->
+          <div id="savedAddressesSection" style="display:none; margin-bottom:1.5rem;">
+            <div class="saved-addresses-grid" id="savedAddressesGrid" style="display:grid; grid-template-columns: 1fr; gap:16px; margin-bottom:1.5rem;">
+              <!-- Cards dynamically inserted here -->
+            </div>
+            <button type="button" class="btn-primary" onclick="window.showNewAddressForm()" onmouseover="this.style.background='var(--cream)';" onmouseout="this.style.background='white';" style="background:white; color:var(--charcoal); border:1px solid var(--sand); width:100%; padding:0.8rem; font-size:0.75rem; margin-bottom:1rem; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; font-family:'Jost',sans-serif; border-radius:2px; transition:all 0.3s;">+ Add New Address</button>
+            <button type="button" class="btn-primary proceed-btn" onclick="window.proceedToPayment()" style="padding:1rem 2.5rem; width:100%; cursor:pointer;">Continue to Payment <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">arrow_forward</span></button>
+          </div>
+
+          <form id="checkoutForm" class="contact-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>First name</label>
+                <input type="text" id="fname" autocomplete="given-name" required/>
+              </div>
+              <div class="form-group">
+                <label>Last name</label>
+                <input type="text" id="lname" autocomplete="family-name" required/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="email" autocomplete="email" required/>
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="text" id="phone" autocomplete="tel" inputMode="numeric" maxlength="14" required/>
+            </div>
+            <div class="form-group">
+              <label>Address</label>
+              <input type="text" id="address" autocomplete="street-address" required/>
+            </div>
+            <div class="form-group">
+              <label>Pincode</label>
+              <input type="text" id="pincode" autocomplete="postal-code" maxlength="6" required/>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>City</label>
+                <input type="text" id="city" autocomplete="address-level2" required/>
+              </div>
+              <div class="form-group">
+                <label>State</label>
+                <input type="text" id="state" autocomplete="address-level1" required/>
+              </div>
+            </div>
+
+            <!-- Zomato-style Label and Default options -->
+            <div id="addressMetaFields" style="display:none; margin-top:1.2rem;">
+              <div class="form-group" style="margin-bottom:1.2rem;">
+                <label style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--stone);">Address Label</label>
+                <div style="display:flex; gap:10px; margin-top:0.4rem;">
+                  <button type="button" class="label-btn active" onclick="window.setAddressLabel('Home')" id="labelBtnHome" style="flex:1; padding:0.6rem; border:1px solid var(--stone); background:var(--cream); cursor:pointer; font-size:0.75rem; font-family:inherit; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; font-weight:500; transition:all 0.3s;">Home</button>
+                  <button type="button" class="label-btn" onclick="window.setAddressLabel('Work')" id="labelBtnWork" style="flex:1; padding:0.6rem; border:1px solid var(--sand); background:white; cursor:pointer; font-size:0.75rem; font-family:inherit; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; font-weight:500; transition:all 0.3s;">Work</button>
+                  <button type="button" class="label-btn" onclick="window.setAddressLabel('Other')" id="labelBtnOther" style="flex:1; padding:0.6rem; border:1px solid var(--sand); background:white; cursor:pointer; font-size:0.75rem; font-family:inherit; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; font-weight:500; transition:all 0.3s;">Other</button>
+                </div>
+              </div>
+              <div class="form-group" style="display:flex; align-items:center; gap:8px; margin-bottom:1.2rem;">
+                <input type="checkbox" id="isAddressDefault" style="width:auto; height:auto; margin:0; cursor:pointer;" />
+                <label for="isAddressDefault" style="margin:0; font-size:0.8rem; cursor:pointer; text-transform:none; letter-spacing:normal; color:var(--charcoal);">Save as default address</label>
+              </div>
+            </div>
+
+            <!-- Default proceed button for guest / basic flow -->
+            <button type="button" id="guestProceedBtn" class="btn-primary proceed-btn" onclick="window.proceedToPayment()" style="padding:1rem 2.5rem; margin-top:1.5rem; width:100%; cursor:pointer;">Continue to Payment <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">arrow_forward</span></button>
+
+            <!-- Save Address buttons for logged-in user editing -->
+            <div id="addressFormActions" style="display:none; gap:10px; margin-top:1.5rem;">
+              <button type="button" class="btn-primary" onclick="window.cancelAddressForm()" onmouseover="this.style.background='var(--cream)';" onmouseout="this.style.background='white';" style="flex:1; background:white; color:var(--stone); border:1px solid var(--sand); padding:1rem; cursor:pointer; font-family:inherit; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; transition:all 0.3s;">Cancel</button>
+              <button type="button" class="btn-primary" onclick="window.saveAddressForm()" style="flex:2; padding:1rem; cursor:pointer; font-family:inherit; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px;">Save Address</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 2: Shipping Method + Payment + Billing Address -->
+        <div id="paymentScreenContainer" style="display: none;">
+          <!-- Shipping Summary Card -->
+          <div class="checkout-summary-card">
+            <div class="summary-card-row">
+              <span class="card-label">Contact</span>
+              <span class="card-value" id="summaryContactValue"></span>
+            </div>
+            <div class="summary-card-row">
+              <span class="card-label">Ship to</span>
+              <span class="card-value" id="summaryAddressValue"></span>
+            </div>
+          </div>
+
+          <!-- Shipping Method Section -->
+          <div class="checkout-section">
+            <h3 class="checkout-section-title">Shipping method</h3>
+            <div class="shipping-method-box">
+              <span class="shipping-method-name">Standard Shipping</span>
+              <span class="shipping-method-price">₹150.00</span>
+            </div>
+          </div>
+
+          <!-- Payment Section -->
+          <div class="checkout-section">
+            <h3 class="checkout-section-title" style="margin-bottom:0.25rem;">Payment</h3>
+            <p class="checkout-section-subtitle">All transactions are secure and encrypted.</p>
+            
+            <div class="payment-options-group">
+              <!-- Razorpay Secure Option -->
+              <div class="payment-option-card active" onclick="window.setPaymentMethod('Online')">
+                <div class="payment-option-header">
+                  <label class="payment-radio-label-custom">
+                    <input type="radio" name="paymentMethodSelect" value="Online" checked />
+                    <span class="radio-custom-circle"></span>
+                    <span class="payment-method-title">Razorpay Secure (UPI, Cards, Int'l Cards, Wallets)</span>
+                  </label>
+                  <div class="payment-icons">
+                    <svg viewBox="0 0 34 18" width="28" height="15" style="border:1px solid #e2e8f0; border-radius:2px; padding:2px; background:white; vertical-align:middle; margin-right:3px;">
+                      <text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-family="'Jost', sans-serif" font-size="8" font-weight="900" fill="#097939">UPI</text>
+                    </svg>
+                    <svg viewBox="0 0 24 15" width="24" height="15" style="border-radius:2px; vertical-align:middle; margin-right:3px;">
+                      <rect width="24" height="15" fill="#1A1F71" />
+                      <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" font-style="italic" fill="#F7B614">VISA</text>
+                    </svg>
+                    <svg viewBox="0 0 24 15" width="24" height="15" style="border-radius:2px; vertical-align:middle; margin-right:3px;">
+                      <rect width="24" height="15" fill="#222" />
+                      <circle cx="10" cy="7.5" r="5" fill="#EB001B" />
+                      <circle cx="14" cy="7.5" r="5" fill="#FF5F00" opacity="0.8" />
+                    </svg>
+                    <span class="more-payments-badge">+17</span>
+                  </div>
+                </div>
+                <div class="payment-option-body" id="razorpayOptionBody">
+                  <p>You'll be redirected to Razorpay Secure (UPI, Cards, Int'l Cards, Wallets) to complete your purchase.</p>
+                </div>
+              </div>
+
+              <!-- COD Option -->
+              <div class="payment-option-card" onclick="window.setPaymentMethod('COD')">
+                <div class="payment-option-header">
+                  <label class="payment-radio-label-custom">
+                    <input type="radio" name="paymentMethodSelect" value="COD" />
+                    <span class="radio-custom-circle"></span>
+                    <span class="payment-method-title">Cash on Delivery (COD)</span>
+                  </label>
+                </div>
+                <div class="payment-option-body" id="codOptionBody" style="display: none;">
+                  <p>Pay with cash upon delivery of your order. A COD confirmation will be sent.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- Final Pay Now button -->
+          <button class="pay-now-btn" onclick="window.executeSecurePayment()">Pay now</button>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Summary Sidebar -->
+      <div class="checkout-sidebar-content">
+        <div class="checkout-sidebar-inner">
+          <h3 style="margin: 0 0 1.5rem 0; font-family:'Jost',sans-serif; font-size:0.9rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--black); font-weight:500; border-bottom:1px solid var(--sand); padding-bottom:0.75rem;">Summary</h3>
+          <!-- Items List -->
+          <div class="checkout-items-list" id="checkoutSidebarItems">
+            <!-- Dynamically populated from JS -->
+          </div>
+
+          <!-- Discount Input Box -->
+          <div class="checkout-discount-box">
+            <input type="text" id="checkoutDiscountInput" placeholder="Discount code or gift card" />
+            <button onclick="window.applyCheckoutDiscount()" id="checkoutDiscountApplyBtn">Apply</button>
+          </div>
+          <!-- Applied Promo Badge / info if any -->
+          <div id="checkoutAppliedPromoContainer"></div>
+
+          <!-- Breakdown summary -->
+          <div class="checkout-breakdown">
+            <div class="breakdown-row">
+              <span>Subtotal</span>
+              <span id="checkoutSidebarSubtotal">₹0.00</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Shipping</span>
+              <span id="checkoutSidebarShipping">Enter shipping address</span>
+            </div>
+            <div class="breakdown-row discount-row" id="checkoutSidebarDiscountRow" style="display: none;">
+              <span>Discount</span>
+              <span id="checkoutSidebarDiscount">-₹0.00</span>
+            </div>
+            <div class="breakdown-row total-row">
+              <div class="total-label-wrap">
+                <span class="total-main-label">Total</span>
+                <span class="total-sub-label" id="checkoutSidebarTaxLabel" style="display: none;">Including ₹0.00 in taxes</span>
+              </div>
+              <div class="total-price-wrap">
+                <span class="currency-code">INR</span>
+                <span class="total-main-price" id="checkoutSidebarTotal">₹0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ordersPage" class={initialPage === 'ordersPage' ? 'active' : ''}>
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Your <em>Orders</em></h2>
+    </div>
+    <div class="orders-layout">
+      <div class="orders-sidebar">
+        <h3 class="order-history-title">Order History</h3>
+        <div id="myOrdersListContainer">
+          <p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 2rem 0;">No order history found.</p>
+        </div>
+      </div>
+      <div class="orders-detail-view" id="myOrderDetailContainer">
+        <div style="text-align: center; padding: 4rem 2rem;" id="orderDetailEmpty">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--taupe)" stroke-width="1.5" style="margin-bottom:1.5rem;">
+            <circle cx="32" cy="32" r="30" stroke-dasharray="4 2"/>
+            <path d="M22 28L32 38L42 28" stroke-linecap="round"/>
+          </svg>
+          <h3 class="serif" style="font-size:1.8rem; font-weight:300; margin-bottom:1rem; color:var(--black);">No Orders Yet</h3>
+          <p style="font-size:0.85rem; color:var(--stone); max-width:320px; margin:0 auto 2rem; line-height:1.7;">Place your first order to see it here.</p>
+          <button class="btn-primary" onclick="window.showPage('shop')">Explore Shop</button>
+        </div>
+        <div id="orderDetailContent" style="display:none;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="addressesPage" class={initialPage === 'addressesPage' ? 'active' : ''} style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Saved <em>Addresses</em></h2>
+      <button type="button" class="btn-primary" onclick="window.showNewAddressesPageForm()">+ Add New Address</button>
+    </div>
+
+
+
+    <!-- Grid of saved addresses -->
+    <div id="addressesPageGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;">
+      <!-- Dynamic address cards -->
+    </div>
+  </section>
+
+  <section id="about" class={initialPage === 'about' ? 'active' : ''}>
+    <div class="section-header" style="margin-bottom: 3rem;">
+      <h2>Our <em>Story</em></h2>
+    </div>
+    <div class="about-intro">
+      <p>Lumière began with a simple belief: a candle should do more than scent a room — it should slow you down. Every jar we pour is made in small batches at our studio in India, using 100% natural soya wax and botanically sourced fragrance oils.</p>
+      <p>We never use paraffin, phthalates, or synthetic dyes. What you light is clean-burning, conscious, and designed to feel timeless — the kind of glow you reach for at the end of a long day.</p>
+    </div>
+    <div class="about-values">
+      <div class="about-value-card">
+        <h3>Natural Wax</h3>
+        <p>Pure soya wax that burns evenly and slowly, releasing fragrance without petroleum byproducts or soot-heavy smoke.</p>
+      </div>
+      <div class="about-value-card">
+        <h3>Small Batch</h3>
+        <p>Each collection is hand-poured in limited runs. When a scent sells out, we restock thoughtfully — never at the cost of quality.</p>
+      </div>
+      <div class="about-value-card">
+        <h3>Conscious Craft</h3>
+        <p>Recyclable glass vessels, cotton wicks, and fragrances drawn from botanical sources. Minimal packaging, maximum intention.</p>
+      </div>
+    </div>
+    <div class="about-process">
+      <div class="about-process-visual" id="aboutProcessVisual">
+        <svg viewBox="0 0 280 360" fill="none" xmlns="http://www.w3.org/2000/svg" width="220">
+          <rect width="280" height="360" fill="#FFFBF0" rx="2"/>
+          <rect x="70" y="140" width="140" height="170" rx="8" fill="#EDE5D8" stroke="#C4B5A0" stroke-width="1"/>
+          <rect x="63" y="130" width="154" height="16" rx="4" fill="#E0D4C3" stroke="#C4B5A0" stroke-width="1"/>
+          <line x1="140" y1="148" x2="140" y2="118" stroke="#8C7D6E" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M140 118 C132 106 130 92 140 82 C150 92 148 106 140 118Z" fill="#D4B07A" opacity="0.75"/>
+          <path d="M140 115 C136 106 135 98 140 91 C145 98 144 106 140 115Z" fill="#F9EDD0"/>
+          <text x="140" y="210" text-anchor="middle" font-family="'Cormorant Garamond', serif" font-size="10" fill="#2A2420" letter-spacing="2">HAND POURED</text>
+          <text x="140" y="228" text-anchor="middle" font-family="'Jost', sans-serif" font-size="7" fill="#8C7D6E" letter-spacing="1.5">SOYA WAX</text>
+        </svg>
+      </div>
+      <div class="about-process-steps">
+        <div class="about-step">
+          <span class="about-step-num">01</span>
+          <div>
+            <h3>Source & Blend</h3>
+            <p>Fragrance oils are blended in micro-batches and tested for throw, clarity, and burn performance before any pour.</p>
+          </div>
+        </div>
+        <div class="about-step">
+          <span class="about-step-num">02</span>
+          <div>
+            <h3>Hand Pour</h3>
+            <p>Wax is melted, tempered, and poured by hand into reusable glass jars with centered cotton wicks.</p>
+          </div>
+        </div>
+        <div class="about-step">
+          <span class="about-step-num">03</span>
+          <div>
+            <h3>Cure & Ship</h3>
+            <p>Candles cure for 48 hours, then are packed with recycled kraft wrap and shipped across India within 3–5 business days.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="about-quote">
+      <blockquote>"We make candles for the in-between moments — when the day quiets and you need something warm, honest, and still."</blockquote>
+      <cite>— The Lumière Studio</cite>
+    </div>
+  </section>
+
+  <section id="contact" class={initialPage === 'contact' ? 'active' : ''}>
+    <div class="section-header" style="margin-bottom: 3rem;">
+      <h2>Get in <em>Touch</em></h2>
+    </div>
+    <div class="contact-layout">
+      <div class="contact-form-wrap">
+        <h3>Send us a message</h3>
+        <p>Questions about an order, a scent, or wholesale? We'd love to hear from you. We typically reply within one business day.</p>
+        <div class="contact-success" id="contactSuccessMsg">
+          Thank you — your message has been received. We'll get back to you shortly.
+        </div>
+        <form id="contactForm" class="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contactName">Full Name</label>
+              <input type="text" id="contactName" autocomplete="name" required/>
+            </div>
+            <div class="form-group">
+              <label for="contactEmail">Email Address</label>
+              <input type="email" id="contactEmail" autocomplete="email" required/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="contactSubject">Subject</label>
+            <select id="contactSubject" required>
+              <option value="">Select a topic</option>
+              <option value="Order Inquiry">Order Inquiry</option>
+              <option value="Product Question">Product Question</option>
+              <option value="Wholesale">Wholesale &amp; Gifting</option>
+              <option value="Feedback">Feedback</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="contactMessage">Message</label>
+            <textarea id="contactMessage" rows="5" required style="background: var(--cream); border: 1px solid var(--sand); padding: 0.85rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.9rem; outline: none; width: 100%; resize: vertical;"></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="align-self: flex-start; padding: 1rem 2.5rem;">Send Message</button>
+        </form>
+      </div>
+      <div class="contact-info" id="contactDetailsBox">
+        <h3>Studio Details</h3>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Email</div>
+          <div class="contact-detail-value"><a href="mailto:hello@lumierecandles.in">hello@lumierecandles.in</a></div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Phone</div>
+          <div class="contact-detail-value"><a href="tel:+919876543210">+91 98765 43210</a></div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Studio Address</div>
+          <div class="contact-detail-value">India</div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-label">Hours</div>
+          <div class="contact-hours">
+            Monday – Friday: 10:00 AM – 6:00 PM IST<br>
+            Saturday: 11:00 AM – 4:00 PM IST<br>
+            Sunday: Closed
+          </div>
+        </div>
+        <div class="contact-detail" style="margin-bottom: 0;">
+          <div class="contact-detail-label">Follow</div>
+          <div class="footer-social">
+            <a href="https://www.instagram.com/cozy_aura_candle/" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#" onclick="event.preventDefault();" title="Pinterest" aria-label="Pinterest">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.628 0 12-5.372 12-12S18.628 0 12 0z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <footer id="siteFooter">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="footer-logo" onclick="event.preventDefault(); window.showPage('home')">Lumi<span>ère</span></a>
+        <p>Hand-poured soya candles, crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless.</p>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/cozy_aura_candle/" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="#" onclick="event.preventDefault();" title="Pinterest" aria-label="Pinterest">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.628 0 12-5.372 12-12S18.628 0 12 0z"/></svg>
+          </a>
+          <a href="mailto:hello@lumierecandles.in" title="Email" aria-label="Email">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('home')">Home</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('shop')">Shop Collection</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('about')">Our Story</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('contact')">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Account</h4>
+        <ul>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('ordersPage')">Your Orders</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('cartPage')">Cart &amp; Checkout</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="mailto:hello@lumierecandles.in">hello@lumierecandles.in</a></li>
+          <li><a href="tel:+919876543210">+91 98765 43210</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('contact')">Shipping &amp; Returns</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Lumière Soya Candles. All rights reserved.</p>
+      <p><a href="#" onclick="event.preventDefault(); window.showPage('about')">Crafted in India</a></p>
+    </div>
+  </footer>
+  </div>
+
+  <div class="processing-overlay" id="processingOverlay">
+    <div class="spinner-gold"></div>
+    <div class="processing-text">Processing your order...</div>
+    <div class="processing-subtext">Please do not close the window or click back.</div>
+  </div>
+
+  <Modals />
+
+  <div class="cart-toast" id="cartToast"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;">check_circle</span> Added to cart</div>
+
+  <canvas id="celebrationCanvas" style="position: fixed; inset: 0; pointer-events: none; z-index: 1300; width: 100vw; height: 100vh; display: none;"></canvas>
+
+  <!-- Reservation Countdown Timer Banner -->
+  <div id="checkoutTimerBanner" style="display: none; position: fixed !important; bottom: 24px !important; right: 24px !important; width: auto !important; margin: 0 !important; align-items: center; justify-content: center; gap: 8px; background: #FFF9E6; border: 1px solid #FFE299; color: #8A6D1C; padding: 0.85rem 1.25rem; border-radius: 4px; font-size: 0.85rem; font-weight: 500; font-family: 'Jost', sans-serif; letter-spacing: 0.05em; text-transform: uppercase; z-index: 99999 !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; animation: timerSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+    <span class="material-symbols-outlined" style="font-size: 1.1rem; color: #8A6D1C; vertical-align: middle;">alarm</span>
+    <span id="checkoutTimerText">Stock reserved for 10:00</span>
+  </div>
+
+  {initialCatalog && <script is:inline>window.__INITIAL_CATALOG__ = {JSON.stringify(initialCatalog)};</script>}
+</Layout>
+  <script>
+  // Global error banner for diagnostics
+  window.addEventListener('error', function(e) {
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.top = '0';
+    div.style.left = '0';
+    div.style.right = '0';
+    div.style.background = '#fecaca';
+    div.style.color = '#b91c1c';
+    div.style.padding = '1.25rem';
+    div.style.zIndex = '9999';
+    div.style.fontSize = '0.85rem';
+    div.style.fontFamily = 'monospace';
+    div.style.borderBottom = '2px solid #ef4444';
+    div.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+    div.innerHTML = `<strong>Client Error:</strong> ${e.message} <br><small style="opacity:0.8;">at ${e.filename || 'unknown'}:${e.lineno || 0}:${e.colno || 0}</small>`;
+    document.body.appendChild(div);
+  });
+
+  // Global unhandled rejection banner for diagnostics
+  window.addEventListener('unhandledrejection', function(e) {
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.top = '0';
+    div.style.left = '0';
+    div.style.right = '0';
+    div.style.background = '#fde047';
+    div.style.color = '#854d0e';
+    div.style.padding = '1.25rem';
+    div.style.zIndex = '9999';
+    div.style.fontSize = '0.85rem';
+    div.style.fontFamily = 'monospace';
+    div.style.borderBottom = '2px solid #eab308';
+    div.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+    div.innerHTML = `<strong>Promise Rejection:</strong> ${e.reason ? (e.reason.message || e.reason) : 'Unknown rejection reason'}`;
+    document.body.appendChild(div);
+  });
+
+  import '/src/scripts/store.js';
+
+  // --- 3D INTERACTIVE TILT EFFECT ---
+  function init3DAnimations() {
+    const heroVisual = document.querySelector('.hero-visual');
+    const heroFrame = document.querySelector('.hero-image-frame');
+    
+    if (heroVisual && heroFrame) {
+      heroFrame.style.transformStyle = 'preserve-3d';
+      const img = heroFrame.querySelector('.hero-img-element');
+      const border = heroFrame.querySelector('.hero-frame-border');
+      const glow = heroFrame.querySelector('.hero-frame-glow');
+      
+      if (img) {
+        img.style.transform = 'translateZ(-20px) scale(1.12)';
+        img.style.transformStyle = 'preserve-3d';
+      }
+      if (border) {
+        border.style.transform = 'translateZ(30px)';
+        border.style.transformStyle = 'preserve-3d';
+      }
+      if (glow) {
+        glow.style.transform = 'translateZ(10px)';
+        glow.style.transformStyle = 'preserve-3d';
+      }
+
+      heroVisual.addEventListener('mousemove', (e) => {
+        const rect = heroFrame.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = ((centerY - y) / centerY) * 15;
+        const rotateY = ((x - centerX) / centerX) * 15;
+        
+        heroFrame.style.transition = 'transform 0.1s ease-out';
+        heroFrame.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        
+        const orb1 = document.querySelector('.orb-1');
+        const orb2 = document.querySelector('.orb-2');
+        if (orb1) orb1.style.transform = `translate(${rotateY * 1.5}px, ${-rotateX * 1.5}px)`;
+        if (orb2) orb2.style.transform = `translate(${-rotateY * 1.5}px, ${rotateX * 1.5}px)`;
+      });
+      
+      heroVisual.addEventListener('mouseleave', () => {
+        heroFrame.style.transition = 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+        heroFrame.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        
+        const orb1 = document.querySelector('.orb-1');
+        const orb2 = document.querySelector('.orb-2');
+        if (orb1) orb1.style.transform = 'translate(0px, 0px)';
+        if (orb2) orb2.style.transform = 'translate(0px, 0px)';
+      });
+    }
+
+    function setupCardTilt(selector, maxTilt = 8, scale = 1.03) {
+      document.querySelectorAll(selector).forEach(card => {
+        card.style.transformStyle = 'preserve-3d';
+        
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          const rotateX = ((centerY - y) / centerY) * maxTilt;
+          const rotateY = ((x - centerX) / centerX) * maxTilt;
+          
+          card.style.transition = 'transform 0.1s ease-out';
+          card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(${scale}, ${scale}, ${scale})`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+          card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+        });
+      });
+    }
+
+    setupCardTilt('.value-card', 8, 1.03);
+    setupCardTilt('.scent-card', 10, 1.04);
+    
+    const observeAndApplyTilt = (containerId, cardSelector) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const observer = new MutationObserver(() => {
+        setupCardTilt(`#${containerId} ${cardSelector}`, 8, 1.03);
+      });
+      observer.observe(container, { childList: true });
+      setupCardTilt(`#${containerId} ${cardSelector}`, 8, 1.03);
+    };
+
+    observeAndApplyTilt('bestsellerStickyContainer', '.bestseller-card');
+    observeAndApplyTilt('productsGrid', '.product-card');
+  }
+
+  // --- INSTAGRAM HORIZONTAL SCROLL ---
+  function initInstagramScrollPin() {
+    const container = document.getElementById('instagramScrollContainer');
+    const track     = document.getElementById('socialTrack');
+
+    if (!container || !track) return;
+
+    let currentTranslateX = 0;
+    let targetTranslateX  = 0;
+    let isAnimating       = false;
+
+    const updatePosition = () => {
+      const ease = 0.12;
+      const diff = targetTranslateX - currentTranslateX;
+      if (Math.abs(diff) > 0.05) {
+        currentTranslateX += diff * ease;
+        track.style.transform = `translate3d(${currentTranslateX}px, 0, 0)`;
+        requestAnimationFrame(updatePosition);
+      } else {
+        currentTranslateX = targetTranslateX;
+        track.style.transform = `translate3d(${currentTranslateX}px, 0, 0)`;
+        isAnimating = false;
+      }
+    };
+
+    const onScroll = () => {
+      const rect            = container.getBoundingClientRect();
+      const containerHeight = rect.height;
+      const viewHeight      = window.innerHeight;
+
+      const scrolled        = 90 - rect.top;
+      const totalScrollable = containerHeight - viewHeight;
+
+      let progress = scrolled / totalScrollable;
+      progress = Math.max(0, Math.min(1, progress));
+
+      const maxTranslate = Math.max(0, track.scrollWidth - window.innerWidth);
+      targetTranslateX   = -progress * maxTranslate;
+
+      if (!isAnimating) {
+        isAnimating = true;
+        requestAnimationFrame(updatePosition);
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    onScroll();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      init3DAnimations();
+      initInstagramScrollPin();
+    });
+  } else {
+    init3DAnimations();
+    initInstagramScrollPin();
+  }
+
+  // Toggle scrolled class on navbar
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    if (nav) {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    }
+  });
+
+  document.getElementById('contactForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'new_message',
+          siteToken: 'LUMIERE_STORE_2026',
+          name: document.getElementById('contactName').value,
+          email: document.getElementById('contactEmail').value,
+          subject: document.getElementById('contactSubject').value,
+          message: document.getElementById('contactMessage').value
+        })
+      });
+      const json = await res.json();
+      if (json.success) {
+        this.reset();
+        document.getElementById('contactSuccessMsg').classList.add('show');
+      } else {
+        alert(json.error || 'Failed to send message.');
+      }
+    } catch(e) {
+      alert('Could not send message. Please try again.');
+    }
+  });
+</script>

@@ -1,0 +1,525 @@
+import { createClient } from '@supabase/supabase-js';
+import { sendOrderShipped } from '../../lib/email.js';
+
+const supabase = createClient(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_SERVICE_ROLE_KEY);
+
+async function autoCleanInactiveVariants() {
+  try {
+    const { data: setRow } = await supabase.from('settings').select('value').eq('key', 'GLOBAL_FRAGRANCES').single();
+    const globalFrags = setRow ? setRow.value : [];
+    const { data: zeroStockVariants } = await supabase.from('product_variants').select('*').eq('stock', 0);
+    if (zeroStockVariants && zeroStockVariants.length > 0) {
+      const toDelete = zeroStockVariants.filter(v => {
+        const name = v.variant_name.toLowerCase().trim();
+        return !globalFrags.map(gf => gf.toLowerCase().trim()).includes(name);
+      });
+      if (toDelete.length > 0) {
+        const deleteIds = toDelete.map(v => v.id);
+        await supabase.from('product_variants').delete().in('id', deleteIds);
+      }
+    }
+  } catch (err) {
+    console.error("Auto cleanup error:", err);
+  }
+}
+
+async function uploadToCloudinary(base64Payload, identifierToken) {
+  try {
+    const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = import.meta.env.CLOUDINARY_API_KEY;
+    const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
+
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const signatureContextString = `public_id=${identifierToken}&timestamp=${timestamp}${apiSecret}`;
+
+    const crypto = await import('crypto');
+    const signature = crypto.createHash('sha1').update(signatureContextString).digest('hex');
+
+    const formData = new URLSearchParams();
+    formData.append('file', base64Payload);
+    formData.append('public_id', identifierToken);
+    formData.append('timestamp', timestamp.toString());
+    formData.append('api_key', apiKey);
+    formData.append('signature', signature);
+
+    const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const parsedAsset = await cloudinaryResponse.json();
+    const url = parsedAsset.secure_url || "";
+    if (url && url.includes('/image/upload/')) {
+      const maxWidth = 1200;
+      return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${maxWidth}/`);
+    }
+    return url;
+  } catch (e) {
+    console.error("Cloudinary upload error:", e);
+    return base64Payload;
+  }
+}
+
+async function executeCloudinaryCleanup() {
+  try {
+    // 1. Fetch all products and product_variants to get active images
+    const { data: dbProducts } = await supabase.from('products').select('cover_image');
+    const { data: dbVariants } = await supabase.from('product_variants').select('image_url');
+
+    const activePublicIds = new Set();
+
+    const extractPublicId = (url) => {
+      if (!url || !url.includes('cloudinary.com')) return null;
+      try {
+        const parts = url.split('/image/upload/');
+        if (parts.length < 2) return null;
+        let subPath = parts[1];
+        // Remove version prefix (e.g. v123456/)
+        subPath = subPath.replace(/^v\d+\//, '');
+        // Remove file extension
+        const dotIdx = subPath.lastIndexOf('.');
+        if (dotIdx !== -1) {
+          subPath = subPath.substring(0, dotIdx);
+        }
+        return subPath;
+      } catch (e) {
+        return null;
+      }
+    };
+
+    if (dbProducts) {
+      dbProducts.forEach(p => {
+        const id = extractPublicId(p.cover_image);
+        if (id) activePublicIds.add(id);
+      });
+    }
+
+    if (dbVariants) {
+      dbVariants.forEach(v => {
+        const id = extractPublicId(v.image_url);
+        if (id) activePublicIds.add(id);
+      });
+    }
+
+    // 2. Fetch all images from Cloudinary using Admin API
+    const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = import.meta.env.CLOUDINARY_API_KEY;
+    const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      return new Response(JSON.stringify({ success: false, error: "Cloudinary credentials missing." }), { status: 500 });
+    }
+
+    const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+    const fetchRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image?max_results=500`, {
+      headers: {
+        'Authorization': `Basic ${auth}`
+      }
+    });
+
+    if (!fetchRes.ok) {
+      const errText = await fetchRes.text();
+      return new Response(JSON.stringify({ success: false, error: "Failed to query Cloudinary list: " + errText }), { status: 500 });
+    }
+
+    const cloudData = await fetchRes.json();
+    const unusedPublicIds = [];
+
+    if (cloudData.resources) {
+      for (const r of cloudData.resources) {
+        // Only check and delete images created by this store (starts with cover_ or var_) to be safe
+        if (r.public_id.startsWith('cover_') || r.public_id.startsWith('var_')) {
+          if (!activePublicIds.has(r.public_id)) {
+            unusedPublicIds.push(r.public_id);
+          }
+        }
+      }
+    }
+
+    // 3. Delete unused images from Cloudinary in bulk
+    let deletedCount = 0;
+    if (unusedPublicIds.length > 0) {
+      const bodyParams = new URLSearchParams();
+      unusedPublicIds.forEach(id => {
+        bodyParams.append('public_ids[]', id);
+      });
+
+      const deleteRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: bodyParams.toString()
+      });
+
+      if (!deleteRes.ok) {
+        const errText = await deleteRes.text();
+        return new Response(JSON.stringify({ success: false, error: "Failed to delete unused assets from Cloudinary: " + errText }), { status: 500 });
+      }
+      deletedCount = unusedPublicIds.length;
+    }
+
+    return new Response(JSON.stringify({ success: true, deletedCount, deletedIds: unusedPublicIds }), { status: 200 });
+  } catch (err) {
+    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+  }
+}
+
+// Background scheduler for long-running server instances
+let isSchedulerRunning = false;
+function runCleanupInBackground() {
+  console.log("[Scheduler] Starting automatic daily Cloudinary image cleanup...");
+  executeCloudinaryCleanup()
+    .then(res => res.json())
+    .then(json => {
+      console.log(`[Scheduler] Automatic cleanup finished. Deleted ${json.deletedCount || 0} assets.`);
+    })
+    .catch(err => {
+      console.error("[Scheduler] Automatic cleanup error:", err);
+    });
+}
+
+function startAutomaticCleanupSchedule() {
+  if (isSchedulerRunning) return;
+  isSchedulerRunning = true;
+
+  const targetHour = 15; // 3:00 PM (15:00) daily
+  const now = new Date();
+  let nextTrigger = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetHour, 0, 0, 0);
+  if (nextTrigger <= now) {
+    nextTrigger.setDate(nextTrigger.getDate() + 1);
+  }
+  const delay = nextTrigger - now;
+  console.log(`[Scheduler] Image cleanup scheduled daily at 3:00 PM. Next run in ${(delay / 1000 / 60 / 60).toFixed(2)} hours.`);
+
+  setTimeout(() => {
+    runCleanupInBackground();
+    setInterval(runCleanupInBackground, 24 * 60 * 60 * 1000);
+  }, delay);
+}
+
+// Start schedule on load
+if (typeof process !== 'undefined') {
+  startAutomaticCleanupSchedule();
+}
+
+export async function GET({ request }) {
+  try {
+    await autoCleanInactiveVariants();
+    const url = new URL(request.url);
+    const adminSecret = import.meta.env.ADMIN_SECRET;
+    if (!adminSecret) {
+      return new Response(JSON.stringify({ success: false, error: "Server misconfiguration: ADMIN_SECRET not set." }), { status: 503 });
+    }
+    if (url.searchParams.get('adminSecret') !== adminSecret) {
+      return new Response(JSON.stringify({ success: false, error: "Access Denied." }), { status: 401 });
+    }
+
+    const action = url.searchParams.get('action');
+    if (action === 'clean_unused_images') {
+      return await executeCloudinaryCleanup();
+    }
+
+    let dbProducts = [];
+    let hasSalesView = false;
+    try {
+      const { data, error } = await supabase.from('products_with_sales').select('*');
+      if (data && !error) {
+        dbProducts = data;
+        hasSalesView = true;
+      }
+    } catch (e) {
+      console.warn("View products_with_sales not available, using fallback calculation.");
+    }
+
+    if (!hasSalesView) {
+      const { data } = await supabase.from('products').select('*');
+      dbProducts = data || [];
+    }
+
+    const [
+      { data: product_variants },
+      { data: orders },
+      { data: order_items },
+      { data: coupons },
+      { data: settings },
+      { data: storefront_images_setting }
+    ] = await Promise.all([
+      supabase.from('product_variants').select('*'),
+      supabase.from('orders').select('*').order('date', { ascending: false }),
+      supabase.from('order_items').select('*'),
+      supabase.from('coupons').select('*'),
+      supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
+      supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single()
+    ]);
+
+    let salesMap = {};
+    if (!hasSalesView && order_items) {
+      order_items.forEach(item => {
+        salesMap[item.product_id] = (salesMap[item.product_id] || 0) + (item.quantity || 0);
+      });
+    }
+
+    // Fetch back_in_stock_requests
+    let requestsMap = {};
+    let fragranceRequestsMap = {};
+    try {
+      const { data: dbRequests } = await supabase.from('back_in_stock_requests').select('product_id, variant_name');
+      if (dbRequests) {
+        dbRequests.forEach(req => {
+          const pid = req.product_id;
+          const vname = req.variant_name;
+          requestsMap[pid] = (requestsMap[pid] || 0) + 1;
+          if (!fragranceRequestsMap[pid]) {
+             fragranceRequestsMap[pid] = {};
+          }
+          fragranceRequestsMap[pid][vname] = (fragranceRequestsMap[pid][vname] || 0) + 1;
+        });
+      }
+    } catch (e) {
+      console.warn("Table back_in_stock_requests not found in database.");
+    }
+
+    const variantsByProductId = {};
+    (product_variants || []).forEach(v => {
+      if (!variantsByProductId[v.product_id]) variantsByProductId[v.product_id] = [];
+      variantsByProductId[v.product_id].push(v);
+    });
+
+    const deepInventoryMap = dbProducts.map(p => {
+      const vars = variantsByProductId[p.id] || [];
+      let fragranceStocks = {};
+      let fragranceImages = {};
+      vars.forEach(v => {
+        fragranceStocks[v.variant_name] = v.stock;
+        if(v.image_url) fragranceImages[v.variant_name] = v.image_url;
+      });
+      return {
+        id: p.id, name: p.name, category: p.category, price: p.price, weight: p.weight, stock: p.stock,
+        coverImage: p.cover_image, description: p.description, specifications: p.specifications,
+        fragranceStocks, fragranceImages, totalSales: hasSalesView ? (p.total_sales || 0) : (salesMap[p.id] || 0),
+        salesRank: hasSalesView ? (p.sales_rank || null) : null,
+        requests: requestsMap[p.id] || 0,
+        fragranceRequests: fragranceRequestsMap[p.id] || {}
+      };
+    });
+
+    const compositeOrders = orders ? orders.map(o => {
+      const matches = order_items.filter(oi => oi.order_id === o.id);
+      const structuralItems = matches.map(m => ({
+        product: { id: m.product_id, name: m.product_name, price: m.price },
+        variant: { name: m.variant_name, price: m.price },
+        quantity: m.quantity
+      }));
+      return {
+        id: o.id, date: o.date, total: `₹ ${o.total}`, status: o.status,
+        trackingNumber: o.tracking_number, courier: o.courier,
+        trackingLink: o.tracking_link || '',
+        itemsSummary: o.items_summary || '',
+        shippingInfo: {
+          fname: o.shipping_fname || '',
+          lname: o.shipping_lname || '',
+          email: o.shipping_email || '',
+          address: o.shipping_address || '',
+          city: o.shipping_city || '',
+          state: o.shipping_state || '',
+          pincode: o.shipping_pincode || '',
+          phone: o.shipping_phone || '',
+          whatsapp: o.shipping_phone || ''
+        },
+        items: structuralItems
+      };
+    }) : [];
+
+    return new Response(JSON.stringify({
+      success: true,
+      data: {
+        inventory: deepInventoryMap,
+        orders: compositeOrders,
+        coupons,
+        fragrances: settings ? settings.value : [],
+        storefrontImages: storefront_images_setting ? storefront_images_setting.value : null
+      }
+    }), { status: 200 });
+  } catch (err) {
+    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+  }
+}
+
+export async function POST({ request }) {
+  try {
+    await autoCleanInactiveVariants();
+    const data = await request.json();
+    const adminSecretPost = import.meta.env.ADMIN_SECRET;
+    if (!adminSecretPost) {
+      return new Response(JSON.stringify({ success: false, error: "Server misconfiguration: ADMIN_SECRET not set." }), { status: 503 });
+    }
+    if (data.adminSecret !== adminSecretPost) {
+      return new Response(JSON.stringify({ success: false, error: "Access Denied." }), { status: 401 });
+    }
+
+    const { action } = data;
+
+    if (action === 'clean_unused_images') {
+      return await executeCloudinaryCleanup();
+    }
+
+    if (action === 'verify_secret') {
+      return new Response(JSON.stringify({ success: true, message: "Access Authorized" }), { status: 200 });
+    }
+
+    if (action === 'save_product') {
+      let liveCoverUrl = data.product.coverImage;
+      if (liveCoverUrl && liveCoverUrl.startsWith("data:image")) {
+        liveCoverUrl = await uploadToCloudinary(liveCoverUrl, `cover_${data.product.id}`);
+      }
+
+      await supabase.from('products').upsert({
+        id: data.product.id,
+        name: data.product.name,
+        category: data.product.category,
+        price: data.product.price,
+        weight: data.product.weight,
+        stock: data.product.stock,
+        cover_image: liveCoverUrl,
+        description: data.product.description,
+        specifications: data.product.specifications
+      });
+
+      const { data: existingVariants } = await supabase.from('product_variants').select('*').eq('product_id', data.product.id);
+
+      const submittedFragrances = data.product.fragranceStocks || {};
+      const submittedImages = data.product.fragranceImages || {};
+
+      for (const existing of existingVariants || []) {
+        if (!(existing.variant_name in submittedFragrances)) {
+          if (existing.stock > 0) {
+            submittedFragrances[existing.variant_name] = existing.stock;
+            if (existing.image_url && !submittedImages[existing.variant_name]) {
+              submittedImages[existing.variant_name] = existing.image_url;
+            }
+          }
+        }
+      }
+
+      // Upload variant images in parallel first
+      const variantRows = [];
+      await Promise.all(Object.entries(submittedFragrances).map(async ([fragranceName, stockCount]) => {
+        let variantMediaUrl = submittedImages[fragranceName] || "";
+        if (variantMediaUrl && variantMediaUrl.startsWith("data:image")) {
+          variantMediaUrl = await uploadToCloudinary(variantMediaUrl, `var_${data.product.id}_${fragranceName.replace(/\s+/g, '')}`);
+        }
+        variantRows.push({
+          product_id: data.product.id,
+          variant_name: fragranceName,
+          stock: stockCount,
+          image_url: variantMediaUrl
+        });
+      }));
+
+      // Atomic variant delete-then-insert via Postgres RPC (H9)
+      const variantsPayload = variantRows.map(vr => ({
+        variant_name: vr.variant_name,
+        stock: vr.stock,
+        image_url: vr.image_url
+      }));
+      const { error: rpcErr } = await supabase.rpc('save_product_variants', {
+        p_product_id: data.product.id,
+        p_variants: variantsPayload
+      });
+      if (rpcErr) {
+        return new Response(JSON.stringify({ success: false, error: "Failed to save variants: " + rpcErr.message }), { status: 500 });
+      }
+      await supabase.rpc('refresh_sales_view');
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (action === 'delete_product') {
+      const { error: delProdErr } = await supabase.from('products').delete().eq('id', data.productId);
+      if (delProdErr) return new Response(JSON.stringify({ success: false, error: delProdErr.message }), { status: 500 });
+      await supabase.rpc('refresh_sales_view');
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (action === 'delete_order') {
+      const { error: delOrdErr } = await supabase.from('orders').delete().eq('id', data.orderId);
+      if (delOrdErr) return new Response(JSON.stringify({ success: false, error: delOrdErr.message }), { status: 500 });
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (action === 'update_tracking') {
+      const { error: trackErr } = await supabase.from('orders').update({
+        status: data.status,
+        tracking_number: data.trackingNo,
+        courier: data.courier,
+        tracking_link: data.trackingLink || ''
+      }).eq('id', data.orderId);
+      if (trackErr) return new Response(JSON.stringify({ success: false, error: trackErr.message }), { status: 500 });
+
+      if (data.status === 'Shipped') {
+        const { data: order } = await supabase.from('orders').select('*').eq('id', data.orderId).single();
+        if (order?.shipping_email) {
+          sendOrderShipped({
+            email: order.shipping_email,
+            name: `${order.shipping_fname || ''} ${order.shipping_lname || ''}`.trim(),
+            orderId: order.id,
+            trackingNumber: data.trackingNo || order.tracking_number || '',
+            courier: data.courier || order.courier || '',
+            trackingLink: data.trackingLink || order.tracking_link || ''
+          });
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (action === 'save_coupon') {
+      await supabase.from('coupons').upsert({
+        code: (data.coupon.code || '').toUpperCase().trim(),
+        discount: data.coupon.discount,
+        type: data.coupon.type,
+        status: data.coupon.status
+      });
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (action === 'delete_coupon') {
+      await supabase.from('coupons').delete().eq('code', data.code);
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (action === 'save_global_fragrances') {
+      await supabase.from('settings').upsert({ key: 'GLOBAL_FRAGRANCES', value: data.fragrances });
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (action === 'save_storefront_images') {
+      const images = data.storefrontImages || {};
+      const updatedImages = { ...images };
+
+      await Promise.all(Object.keys(images).map(async (key) => {
+        let val = images[key] || "";
+        if (val && val.startsWith("data:image")) {
+          const publicId = `sf_${key}`;
+          updatedImages[key] = await uploadToCloudinary(val, publicId);
+        }
+      }));
+
+      const { error } = await supabase.from('settings').upsert({
+        key: 'STOREFRONT_IMAGES',
+        value: updatedImages
+      });
+
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: "Failed to save storefront images: " + error.message }), { status: 500 });
+      }
+
+      return new Response(JSON.stringify({ success: true, storefrontImages: updatedImages }), { status: 200 });
+    }
+
+    return new Response(JSON.stringify({ success: false, error: "Action parameters matching exception" }), { status: 400 });
+  } catch (err) {
+    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+  }
+}

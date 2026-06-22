@@ -12,6 +12,7 @@
     "@astrojs/node": "^9.0.0",
     "@supabase/supabase-js": "^2.49.0",
     "astro": "^5.0.0",
+    "jspdf": "^4.2.1",
     "nodemailer": "^9.0.1"
   }
 }

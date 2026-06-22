@@ -1,3 +1,5 @@
+import { jsPDF } from 'jspdf';
+
 const ADMINISTRATIVE_API_ROUTE = "/api/admin";
 
 window.currentFragranceImagesMap = {};
@@ -520,66 +522,146 @@ window.downloadInvoiceBill = function() {
     if(!order) return;
 
     const inventory = JSON.parse(localStorage.getItem('lumiere_inventory') || '[]');
-    let itemsDetailsText = (order.items || []).map(item => {
+
+    const orderNum = String(order.id).startsWith('#') ? String(order.id).slice(1) : String(order.id);
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    // --- helper: wrapped text lines ---
+    function addWrapped(text, x, y, maxWidth, lineHeight) {
+        const lines = doc.splitTextToSize(text, maxWidth);
+        for (const line of lines) {
+            if (y + lineHeight > 285) { doc.addPage(); y = 20; }
+            doc.text(line, x, y);
+            y += lineHeight;
+        }
+        return y;
+    }
+
+    // --- header ---
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('LUMIÈRE SOYA CANDLES', 105, 25, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text('INVOICE RECEIPT', 105, 33, { align: 'center' });
+
+    // horizontal rule
+    doc.setDrawColor(200);
+    doc.line(15, 38, 195, 38);
+
+    let y = 46;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+
+    // --- order info ---
+    doc.setFont('helvetica', 'bold');
+    doc.text('Order ID:', 15, y); doc.setFont('helvetica', 'normal');
+    doc.text(`#${orderNum}`, 50, y); y += 7;
+
+    if (order.courier) {
+        doc.setFont('helvetica', 'bold'); doc.text('Courier:', 15, y); doc.setFont('helvetica', 'normal');
+        doc.text(order.courier, 50, y); y += 6;
+    }
+    if (order.trackingNumber) {
+        doc.setFont('helvetica', 'bold'); doc.text('Tracking No:', 15, y); doc.setFont('helvetica', 'normal');
+        doc.text(order.trackingNumber, 50, y); y += 6;
+    }
+    if (order.trackingLink) {
+        doc.setFont('helvetica', 'bold'); doc.text('Tracking Link:', 15, y); doc.setFont('helvetica', 'normal');
+        y = addWrapped(order.trackingLink, 50, y, 140, 5);
+    }
+
+    const customerFullName = order.customer || `${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.trim() || 'Guest';
+    doc.setFont('helvetica', 'bold'); doc.text('Customer:', 15, y); doc.setFont('helvetica', 'normal');
+    doc.text(customerFullName, 50, y); y += 7;
+    if (order.shippingInfo?.email) {
+        doc.setFont('helvetica', 'bold'); doc.text('Email:', 15, y); doc.setFont('helvetica', 'normal');
+        doc.text(order.shippingInfo.email, 50, y); y += 6;
+    }
+
+    doc.setFont('helvetica', 'bold'); doc.text('Date:', 15, y); doc.setFont('helvetica', 'normal');
+    doc.text(order.date ? new Date(order.date).toLocaleDateString() : '—', 50, y); y += 6;
+    doc.setFont('helvetica', 'bold'); doc.text('Payment:', 15, y); doc.setFont('helvetica', 'normal');
+    doc.text(order.paymentMethod || 'COD / Pay on Delivery', 50, y); y += 6;
+    doc.setFont('helvetica', 'bold'); doc.text('Status:', 15, y); doc.setFont('helvetica', 'normal');
+    doc.text(order.status || '—', 50, y); y += 8;
+
+    // --- shipping address ---
+    if (order.shippingInfo) {
+        const addr = order.shippingInfo;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Shipping Address:', 15, y); y += 6;
+        doc.setFont('helvetica', 'normal');
+        y = addWrapped(`${addr.address || 'N/A'}, ${addr.city || 'N/A'}${addr.state ? ', ' + addr.state : ''} ${addr.pincode ? '- ' + addr.pincode : ''}`, 15, y, 175, 5);
+        doc.setFont('helvetica', 'bold'); doc.text('Phone:', 15, y); doc.setFont('helvetica', 'normal');
+        doc.text(addr.phone || 'N/A', 40, y); y += 8;
+    }
+
+    // --- items header ---
+    doc.setDrawColor(200);
+    doc.line(15, y, 195, y); y += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Purchased Items', 15, y); y += 7;
+    doc.setFontSize(9);
+
+    // table header
+    doc.setFillColor(245, 245, 245);
+    doc.rect(15, y - 4, 180, 6, 'F');
+    doc.text('Item', 17, y);
+    doc.text('Qty', 130, y);
+    doc.text('Price', 150, y);
+    doc.text('Total', 175, y, { align: 'right' });
+    y += 7;
+
+    doc.setFont('helvetica', 'normal');
+    for (const item of (order.items || [])) {
         const invItem = inventory.find(p => String(p.id) === String(item.product?.id || item.id));
         const productName = item.product?.name || item.name || 'Product';
         const chosenFragrance = item.variant?.name || item.chosenFragrance || 'Standard';
         const itemPrice = parseInt(item.product?.price || item.price) || 0;
         const subtotal = itemPrice * item.quantity;
-        
-        let text = `${productName} (${chosenFragrance}) [Category: ${item.product?.category || item.category || 'N/A'}] x ${item.quantity} = ₹${subtotal.toLocaleString('en-IN')}`;
-        let desc = invItem ? invItem.description : "";
-        let specs = invItem ? (Array.isArray(invItem.specifications) ? invItem.specifications.join(', ') : invItem.specifications) : "";
-        if (desc && desc.trim().toLowerCase() !== 'undefined') text += `\n   Description: ${desc}`;
-        if (specs && specs.trim().toLowerCase() !== 'undefined') text += `\n   Specs: ${specs}`;
-        return text;
-    }).join('\n\n');
+        itemSubtotalSum += subtotal;
 
-    let courierDetailsText = '';
-    if (order.trackingNumber || order.courier || order.trackingLink) {
-        if (order.courier) courierDetailsText += `\nCourier Partner: ${order.courier}`;
-        if (order.trackingNumber) courierDetailsText += `\nWaybill / Tracking No: ${order.trackingNumber}`;
-        if (order.trackingLink) courierDetailsText += `\nTracking Link: ${order.trackingLink}`;
+        if (y > 260) { doc.addPage(); y = 20; }
+        const label = `${productName} (${chosenFragrance})`;
+        doc.text(label, 17, y);
+        doc.text(String(item.quantity), 130, y);
+        doc.text(`₹${itemPrice.toLocaleString('en-IN')}`, 150, y);
+        doc.text(`₹${subtotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
+        y += 5;
+
+        if (invItem && invItem.description && invItem.description.trim().toLowerCase() !== 'undefined') {
+            if (y > 260) { doc.addPage(); y = 20; }
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            y = addWrapped(`Desc: ${invItem.description}`, 22, y, 165, 4);
+            doc.setTextColor(0);
+            doc.setFontSize(9);
+        }
     }
 
-    const customerFullName = order.customer || `${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.trim() || 'Guest';
-    let customerDetailsText = `\nCustomer: ${customerFullName}`;
-    if (order.shippingInfo?.email) customerDetailsText += `\nEmail Contact: ${order.shippingInfo.email}`;
-    
-    let addressDetailsText = '';
-    if (order.shippingInfo) {
-        const addr = order.shippingInfo;
-        addressDetailsText = `\nShipping Address: ${addr.address || 'N/A'}, ${addr.city || 'N/A'}${addr.state ? ', ' + addr.state : ''} ${addr.pincode ? '- ' + addr.pincode : ''}\nPhone Contact: ${addr.phone || 'N/A'}`;
-    }
+    // totals
+    y += 4;
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.setDrawColor(200);
+    doc.line(15, y, 195, y); y += 6;
 
     const orderTotal = parseInt(order.total.replace(/[^\d]/g, '')) || 0;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(`Gross Total Amount Paid: ₹${orderTotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
+    y += 12;
 
-    let invoiceText = `
---------------------------------------------
-          LUMIÈRE SOYA CANDLES
-            INVOICE RECEIPT
---------------------------------------------
-Order ID: ${String(order.id).startsWith('#') ? String(order.id) : '#' + String(order.id)}${courierDetailsText}${customerDetailsText}
-Date Logged: ${order.date ? new Date(order.date).toLocaleDateString() : '—'}
-Payment Method: ${order.paymentMethod || 'COD / Pay on Delivery'}
-Workflow Status: ${order.status}${addressDetailsText}
+    // footer
+    doc.setDrawColor(200);
+    doc.line(15, y, 195, y); y += 6;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text('Thank you for purchasing clean soya wax!', 105, y, { align: 'center' });
 
-Purchased Items Summary:
-${itemsDetailsText}
-
---------------------------------------------
-Gross Total Amount Paid: ₹${orderTotal.toLocaleString('en-IN')}
---------------------------------------------
-    Thank you for purchasing clean soya wax!
---------------------------------------------
-`;
-
-    const blob = new Blob([invoiceText], { type: 'text/plain' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    const orderNum = String(order.id).startsWith('#') ? String(order.id).slice(1) : String(order.id);
-    link.download = `Lumiere_Invoice_#${orderNum}.txt`;
-    link.click();
+    // --- save ---
+    doc.save(`Lumiere_Invoice_#${orderNum}.pdf`);
 };
 
 window.openCouponModal = function() {

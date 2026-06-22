@@ -580,8 +580,9 @@ export async function POST({ request }) {
           return new Response(JSON.stringify({ success: false, error: "Cart total mismatch. The amount paid does not match the cart total." }), { status: 400 });
         }
 
-      } else {
-        let recalculated;
+      }
+      let recalculated;
+      if (isCOD) {
         try {
           recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null);
         } catch (err) {

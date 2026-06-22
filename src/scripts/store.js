@@ -2698,27 +2698,47 @@ window.applyStorefrontImages = function() {
           targetSrc = targetSrc.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1200/');
         }
       }
+      // Build srcset from original raw URL
+      const rawUrl = sf.home_hero || "";
+      const uploadIdx = rawUrl.indexOf('/image/upload/');
+      const widths = [400, 800, 1200];
+      let srcset = '';
+      if (uploadIdx !== -1) {
+        const prefix = rawUrl.substring(0, uploadIdx + 13); // up to '/image/upload/'
+        const rest = rawUrl.substring(uploadIdx + 14); // after '/image/upload/'
+        const slashIdx = rest.indexOf('/');
+        if (slashIdx !== -1) {
+          let transform = rest.substring(0, slashIdx);
+          const publicId = rest.substring(slashIdx);
+          if (transform.includes('f_auto')) {
+            transform = transform.replace(/w_\d+/, 'w_');
+          } else {
+            transform = 'f_auto,q_auto,w_';
+          }
+          srcset = widths.map(w => `${prefix}${transform.replace(/w_$/, `w_${w}`)}${publicId} ${w}w`).join(', ');
+        } else {
+          srcset = widths.map(w => `${prefix}f_auto,q_auto,w_${w}/${rest} ${w}w`).join(', ');
+        }
+      }
       if (heroImg.getAttribute('src') !== targetSrc) {
         heroImg.style.opacity = '0';
         heroImg.setAttribute('src', targetSrc);
+        heroImg.setAttribute('srcset', srcset);
+        heroImg.setAttribute('sizes', '(max-width: 480px) 90vw, (max-width: 768px) 50vw, 380px');
         heroImg.onload = () => {
           heroImg.style.opacity = '1';
-          if (window.__pageImagesReady) window.__pageImagesReady();
         };
         if (heroImg.complete) {
           heroImg.style.opacity = '1';
-          if (window.__pageImagesReady) window.__pageImagesReady();
         }
       } else {
         heroImg.style.opacity = '1';
-        if (window.__pageImagesReady) window.__pageImagesReady();
       }
     } else {
       if (heroVisual) heroVisual.style.display = 'none';
       if (heroInner) heroInner.style.gridTemplateColumns = '1fr';
       heroImg.setAttribute('src', '');
       heroImg.style.opacity = '0';
-      if (window.__pageImagesReady) window.__pageImagesReady();
     }
   }
   

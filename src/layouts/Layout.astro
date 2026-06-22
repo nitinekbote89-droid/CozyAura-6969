@@ -21,11 +21,9 @@ import '/src/styles/global.css';
   <meta name="twitter:title" content="Lumière — Hand-Poured Soya Candles" />
   <meta name="twitter:description" content="Hand-poured 100% natural soya candles crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless — from our studio in India." />
   <meta name="twitter:image" content="https://lumierecandles.in/favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://checkout.razorpay.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet" />
   <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
   <script type="application/ld+json" is:inline>
   {
@@ -53,39 +51,6 @@ import '/src/styles/global.css';
   <slot name="head" />
 </head>
 <body>
-  <div id="pageLoader" class="page-loader">
-    <div class="loader-content">
-      <div class="loader-logo">Lumi<span>ère</span></div>
-      <div class="loader-glow"></div>
-      <div class="loader-bar"><div class="loader-bar-fill"></div></div>
-    </div>
-  </div>
   <slot />
-  <script is:inline>
-    window.addEventListener('DOMContentLoaded', () => {
-      const loader = document.getElementById('pageLoader');
-      if (!loader) return;
-      let imagesReady = false;
-      let minDelayElapsed = false;
-
-      const hide = () => {
-        if (!imagesReady || !minDelayElapsed) return;
-        loader.style.opacity = '0';
-        setTimeout(() => { loader.style.display = 'none'; }, 500);
-      };
-
-      setTimeout(() => { minDelayElapsed = true; hide(); }, 600);
-      setTimeout(() => { imagesReady = true; hide(); }, 6000); // safety timeout
-
-      window.__pageImagesReady = function() {
-        imagesReady = true;
-        hide();
-      };
-
-      document.fonts.ready.then(() => {
-        // fonts loaded, but still wait for images
-      });
-    });
-  </script>
 </body>
 </html>

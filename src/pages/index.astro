@@ -38,6 +38,26 @@ function ssrOptimizeUrl(url, width) {
   }
   return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
 }
+function ssrSrcset(url) {
+  if (!url || !url.includes('/image/upload/')) return '';
+  const uploadIdx = url.indexOf('/image/upload/');
+  const prefix = url.substring(0, uploadIdx + 13);
+  let rest = url.substring(uploadIdx + 14);
+  const slashIdx = rest.indexOf('/');
+  if (slashIdx !== -1) {
+    let transform = rest.substring(0, slashIdx);
+    const publicId = rest.substring(slashIdx);
+    if (transform.includes('f_auto')) {
+      transform = transform.replace(/w_\d+/, 'w_');
+    } else {
+      transform = 'f_auto,q_auto,w_';
+    }
+    const widths = [400, 800, 1200];
+    return widths.map(w => `${prefix}${transform.replace(/w_$/, `w_${w}`)}${publicId} ${w}w`).join(', ');
+  }
+  return '';
+}
+let heroSrcset = heroImageUrl ? ssrSrcset(heroImageUrl) : '';
 let productsGridHtml = '';
 if (initialCatalog?.inventory) {
   const cards = initialCatalog.inventory.map(item => {
@@ -120,7 +140,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="hero-visual" style={heroImageUrl ? '' : 'display: none;'}>
         <div class="hero-float-wrapper">
           <div class="hero-image-frame">
-            <img src={heroImageUrl || "data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'&gt;&lt;/svg&gt;"} id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" style={heroImageUrl ? 'opacity:1' : 'opacity:0;transition:opacity 0.4s ease'} />
+            <img src={heroImageUrl || "data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'&gt;&lt;/svg&gt;"} srcset={heroSrcset} sizes="(max-width: 480px) 90vw, (max-width: 768px) 50vw, 380px" id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" style={heroImageUrl ? 'opacity:1' : 'opacity:0;transition:opacity 0.4s ease'} />
             <div class="hero-frame-glow"></div>
             <div class="hero-frame-border"></div>
           </div>

@@ -344,11 +344,11 @@ CREATE OR REPLACE FUNCTION place_order_securely(
     p_pincode TEXT,
     p_address_label TEXT,
     p_total NUMERIC(10, 2),
-    p_discount NUMERIC(10, 2) DEFAULT 0,
-    p_shipping NUMERIC(10, 2) DEFAULT 0,
     p_items_summary TEXT,
     p_raw_items JSONB, -- Array of items: [{product_id, variant_name, quantity, price, product_name}]
     p_session_id TEXT, -- For releasing locks
+    p_discount NUMERIC(10, 2) DEFAULT 0,
+    p_shipping NUMERIC(10, 2) DEFAULT 0,
     p_razorpay_order_id TEXT DEFAULT NULL -- Optional link for defense-in-depth total fetch
 ) RETURNS TEXT AS $$
 DECLARE

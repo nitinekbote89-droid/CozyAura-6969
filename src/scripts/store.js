@@ -1002,8 +1002,200 @@ window.startCheckoutTimer = function() {
     const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     if (textEl) {
       textEl.textContent = `Stock reserved for ${formattedTime}`;
+  }
+};
+
+// --- 3D INTERACTIVE TILT EFFECT ---
+function init3DAnimations() {
+  const heroVisual = document.querySelector('.hero-visual');
+  const heroFrame = document.querySelector('.hero-image-frame');
+  
+  if (heroVisual && heroFrame) {
+    heroFrame.style.transformStyle = 'preserve-3d';
+    const img = heroFrame.querySelector('.hero-img-element');
+    const border = heroFrame.querySelector('.hero-frame-border');
+    const glow = heroFrame.querySelector('.hero-frame-glow');
+    
+    if (img) {
+      img.style.transform = 'translateZ(-20px) scale(1.12)';
+      img.style.transformStyle = 'preserve-3d';
+    }
+    if (border) {
+      border.style.transform = 'translateZ(30px)';
+      border.style.transformStyle = 'preserve-3d';
+    }
+    if (glow) {
+      glow.style.transform = 'translateZ(10px)';
+      glow.style.transformStyle = 'preserve-3d';
+    }
+
+    heroVisual.addEventListener('mousemove', (e) => {
+      const rect = heroFrame.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      const rotateX = ((centerY - y) / centerY) * 15;
+      const rotateY = ((x - centerX) / centerX) * 15;
+      
+      heroFrame.style.transition = 'transform 0.1s ease-out';
+      heroFrame.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      
+      const orb1 = document.querySelector('.orb-1');
+      const orb2 = document.querySelector('.orb-2');
+      if (orb1) orb1.style.transform = `translate(${rotateY * 1.5}px, ${-rotateX * 1.5}px)`;
+      if (orb2) orb2.style.transform = `translate(${-rotateY * 1.5}px, ${rotateX * 1.5}px)`;
+    });
+    
+    heroVisual.addEventListener('mouseleave', () => {
+      heroFrame.style.transition = 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+      heroFrame.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+      
+      const orb1 = document.querySelector('.orb-1');
+      const orb2 = document.querySelector('.orb-2');
+      if (orb1) orb1.style.transform = 'translate(0px, 0px)';
+      if (orb2) orb2.style.transform = 'translate(0px, 0px)';
+    });
+  }
+
+  function setupCardTilt(selector, maxTilt = 8, scale = 1.03) {
+    document.querySelectorAll(selector).forEach(card => {
+      card.style.transformStyle = 'preserve-3d';
+      
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((centerY - y) / centerY) * maxTilt;
+        const rotateY = ((x - centerX) / centerX) * maxTilt;
+        
+        card.style.transition = 'transform 0.1s ease-out';
+        card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(${scale}, ${scale}, ${scale})`;
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+        card.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+      });
+    });
+  }
+
+  setupCardTilt('.value-card', 8, 1.03);
+  setupCardTilt('.scent-card', 10, 1.04);
+  
+  const observeAndApplyTilt = (containerId, cardSelector) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const observer = new MutationObserver(() => {
+      setupCardTilt(`#${containerId} ${cardSelector}`, 8, 1.03);
+    });
+    observer.observe(container, { childList: true });
+    setupCardTilt(`#${containerId} ${cardSelector}`, 8, 1.03);
+  };
+
+  observeAndApplyTilt('bestsellerStickyContainer', '.bestseller-card');
+  observeAndApplyTilt('productsGrid', '.product-card');
+}
+
+// --- INSTAGRAM HORIZONTAL SCROLL ---
+function initInstagramScrollPin() {
+  const container = document.getElementById('instagramScrollContainer');
+  const track     = document.getElementById('socialTrack');
+
+  if (!container || !track) return;
+
+  let currentTranslateX = 0;
+  let targetTranslateX  = 0;
+  let isAnimating       = false;
+
+  const updatePosition = () => {
+    const ease = 0.12;
+    const diff = targetTranslateX - currentTranslateX;
+    if (Math.abs(diff) > 0.05) {
+      currentTranslateX += diff * ease;
+      track.style.transform = `translate3d(${currentTranslateX}px, 0, 0)`;
+      requestAnimationFrame(updatePosition);
+    } else {
+      currentTranslateX = targetTranslateX;
+      track.style.transform = `translate3d(${currentTranslateX}px, 0, 0)`;
+      isAnimating = false;
     }
   };
+
+  const onScroll = () => {
+    const rect            = container.getBoundingClientRect();
+    const containerHeight = rect.height;
+    const viewHeight      = window.innerHeight;
+
+    const scrolled        = 90 - rect.top;
+    const totalScrollable = containerHeight - viewHeight;
+
+    let progress = scrolled / totalScrollable;
+    progress = Math.max(0, Math.min(1, progress));
+
+    const maxTranslate = Math.max(0, track.scrollWidth - window.innerWidth);
+    targetTranslateX   = -progress * maxTranslate;
+
+    if (!isAnimating) {
+      isAnimating = true;
+      requestAnimationFrame(updatePosition);
+    }
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  onScroll();
+}
+
+// Init on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    init3DAnimations();
+    initInstagramScrollPin();
+  });
+} else {
+  init3DAnimations();
+  initInstagramScrollPin();
+}
+
+// Toggle scrolled class on navbar
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  if (nav) {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  }
+});
+
+// Contact form handler
+document.getElementById('contactForm')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  try {
+    const res = await fetch('/api/store', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'new_message',
+        siteToken: 'LUMIERE_STORE_2026',
+        name: document.getElementById('contactName').value,
+        email: document.getElementById('contactEmail').value,
+        subject: document.getElementById('contactSubject').value,
+        message: document.getElementById('contactMessage').value
+      })
+    });
+    const json = await res.json();
+    if (json.success) {
+      this.reset();
+      document.getElementById('contactSuccessMsg').classList.add('show');
+    } else {
+      alert(json.error || 'Failed to send message.');
+    }
+  } catch(e) {
+    alert('Could not send message. Please try again.');
+  }
+});
 
   updateDisplay();
 

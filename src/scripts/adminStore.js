@@ -666,8 +666,10 @@ window.downloadInvoiceBill = function() {
     doc.setTextColor(100);
     doc.text('Thank you for purchasing clean soya wax!', 105, y, { align: 'center' });
 
-    // --- save ---
-    doc.save(`Lumiere_Invoice_#${orderNum}.pdf`);
+    // --- open in new tab (browser PDF viewer), user can download from there ---
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
 };
 
 window.openCouponModal = function() {

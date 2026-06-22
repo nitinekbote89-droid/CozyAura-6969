@@ -156,7 +156,8 @@ async function syncCatalogDataset() {
             window.PRODUCTS = json.data.inventory.map(item => {
                let vars = Object.entries(item.fragranceStocks || {}).map(([fName, qty]) => ({
                   id: fName, name: fName, price: item.price, inStock: qty > 0, maxStock: qty,
-                   image: item.fragranceImages?.[fName] ? `<img src="${optimizeCloudinaryUrl(item.fragranceImages[fName], 200)}" alt="${fName}" width="400" height="500" style="width:100%;height:100%;object-fit:cover;">` : null,
+image: item.fragranceImages?.[fName] ? `<img 
+src="${optimizeCloudinaryUrl(item.fragranceImages[fName], 1000)}"  alt="${fName}" width="400" height="500" style="width:100%;height:100%;object-fit:cover;">` : null,
                   rawImage: item.fragranceImages?.[fName] || null
                }));
                if (vars.length === 0) {
@@ -2692,9 +2693,9 @@ window.applyStorefrontImages = function() {
       
       if (targetSrc.includes('/image/upload/')) {
         if (targetSrc.includes('/image/upload/f_auto')) {
-          targetSrc = targetSrc.replace(/\/w_\d+/, '/w_600');
+          targetSrc = targetSrc.replace(/\/w_\d+/, '/w_1200');
         } else {
-          targetSrc = targetSrc.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_600/');
+          targetSrc = targetSrc.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1200/');
         }
       }
       if (heroImg.getAttribute('src') !== targetSrc) {

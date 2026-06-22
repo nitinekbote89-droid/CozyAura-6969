@@ -18,9 +18,9 @@ try {
       if (sf?.home_hero) {
         let url = sf.home_hero;
         if (url.includes('/image/upload/f_auto')) {
-          url = url.replace(/\/w_\d+/, '/w_600');
+          url = url.replace(/\/w_\d+/, '/w_1200');
         } else if (url.includes('/image/upload/')) {
-          url = url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_600/');
+          url = url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1200/');
         }
         heroImageUrl = url;
       }

@@ -2703,18 +2703,22 @@ window.applyStorefrontImages = function() {
         heroImg.setAttribute('src', targetSrc);
         heroImg.onload = () => {
           heroImg.style.opacity = '1';
+          if (window.__pageImagesReady) window.__pageImagesReady();
         };
         if (heroImg.complete) {
           heroImg.style.opacity = '1';
+          if (window.__pageImagesReady) window.__pageImagesReady();
         }
       } else {
         heroImg.style.opacity = '1';
+        if (window.__pageImagesReady) window.__pageImagesReady();
       }
     } else {
       if (heroVisual) heroVisual.style.display = 'none';
       if (heroInner) heroInner.style.gridTemplateColumns = '1fr';
       heroImg.setAttribute('src', '');
       heroImg.style.opacity = '0';
+      if (window.__pageImagesReady) window.__pageImagesReady();
     }
   }
   

@@ -53,6 +53,39 @@ import '/src/styles/global.css';
   <slot name="head" />
 </head>
 <body>
+  <div id="pageLoader" class="page-loader">
+    <div class="loader-content">
+      <div class="loader-logo">Lumi<span>ère</span></div>
+      <div class="loader-glow"></div>
+      <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+    </div>
+  </div>
   <slot />
+  <script is:inline>
+    window.addEventListener('DOMContentLoaded', () => {
+      const loader = document.getElementById('pageLoader');
+      if (!loader) return;
+      let imagesReady = false;
+      let minDelayElapsed = false;
+
+      const hide = () => {
+        if (!imagesReady || !minDelayElapsed) return;
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.style.display = 'none'; }, 500);
+      };
+
+      setTimeout(() => { minDelayElapsed = true; hide(); }, 600);
+      setTimeout(() => { imagesReady = true; hide(); }, 6000); // safety timeout
+
+      window.__pageImagesReady = function() {
+        imagesReady = true;
+        hide();
+      };
+
+      document.fonts.ready.then(() => {
+        // fonts loaded, but still wait for images
+      });
+    });
+  </script>
 </body>
 </html>

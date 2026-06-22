@@ -1509,3 +1509,45 @@ section.active {
   }
 }
 
+/* ── Page Loader ── */
+.page-loader {
+  position: fixed; inset: 0; z-index: 999999;
+  background: var(--warm-white);
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.5s ease;
+  pointer-events: none; /* allows clicks after fade */
+}
+.loader-content {
+  text-align: center;
+}
+.loader-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.8rem; font-weight: 400; letter-spacing: 0.12em;
+  color: var(--black); 
+}
+.loader-logo span { color: var(--gold-dark); font-style: italic; }
+.loader-glow {
+  width: 60px; height: 60px; margin: 1.5rem auto 1rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184,151,90,0.25) 0%, transparent 70%);
+  animation: loaderPulse 1.6s ease-in-out infinite;
+}
+.loader-bar {
+  width: 160px; height: 2px; margin: 0 auto;
+  background: var(--sand); border-radius: 2px; overflow: hidden;
+}
+.loader-bar-fill {
+  height: 100%; width: 0%;
+  background: var(--gold);
+  border-radius: 2px;
+  animation: loaderFill 1.2s ease forwards;
+}
+@keyframes loaderPulse {
+  0%, 100% { transform: scale(0.85); opacity: 0.5; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+@keyframes loaderFill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+

@@ -620,7 +620,6 @@ window.downloadInvoiceBill = function() {
         const chosenFragrance = item.variant?.name || item.chosenFragrance || 'Standard';
         const itemPrice = parseInt(item.product?.price || item.price) || 0;
         const subtotal = itemPrice * item.quantity;
-        itemSubtotalSum += subtotal;
 
         if (y > 260) { doc.addPage(); y = 20; }
         const label = `${productName} (${chosenFragrance})`;

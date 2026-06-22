@@ -1,9 +1,9 @@
-const RESEND_API = 'https://api.resend.com/emails';
+const SENDGRID_API = 'https://api.sendgrid.com/v3/mail/send';
 
 function getFrom() {
   const name = import.meta.env.EMAIL_FROM_NAME || 'Lumière Soya Candles';
-  const email = import.meta.env.EMAIL_FROM || 'onboarding@resend.dev';
-  return `${name} <${email}>`;
+  const email = import.meta.env.EMAIL_FROM || 'lumiere@sendgrid.net';
+  return { email, name };
 }
 
 function orderConfirmationHTML({ orderId, name, items, total, address }) {
@@ -118,32 +118,33 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 </html>`;
 }
 
-async function sendViaResend({ to, subject, html }) {
-  const apiKey = import.meta.env.RESEND_API_KEY;
+async function sendViaSendGrid({ to, subject, html }) {
+  const apiKey = import.meta.env.SENDGRID_API_KEY;
   if (!apiKey) {
-    console.warn('RESEND_API_KEY not set — email not sent');
+    console.warn('SENDGRID_API_KEY not set — email not sent');
     return false;
   }
   try {
-    const res = await fetch(RESEND_API, {
+    const from = getFrom();
+    const res = await fetch(SENDGRID_API, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: getFrom(),
-        to: [to],
+        personalizations: [{ to: [{ email: to }] }],
+        from,
         subject,
-        html
+        content: [{ type: 'text/html', value: html }]
       })
     });
-    const data = await res.json();
     if (res.ok) {
-      console.log(`Email sent to ${to} (${subject}): ${data.id}`);
+      console.log(`Email sent to ${to} (${subject})`);
       return true;
     } else {
-      console.error(`Resend API error for ${to}:`, data);
+      const data = await res.text();
+      console.error(`SendGrid API error for ${to}:`, data);
       return false;
     }
   } catch (err) {
@@ -153,7 +154,7 @@ async function sendViaResend({ to, subject, html }) {
 }
 
 export async function sendOrderConfirmation({ email, name, orderId, items, total, address }) {
-  return sendViaResend({
+  return sendViaSendGrid({
     to: email,
     subject: `Order Confirmed — ${orderId}`,
     html: orderConfirmationHTML({ orderId, name, items, total, address })
@@ -161,7 +162,7 @@ export async function sendOrderConfirmation({ email, name, orderId, items, total
 }
 
 export async function sendOrderShipped({ email, name, orderId, trackingNumber, courier, trackingLink }) {
-  return sendViaResend({
+  return sendViaSendGrid({
     to: email,
     subject: `Order Shipped — ${orderId}`,
     html: orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink })

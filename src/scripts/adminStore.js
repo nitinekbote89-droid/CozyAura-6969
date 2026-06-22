@@ -614,8 +614,9 @@ window.downloadInvoiceBill = function() {
     doc.setFillColor(245, 245, 245);
     doc.rect(15, y - 4, 180, 6, 'F');
     doc.text('Item', 17, y);
+    doc.text('Category', 90, y);
     doc.text('Price', 130, y);
-    doc.text('Qty', 150, y);
+    doc.text('Qty', 155, y);
     doc.text('Total', 175, y, { align: 'right' });
     y += 7;
 
@@ -624,14 +625,16 @@ window.downloadInvoiceBill = function() {
         const invItem = inventory.find(p => String(p.id) === String(item.product?.id || item.id));
         const productName = item.product?.name || item.name || 'Product';
         const chosenFragrance = item.variant?.name || item.chosenFragrance || 'Standard';
+        const category = item.product?.category || item.category || (invItem ? invItem.category : '') || '';
         const itemPrice = parseInt(item.product?.price || item.price) || 0;
         const subtotal = itemPrice * item.quantity;
 
         if (y > 260) { doc.addPage(); y = 20; }
         const label = `${productName} (${chosenFragrance})`;
         doc.text(label, 17, y);
+        doc.text(category, 90, y);
         doc.text(`Rs. ${itemPrice.toLocaleString('en-IN')}`, 130, y);
-        doc.text(String(item.quantity), 150, y);
+        doc.text(String(item.quantity), 155, y);
         doc.text(`Rs. ${subtotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
         y += 5;
 

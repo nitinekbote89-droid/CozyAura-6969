@@ -621,7 +621,7 @@ export async function POST({ request }) {
         await supabase.from('payment_intents').delete().eq('razorpay_order_id', razorpayOrderId);
       }
 
-      sendOrderConfirmation({
+      await sendOrderConfirmation({
         email: userEmail,
         name: name || `${fname} ${lname}`,
         orderId: orderNumber,

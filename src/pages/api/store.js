@@ -142,24 +142,6 @@ async function autoCleanInactiveVariants() {
 
 export async function GET({ request }) {
   try {
-    const url = new URL(request.url);
-    if (url.searchParams.get('debug') === 'smtp') {
-      const { sendOrderConfirmation } = await import('../../lib/email.js');
-      try {
-        const result = await sendOrderConfirmation({
-          email: url.searchParams.get('to') || 'test@test.com',
-          name: 'Test User',
-          orderId: 'DEBUG-001',
-          items: [{ product_name: 'Test Candle', variant_name: 'Vanilla', price: 300, quantity: 1 }],
-          total: '300.00',
-          address: { fname: 'Test', lname: 'User', address: '123 St', city: 'Mumbai', state: 'MH', pincode: '400001', phone: '9876543210' }
-        });
-        return new Response(JSON.stringify({ success: true, smtp_ok: result, host_set: !!import.meta.env.SMTP_HOST, port_set: !!import.meta.env.SMTP_PORT, user_set: !!import.meta.env.SMTP_USER }), { status: 200 });
-      } catch (err) {
-        return new Response(JSON.stringify({ success: false, error: err.message, host_set: !!import.meta.env.SMTP_HOST, port_set: !!import.meta.env.SMTP_PORT, user_set: !!import.meta.env.SMTP_USER }), { status: 200 });
-      }
-    }
-
     const now = Date.now();
     if (catalogCache && (now - catalogCacheTime) < CACHE_TTL) {
       return new Response(JSON.stringify(catalogCache), { status: 200, headers: { 'Content-Type': 'application/json' } });

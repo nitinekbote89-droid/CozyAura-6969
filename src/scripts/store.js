@@ -1010,6 +1010,32 @@ window.startCheckoutTimer = function() {
       textEl.textContent = `Stock reserved for ${formattedTime}`;
   }
 };
+  updateDisplay();
+
+  window.checkoutTimerInterval = setInterval(async () => {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      clearInterval(window.checkoutTimerInterval);
+      window.checkoutTimerInterval = null;
+      if (banner) banner.style.display = 'none';
+      
+      await window.releaseCheckoutLocks();
+      window.showToast("Your reservation has expired. Please re-enter checkout to check availability.", true);
+      window.showPage('cartPage');
+    } else {
+      updateDisplay();
+    }
+  }, 1000);
+};
+
+window.stopCheckoutTimer = function() {
+  if (window.checkoutTimerInterval) {
+    clearInterval(window.checkoutTimerInterval);
+    window.checkoutTimerInterval = null;
+  }
+  const banner = document.getElementById('checkoutTimerBanner');
+  if (banner) banner.style.display = 'none';
+};
 
 // --- 3D INTERACTIVE TILT EFFECT ---
 function init3DAnimations() {
@@ -1191,33 +1217,6 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
     alert('Could not send message. Please try again.');
   }
 });
-
-  updateDisplay();
-
-  window.checkoutTimerInterval = setInterval(async () => {
-    timeLeft--;
-    if (timeLeft <= 0) {
-      clearInterval(window.checkoutTimerInterval);
-      window.checkoutTimerInterval = null;
-      if (banner) banner.style.display = 'none';
-      
-      await window.releaseCheckoutLocks();
-      window.showToast("Your reservation has expired. Please re-enter checkout to check availability.", true);
-      window.showPage('cartPage');
-    } else {
-      updateDisplay();
-    }
-  }, 1000);
-};
-
-window.stopCheckoutTimer = function() {
-  if (window.checkoutTimerInterval) {
-    clearInterval(window.checkoutTimerInterval);
-    window.checkoutTimerInterval = null;
-  }
-  const banner = document.getElementById('checkoutTimerBanner');
-  if (banner) banner.style.display = 'none';
-};
 
 window.checkoutStep = 'shipping';
 

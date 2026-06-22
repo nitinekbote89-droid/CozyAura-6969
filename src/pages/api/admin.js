@@ -74,8 +74,8 @@ async function executeCloudinaryCleanup() {
         const parts = url.split('/image/upload/');
         if (parts.length < 2) return null;
         let subPath = parts[1];
-        // Remove version prefix (e.g. v123456/)
-        subPath = subPath.replace(/^v\d+\//, '');
+        // Remove transformations + version prefix (e.g. f_auto,q_auto,w_1200/v123456/)
+        subPath = subPath.replace(/^.*\/v\d+\//, '');
         // Remove file extension
         const dotIdx = subPath.lastIndexOf('.');
         if (dotIdx !== -1) {

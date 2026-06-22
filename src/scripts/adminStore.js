@@ -591,7 +591,14 @@ window.downloadInvoiceBill = function() {
         doc.setFont('helvetica', 'bold');
         doc.text('Shipping Address:', 15, y); y += 6;
         doc.setFont('helvetica', 'normal');
-        y = addWrapped(`${addr.address || 'N/A'}, ${addr.city || 'N/A'}${addr.state ? ', ' + addr.state : ''} ${addr.pincode ? '- ' + addr.pincode : ''}`, 15, y, 175, 5);
+        const addrLine = addr.address || '';
+        const cityLine = [addr.city, addr.state, addr.pincode].filter(Boolean).join(', ');
+        if (addrLine && cityLine) {
+            y = addWrapped(addrLine, 15, y, 175, 5);
+            y = addWrapped(cityLine, 15, y, 175, 5);
+        } else {
+            y = addWrapped(addrLine || cityLine || 'N/A', 15, y, 175, 5);
+        }
         doc.setFont('helvetica', 'bold'); doc.text('Phone:', 15, y); doc.setFont('helvetica', 'normal');
         doc.text(addr.phone || 'N/A', 40, y); y += 8;
     }
@@ -625,8 +632,8 @@ window.downloadInvoiceBill = function() {
         const label = `${productName} (${chosenFragrance})`;
         doc.text(label, 17, y);
         doc.text(String(item.quantity), 130, y);
-        doc.text(`₹${itemPrice.toLocaleString('en-IN')}`, 150, y);
-        doc.text(`₹${subtotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
+        doc.text(`Rs. ${itemPrice.toLocaleString('en-IN')}`, 150, y);
+        doc.text(`Rs. ${subtotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
         y += 5;
 
         if (invItem && invItem.description && invItem.description.trim().toLowerCase() !== 'undefined') {
@@ -648,7 +655,7 @@ window.downloadInvoiceBill = function() {
     const orderTotal = parseInt(order.total.replace(/[^\d]/g, '')) || 0;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text(`Gross Total Amount Paid: ₹${orderTotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
+    doc.text(`Gross Total Amount Paid: Rs. ${orderTotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
     y += 12;
 
     // footer

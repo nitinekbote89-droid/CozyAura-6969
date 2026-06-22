@@ -112,14 +112,33 @@ window.showToast = function(message, isError = false) {
 function optimizeCloudinaryUrl(url, width) {
   if (!url || !url.includes('/image/upload/')) return url;
   const parts = url.split('/image/upload/');
-  let transform = parts[1].split('/')[0];
-  const rest = parts[1].substring(parts[1].indexOf('/'));
-  if (transform.includes('w_')) {
-    transform = transform.replace(/w_\d+/, 'w_' + width);
-  } else {
-    transform += ',w_' + width;
+  const afterUpload = parts[1];
+  const versionMatch = afterUpload.match(/(v\d+\/)/);
+  if (versionMatch) {
+    const versionIdx = versionMatch.index;
+    const beforeVersion = afterUpload.substring(0, versionIdx);
+    const afterVersion = afterUpload.substring(versionIdx);
+    if (beforeVersion.includes('w_')) {
+      const newTransform = beforeVersion.replace(/w_\d+/, 'w_' + width);
+      return parts[0] + '/image/upload/' + newTransform + afterVersion;
+    }
+    const prefix = beforeVersion ? beforeVersion + ',' : '';
+    return parts[0] + '/image/upload/' + prefix + 'w_' + width + '/' + afterVersion;
   }
-  return parts[0] + '/image/upload/' + transform + rest;
+  // No version — look for existing transforms
+  const slashIdx = afterUpload.indexOf('/');
+  if (slashIdx !== -1) {
+    const possibleTransform = afterUpload.substring(0, slashIdx);
+    if (possibleTransform.includes('w_')) {
+      return parts[0] + '/image/upload/' + possibleTransform.replace(/w_\d+/, 'w_' + width) + afterUpload.substring(slashIdx);
+    }
+  }
+  // No version, no transform — insert w_ before the public ID
+  const insertAt = afterUpload.indexOf('/');
+  if (insertAt !== -1) {
+    return parts[0] + '/image/upload/w_' + width + '/' + afterUpload.substring(insertAt + 1);
+  }
+  return parts[0] + '/image/upload/w_' + width + '/' + afterUpload;
 }
 
 async function syncCatalogDataset() {

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendOrderConfirmation } from '../../lib/email.js';
+import { sendOrderConfirmation, sendContactMessage } from '../../lib/email.js';
 
 let catalogCache = null;
 let catalogCacheTime = 0;
@@ -363,18 +363,14 @@ export async function POST({ request }) {
         return new Response(JSON.stringify({ success: false, error: "Invalid email address format." }), { status: 400 });
       }
 
-      const { error } = await supabase.from('messages').insert([{
+      await sendContactMessage({
         name: name.trim(),
         email: emailTrimmed,
         subject: subject.trim(),
         message: message.trim()
-      }]);
+      });
 
-      if (error) {
-        return new Response(JSON.stringify({ success: false, error: "Failed to dispatch message: " + error.message }), { status: 500 });
-      }
-
-      return new Response(JSON.stringify({ success: true, message: "Message dispatched cleanly." }), { status: 200 });
+      return new Response(JSON.stringify({ success: true, message: "Message sent! We'll get back to you soon." }), { status: 200 });
     }
 
     if (body.action === 'create_payment_intent') {

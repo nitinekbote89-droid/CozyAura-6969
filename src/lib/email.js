@@ -178,3 +178,12 @@ export async function sendOrderShipped({ email, name, orderId, trackingNumber, c
     html: orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink })
   });
 }
+
+export async function sendContactMessage({ name, email, subject, message }) {
+  const ownerEmail = import.meta.env.STORE_OWNER_EMAIL || 'nitinekbote89@gmail.com';
+  return sendViaSendGrid({
+    to: ownerEmail,
+    subject: `Contact: ${subject}`,
+    html: `<p><strong>From:</strong> ${name} (${email})</p><p><strong>Subject:</strong> ${subject}</p><p><strong>Message:</strong></p><p>${message}</p>`
+  });
+}

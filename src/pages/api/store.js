@@ -142,6 +142,7 @@ async function autoCleanInactiveVariants() {
 
 export async function GET({ request }) {
   try {
+    const url = new URL(request.url);
     const now = Date.now();
     if (catalogCache && (now - catalogCacheTime) < CACHE_TTL) {
       return new Response(JSON.stringify(catalogCache), { status: 200, headers: { 'Content-Type': 'application/json' } });

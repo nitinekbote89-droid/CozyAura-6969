@@ -582,8 +582,7 @@ window.downloadInvoiceBill = function() {
     doc.text(order.date ? new Date(order.date).toLocaleDateString() : '—', 50, y); y += 6;
     doc.setFont('helvetica', 'bold'); doc.text('Payment:', 15, y); doc.setFont('helvetica', 'normal');
     doc.text(order.paymentMethod || 'COD / Pay on Delivery', 50, y); y += 6;
-    doc.setFont('helvetica', 'bold'); doc.text('Status:', 15, y); doc.setFont('helvetica', 'normal');
-    doc.text(order.status || '—', 50, y); y += 8;
+    y += 2;
 
     // --- shipping address ---
     if (order.shippingInfo) {
@@ -615,8 +614,8 @@ window.downloadInvoiceBill = function() {
     doc.setFillColor(245, 245, 245);
     doc.rect(15, y - 4, 180, 6, 'F');
     doc.text('Item', 17, y);
-    doc.text('Qty', 130, y);
-    doc.text('Price', 150, y);
+    doc.text('Price', 130, y);
+    doc.text('Qty', 150, y);
     doc.text('Total', 175, y, { align: 'right' });
     y += 7;
 
@@ -631,8 +630,8 @@ window.downloadInvoiceBill = function() {
         if (y > 260) { doc.addPage(); y = 20; }
         const label = `${productName} (${chosenFragrance})`;
         doc.text(label, 17, y);
-        doc.text(String(item.quantity), 130, y);
-        doc.text(`Rs. ${itemPrice.toLocaleString('en-IN')}`, 150, y);
+        doc.text(`Rs. ${itemPrice.toLocaleString('en-IN')}`, 130, y);
+        doc.text(String(item.quantity), 150, y);
         doc.text(`Rs. ${subtotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
         y += 5;
 
@@ -655,7 +654,7 @@ window.downloadInvoiceBill = function() {
     const orderTotal = parseInt(order.total.replace(/[^\d]/g, '')) || 0;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text(`Gross Total Amount Paid: Rs. ${orderTotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
+    doc.text(`Gross Total Amount: Rs. ${orderTotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
     y += 12;
 
     // footer

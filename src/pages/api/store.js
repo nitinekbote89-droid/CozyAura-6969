@@ -760,7 +760,7 @@ export async function POST({ request }) {
       const queryVal = rawQuery.toLowerCase();
 
       // H3: Push filtering to DB using .or() with sanitized inputs
-      const sanitize = (s) => s.replace(/'/g, "''");
+      const sanitize = (s) => s.replace(/'/g, "''").replace(/,/g, '');
       const sanitizedQuery = sanitize(rawQuery);
       const sanitizedVal = sanitize(queryVal).replace(/[+\s]/g, '');
       const { data: matchedOrders, error: orderFetchErr } = await supabase

@@ -477,7 +477,7 @@ window.renderHomeScentGuide = function() {
   };
 
   grid.innerHTML = fragrances.map((f, i) =>
-    `<div class="scent-card" onclick="window.selectCategory('${f}')">
+    `<div class="scent-card" onclick="window.selectCategory('${encodeURIComponent(f)}')">
       <div class="scent-card-bg" style="background:linear-gradient(135deg,${colors[i % colors.length]});">
         ${getScentIcon(f)}
       </div>

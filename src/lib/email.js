@@ -1,15 +1,19 @@
 import nodemailer from 'nodemailer';
 
+let _transporter = null;
 function getTransporter() {
-  return nodemailer.createTransport({
-    host: import.meta.env.SMTP_HOST,
-    port: parseInt(import.meta.env.SMTP_PORT || '587'),
-    secure: false,
-    auth: {
-      user: import.meta.env.SMTP_USER,
-      pass: import.meta.env.SMTP_PASS
-    }
-  });
+  if (!_transporter) {
+    _transporter = nodemailer.createTransport({
+      host: import.meta.env.SMTP_HOST,
+      port: parseInt(import.meta.env.SMTP_PORT || '587'),
+      secure: false,
+      auth: {
+        user: import.meta.env.SMTP_USER,
+        pass: import.meta.env.SMTP_PASS
+      }
+    });
+  }
+  return _transporter;
 }
 
 const fromAddr = `"${import.meta.env.EMAIL_FROM_NAME}" <${import.meta.env.EMAIL_FROM}>`;

@@ -619,6 +619,11 @@ export async function POST({ request }) {
 
       if (!isCOD) {
         await supabase.from('payment_intents').delete().eq('razorpay_order_id', razorpayOrderId);
+        try {
+          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null);
+        } catch (e) {
+          recalculated = { subtotal: 0, discount: 0, shipping: 0, total: 0 };
+        }
       }
 
       sendOrderConfirmation({
@@ -626,6 +631,9 @@ export async function POST({ request }) {
         name: name || `${fname} ${lname}`,
         orderId: orderNumber,
         items: formattedRawItems,
+        subtotal: recalculated.subtotal.toFixed(2),
+        discount: recalculated.discount.toFixed(2),
+        shipping: recalculated.shipping.toFixed(2),
         total: parseFloat(String(total).replace(/[^0-9.]/g, '')).toFixed(2),
         address: {
           fname: fname || (name?.split(' ')[0] || ''),

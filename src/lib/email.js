@@ -6,7 +6,7 @@ function getFrom() {
   return { email, name };
 }
 
-function orderConfirmationHTML({ orderId, name, items, total, address }) {
+function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address }) {
   const itemsRows = items.map(item => `
     <tr>
       <td style="padding: 10px 12px; border-bottom: 1px solid #e8e0d6;">${item.product_name} (${item.variant_name})</td>
@@ -14,6 +14,13 @@ function orderConfirmationHTML({ orderId, name, items, total, address }) {
       <td style="padding: 10px 12px; border-bottom: 1px solid #e8e0d6; text-align: right;">₹${item.price}</td>
     </tr>
   `).join('');
+
+  const discountRow = discount > 0
+    ? `<tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Discount</td><td style="padding:6px 12px;text-align:right;color:#c0392b;font-size:14px;">-₹${discount}</td></tr>`
+    : '';
+  const shippingRow = shipping > 0
+    ? `<tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Shipping</td><td style="padding:6px 12px;text-align:right;color:#6b5d53;font-size:14px;">₹${shipping}</td></tr>`
+    : `<tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Shipping</td><td style="padding:6px 12px;text-align:right;color:#27ae60;font-size:14px;">Free</td></tr>`;
 
   return `
 <!DOCTYPE html>
@@ -46,9 +53,12 @@ function orderConfirmationHTML({ orderId, name, items, total, address }) {
                 ${itemsRows}
               </table>
 
-              <p style="text-align:right;font-size:16px;color:#1a1a2e;font-weight:bold;margin:16px 0 24px;">
-                Total: ₹${total}
-              </p>
+              <table role="presentation" width="100%" style="margin-top:16px;">
+                <tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Subtotal</td><td style="padding:6px 12px;text-align:right;color:#1a1a2e;font-size:14px;">₹${subtotal}</td></tr>
+                ${discountRow}
+                ${shippingRow}
+                <tr><td style="padding:6px 12px;border-top:2px solid #1a1a2e;color:#1a1a2e;font-size:16px;font-weight:bold;">Total</td><td style="padding:6px 12px;border-top:2px solid #1a1a2e;text-align:right;color:#1a1a2e;font-size:16px;font-weight:bold;">₹${total}</td></tr>
+              </table>
 
               <hr style="border:none;border-top:1px solid #e8e0d6;margin:20px 0;">
 
@@ -153,11 +163,11 @@ async function sendViaSendGrid({ to, subject, html }) {
   }
 }
 
-export async function sendOrderConfirmation({ email, name, orderId, items, total, address }) {
+export async function sendOrderConfirmation({ email, name, orderId, items, subtotal, discount, shipping, total, address }) {
   return sendViaSendGrid({
     to: email,
     subject: `Order Confirmed — ${orderId}`,
-    html: orderConfirmationHTML({ orderId, name, items, total, address })
+    html: orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address })
   });
 }
 

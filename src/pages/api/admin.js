@@ -313,7 +313,9 @@ export async function GET({ request }) {
         quantity: m.quantity
       }));
       return {
-        id: o.id, date: o.date, total: `₹ ${o.total}`, status: o.status,
+        id: o.id, date: o.date, total: `₹ ${o.total}`,
+        discount: o.discount || 0, shipping: o.shipping || 0,
+        status: o.status,
         trackingNumber: o.tracking_number, courier: o.courier,
         trackingLink: o.tracking_link || '',
         itemsSummary: o.items_summary || '',

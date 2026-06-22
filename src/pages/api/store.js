@@ -608,6 +608,8 @@ export async function POST({ request }) {
         p_pincode: pincode || '',
         p_address_label: addressLabel || 'Home',
         p_total: isCOD ? parseFloat(String(total).replace(/[^0-9.]/g, '')) : null,
+        p_discount: recalculated.discount || 0,
+        p_shipping: recalculated.shipping || 0,
         p_items_summary: items,
         p_raw_items: formattedRawItems,
         p_session_id: lockSessionId,

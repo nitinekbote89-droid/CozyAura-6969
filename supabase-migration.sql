@@ -344,6 +344,8 @@ CREATE OR REPLACE FUNCTION place_order_securely(
     p_pincode TEXT,
     p_address_label TEXT,
     p_total NUMERIC(10, 2),
+    p_discount NUMERIC(10, 2) DEFAULT 0,
+    p_shipping NUMERIC(10, 2) DEFAULT 0,
     p_items_summary TEXT,
     p_raw_items JSONB, -- Array of items: [{product_id, variant_name, quantity, price, product_name}]
     p_session_id TEXT, -- For releasing locks
@@ -405,12 +407,12 @@ BEGIN
 
     -- 6. Insert order (includes denormalized shipping details)
     INSERT INTO orders (
-        id, total, shipping_address_id, items_summary, status,
+        id, total, discount, shipping, shipping_address_id, items_summary, status,
         shipping_fname, shipping_lname, shipping_address, shipping_city,
         shipping_state, shipping_pincode, shipping_phone, shipping_email
     )
     VALUES (
-        v_order_id, v_final_total, v_addr_id, p_items_summary, 'Pending',
+        v_order_id, v_final_total, p_discount, p_shipping, v_addr_id, p_items_summary, 'Pending',
         split_part(p_name, ' ', 1), split_part(p_name, ' ', 2), p_shipping_address, p_city,
         p_state, p_pincode, COALESCE(p_phone, ''), p_email
     );
@@ -431,6 +433,10 @@ BEGIN
     RETURN v_order_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Add discount and shipping columns to orders table
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount NUMERIC(10, 2) NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping NUMERIC(10, 2) NOT NULL DEFAULT 0;
 
 
 -- ============================================================

@@ -4,6 +4,7 @@ const code = url.searchParams.get('code');
 const errorParam = url.searchParams.get('error') || url.searchParams.get('error_description');
 ---
 <html><body>
+  <div id="status" style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;color:#666;">Completing sign in...</div>
 <script>
 import { createClient } from '@supabase/supabase-js';
 
@@ -11,29 +12,45 @@ const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
 const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 
 async function handleAuth() {
+  const statusEl = document.getElementById('status');
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   const error = params.get('error') || params.get('error_description');
 
   if (error) {
-    window.location.href = '/?auth_error=' + encodeURIComponent(error);
+    statusEl.textContent = 'Sign in failed: ' + error;
+    setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent(error); }, 2000);
     return;
   }
 
   if (!code) {
-    window.location.href = '/?auth_error=' + encodeURIComponent('No auth code received');
+    statusEl.textContent = 'No authorization code received.';
+    setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent('No auth code received'); }, 2000);
     return;
   }
 
+  // CSRF state validation: compare URL state param against sessionStorage
+  const state = params.get('state');
+  const expectedState = sessionStorage.getItem('lumiere_oauth_state');
+  if (state && expectedState && state !== expectedState) {
+    statusEl.textContent = 'Security check failed. Please try again.';
+    setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent('State mismatch'); }, 2000);
+    return;
+  }
+  sessionStorage.removeItem('lumiere_oauth_state');
+
   try {
+    statusEl.textContent = 'Exchanging code for session...';
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError) {
-      window.location.href = '/?auth_error=' + encodeURIComponent(exchangeError.message);
+      statusEl.textContent = 'Error: ' + exchangeError.message;
+      setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent(exchangeError.message); }, 2000);
       return;
     }
 
+    statusEl.textContent = 'Sign in complete. Redirecting...';
     const s = data.session;
     const email = s.user?.email || '';
     const name = s.user?.user_metadata?.full_name || email?.split('@')[0] || 'User';
@@ -42,7 +59,8 @@ async function handleAuth() {
     if (avatar) qs.set('user_avatar', avatar);
     window.location.href = '/?' + qs.toString();
   } catch (err) {
-    window.location.href = '/?auth_error=' + encodeURIComponent(err.message || 'Server error');
+    statusEl.textContent = 'Server error: ' + (err.message || 'Unknown error');
+    setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent(err.message || 'Server error'); }, 2000);
   }
 }
 

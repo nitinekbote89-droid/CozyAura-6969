@@ -242,6 +242,9 @@ import AdminModals from '../components/AdminModals.astro';
 <script>
   import '/src/scripts/adminStore.js';
 
+  const esc = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const fmtDate = d => { try { const dt = new Date(d); return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString(); } catch(e) { return '—'; } };
+
   // --- THEME INITIALIZATION ---
   document.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('lumiere_admin_theme') || 'dark';
@@ -277,6 +280,7 @@ import AdminModals from '../components/AdminModals.astro';
             adminSecret: sessionStorage.getItem('lumiere_admin_secret')
           })
         });
+        if (!res.ok) throw new Error('Server error: ' + res.status);
         const json = await res.json();
         if (json.success) {
           alert(`Successfully cleaned! Deleted ${json.deletedCount} unused images from Cloudinary.`);
@@ -459,9 +463,11 @@ import AdminModals from '../components/AdminModals.astro';
 
               const tr = document.createElement('tr');
               tr.innerHTML = `
-                <td style="font-weight:500; text-transform:capitalize;">${fMat.productName}</td>
-                <td style="text-transform:capitalize; color: ${badgeColor}; font-weight:500; display:flex; align-items:center;">
-                  ${imgHTML}<span>${fMat.fragranceName}</span>
+                <td style="font-weight:500; text-transform:capitalize;">${esc(fMat.productName)}</td>
+                <td style="text-transform:capitalize; color: ${badgeColor}; font-weight:500;">
+                  <div style="display:flex; align-items:center;">
+                    ${imgHTML}<span>${esc(fMat.fragranceName)}</span>
+                  </div>
                 </td>
                 <td><strong style="color: ${badgeColor};">${fMat.qty}</strong> units left</td>
                 <td><strong style="color: ${badgeColor};">${fMat.pings}</strong> user requests</td>
@@ -512,7 +518,7 @@ import AdminModals from '../components/AdminModals.astro';
 
               const tr = document.createElement('tr');
               tr.innerHTML = `
-                <td style="font-weight:500; text-transform:capitalize;">${item.name}</td>
+                <td style="font-weight:500; text-transform:capitalize;">${esc(item.name)}</td>
                 <td><strong style="color: ${textColor}">${item.stock}</strong> units left</td>
                 <td>${item.requests || 0} customer pings</td>
                 <td>${priorityBadge}</td>
@@ -558,7 +564,7 @@ import AdminModals from '../components/AdminModals.astro';
       } else if(assignedFragranceImages.length > 0) {
          imagesClusterHTML = `<div style="display:flex; flex-wrap:wrap; gap:4px; max-width:110px;">`;
          assignedFragranceImages.forEach(([fName, src]) => {
-            imagesClusterHTML += `<img src="${src}" title="${fName}" style="width:24px; height:24px; object-fit:cover; border-radius:3px; border:1px solid var(--border);">`;
+            imagesClusterHTML += `<img src="${src}" title="${esc(fName)}" style="width:24px; height:24px; object-fit:cover; border-radius:3px; border:1px solid var(--border);">`;
          });
          imagesClusterHTML += `</div>`;
       } else {
@@ -571,7 +577,7 @@ import AdminModals from '../components/AdminModals.astro';
               const labelColor = qty <= 5 ? 'var(--danger)' : (qty <= 10 ? 'var(--warning)' : (qty <= 15 ? '#DB2777' : 'var(--success)'));
               const fImg = item.fragranceImages?.[f] || fallbackSVG;
               const imgHTML = `<img src="${fImg}" style="width:18px; height:18px; object-fit:cover; border-radius:50%; border:1px solid var(--border); vertical-align:middle; margin-right:6px;">`;
-              return `<div style="display:flex; align-items:center; margin-bottom:4px;">${imgHTML}<span style="text-transform:capitalize;font-weight:500; margin-right:4px;">${f}</span>: &nbsp;<span style="color:${labelColor}; font-weight:600;">${qty}</span></div>`;
+              return `<div style="display:flex; align-items:center; margin-bottom:4px;">${imgHTML}<span style="text-transform:capitalize;font-weight:500; margin-right:4px;">${esc(f)}</span>: &nbsp;<span style="color:${labelColor}; font-weight:600;">${qty}</span></div>`;
           }).join('');
       } else {
           dynamicFragranceCells = '<span style="color:var(--text-muted); font-size:0.8rem;">No Fragrances Set</span>';
@@ -582,18 +588,18 @@ import AdminModals from '../components/AdminModals.astro';
       tr.innerHTML = `
         <td>${imagesClusterHTML}</td>
         <td style="font-weight:500; text-transform:capitalize;">
-           ${item.name} 
+           ${esc(item.name)} 
            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:400; margin-top:2px;">Mass: ${item.weight || 0}g</div>
         </td>
-        <td style="text-transform:capitalize;">${item.category}</td>
+        <td style="text-transform:capitalize;">${esc(item.category)}</td>
         <td style="font-size:0.85rem; line-height:1.3;">${dynamicFragranceCells}</td>
         <td>₹${itemPrice.toLocaleString('en-IN')}</td>
         <td><strong style="color: ${item.stock <= 10 ? 'var(--danger)' : (item.stock <= 25 ? 'var(--warning)' : (item.stock <= 40 ? '#DB2777' : 'var(--success)'))}">${item.stock}</strong> units</td>
         <td>${window.getStatusBadge(item.stock)}</td>
         <td>
           <div class="action-btns">
-            <button class="btn-icon btn-icon-edit" onclick="window.openModalForEdit('${item.id}')" title="Edit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-            <button class="btn-icon btn-icon-delete" onclick="window.deleteProduct('${item.id}')" title="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+            <button class="btn-icon btn-icon-edit" onclick="window.openModalForEdit(encodeURIComponent(String(item.id ?? '')))" title="Edit"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+            <button class="btn-icon btn-icon-delete" onclick="window.deleteProduct(encodeURIComponent(String(item.id ?? '')))" title="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
           </div>
         </td>
       `;
@@ -638,24 +644,24 @@ import AdminModals from '../components/AdminModals.astro';
 
     processedOrders.forEach(order => {
       const tr = document.createElement('tr');
-      const orderTotal = parseInt(order.total.replace(/[^\d]/g, '')) || 0;
+      const orderTotal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
       const formattedId = String(order.id).startsWith('#') ? String(order.id) : '#' + String(order.id);
       const customerFullName = order.customer || `${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.trim() || 'Guest';
 
       tr.innerHTML = `
         <td><strong>${formattedId}</strong></td>
-        <td style="font-weight:500; text-transform:capitalize;">${customerFullName}</td>
-        <td>${order.date ? new Date(order.date).toLocaleDateString() : '—'}</td>
+        <td style="font-weight:500; text-transform:capitalize;">${esc(customerFullName)}</td>
+        <td>${order.date ? fmtDate(order.date) : '—'}</td>
         <td>₹${orderTotal.toLocaleString('en-IN')}</td>
         <td>${window.getOrderBadge(order.status)}</td>
         <td>
-          <select class="status-select" onchange="window.updateOrderStatus('${order.id}', this.value)">
+          <select class="status-select" onchange="window.updateOrderStatus(encodeURIComponent(String(order.id ?? '')), this.value)">
             <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
             <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
           </select>
         </td>
         <td>
-          <button class="btn btn-secondary" onclick="window.viewOrderDetails('${order.id}')" style="padding: 6px 12px; font-size:0.8rem;">Receipt</button>
+          <button class="btn btn-secondary" onclick="window.viewOrderDetails(encodeURIComponent(String(order.id ?? '')))" style="padding: 6px 12px; font-size:0.8rem;">Receipt</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -678,11 +684,11 @@ import AdminModals from '../components/AdminModals.astro';
     coupons.forEach((c) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><strong>${c.code}</strong></td>
+        <td><strong>${esc(c.code)}</strong></td>
         <td>${c.type === 'percent' ? c.discount + '% Off' : c.type === 'freeship' ? 'Free Shipping' : '₹' + c.discount + ' Off'}</td>
         <td><span class="status-badge status-instock">Active</span></td>
         <td>
-          <button class="btn-icon btn-icon-delete" onclick="window.deleteCoupon('${c.code}')" title="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+          <button class="btn-icon btn-icon-delete" onclick="window.deleteCoupon(encodeURIComponent(String(c.code ?? '')))" title="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -701,8 +707,8 @@ import AdminModals from '../components/AdminModals.astro';
           const div = document.createElement('div');
           div.className = 'fragrance-manage-item';
           div.innerHTML = `
-             <span style="text-transform: capitalize; font-weight:500;">${f}</span>
-             <button class="btn-icon btn-icon-delete" onclick="window.removeGlobalFragrance('${f}')" title="Delete Fragrance">
+             <span style="text-transform: capitalize; font-weight:500;">${esc(f)}</span>
+             <button class="btn-icon btn-icon-delete" onclick="window.removeGlobalFragrance(encodeURIComponent(String(f ?? '')))" title="Delete Fragrance">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
              </button>
           `;

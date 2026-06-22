@@ -79,11 +79,12 @@ window.openModalForAdd = function() {
 };
 
 window.openModalForEdit = function(productId) {
+  const decodedId = decodeURIComponent(productId);
   const inv = JSON.parse(localStorage.getItem('lumiere_inventory') || '[]');
-  const p = inv.find(item => String(item.id) === String(productId));
+  const p = inv.find(item => String(item.id) === String(decodedId));
   if (!p) return;
 
-  window.editingProductId = productId;
+  window.editingProductId = decodedId;
   const modalTitle = document.getElementById('modalTitle');
   if (modalTitle) modalTitle.textContent = "Edit Product Configuration";
   
@@ -441,19 +442,21 @@ window.handleProductSubmit = async function(e) {
 };
 
 window.deleteProduct = async function(id) {
+    const decodedId = decodeURIComponent(id);
     if (!confirm("Permanently strip this product definition from your database records?")) return;
     try {
         await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "delete_product", productId: id, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
+            body: JSON.stringify({ action: "delete_product", productId: decodedId, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
         window.syncCloudInventory();
     } catch(e){}
 };
 
 window.updateOrderStatus = async function(orderId, newStatus) {
+    const decodedId = decodeURIComponent(orderId);
     const ords = JSON.parse(localStorage.getItem('lumiere_orders') || '[]');
-    const order = ords.find(o => String(o.id) === String(orderId));
+    const order = ords.find(o => String(o.id) === String(decodedId));
     const trackingNo = order ? order.trackingNumber || '' : '';
     const courier = order ? order.courier || '' : '';
     const trackingLink = order ? order.trackingLink || '' : '';
@@ -462,7 +465,7 @@ window.updateOrderStatus = async function(orderId, newStatus) {
         const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                action: "update_tracking", orderId,
+                action: "update_tracking", orderId: decodedId,
                 trackingNo, courier, trackingLink,
                 status: newStatus, adminSecret: sessionStorage.getItem('lumiere_admin_secret')
             })
@@ -654,7 +657,7 @@ window.downloadInvoiceBill = function() {
     doc.setDrawColor(200);
     doc.line(15, y, 195, y); y += 6;
 
-    const orderTotal = parseInt(order.total.replace(/[^\d]/g, '')) || 0;
+    const orderTotal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
     doc.text(`Gross Total Amount: Rs. ${orderTotal.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
@@ -710,11 +713,12 @@ window.handleCouponSubmit = async function(e) {
 };
 
 window.deleteCoupon = async function(code) {
+    const decodedCode = decodeURIComponent(code);
     if (!confirm("Permanently disable this promotional voucher?")) return;
     try {
         await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "delete_coupon", code, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
+            body: JSON.stringify({ action: "delete_coupon", code: decodedCode, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
         window.syncCloudInventory();
     } catch(e){}
@@ -734,8 +738,9 @@ window.addGlobalFragrance = async function() {
 };
 
 window.removeGlobalFragrance = async function(fragrance) {
+    const decodedFragrance = decodeURIComponent(fragrance);
     if (!confirm("Remove this target scent parameter option?")) return;
-    let fragrances = JSON.parse(localStorage.getItem('lumiere_fragrances') || '[]').filter(f => f !== fragrance);
+    let fragrances = JSON.parse(localStorage.getItem('lumiere_fragrances') || '[]').filter(f => f !== decodedFragrance);
     try {
         await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -746,9 +751,10 @@ window.removeGlobalFragrance = async function(fragrance) {
 };
 
 window.viewOrderDetails = function(orderId) {
+    const decodedId = decodeURIComponent(orderId);
     const ords = JSON.parse(localStorage.getItem('lumiere_orders') || '[]');
     const inv = JSON.parse(localStorage.getItem('lumiere_inventory') || '[]');
-    const order = ords.find(o => String(o.id) === String(orderId));
+    const order = ords.find(o => String(o.id) === String(decodedId));
     if (!order) return;
 
     window.currentViewingOrderId = order.id;
@@ -814,7 +820,7 @@ window.viewOrderDetails = function(orderId) {
         }
     }
 
-    const totalVal = parseInt(order.total.replace(/[^\d]/g, '')) || 0;
+    const totalVal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
     const subtotalVal = items.reduce((sum, it) => sum + ((it._price || parseInt(it.variant?.price || it.product?.price || it.price) || 0) * it.quantity), 0);
     const discountVal = Math.max(0, subtotalVal - totalVal);
 

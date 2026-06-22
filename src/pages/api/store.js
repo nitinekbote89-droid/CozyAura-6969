@@ -62,16 +62,17 @@ async function calculateCartTotalOnServer(items, couponCode) {
   for (const item of items) {
     const dbProd = dbProducts?.find(p => p.id === item.product?.id);
     if (!dbProd) {
-      throw new Error(`Product not found: ${item.product?.name || item.product?.id}`);
+      throw new Error(`Invalid cart items`);
     }
     const variantName = item.variant?.name || 'Standard';
     if (variantName !== 'Standard' && variantName !== '') {
       const key = `${item.product?.id}::${variantName}`;
       if (!variantIndex[key]) {
-        throw new Error(`Variant not found: ${item.product?.name} (${variantName})`);
+        throw new Error(`Invalid cart items`);
       }
     }
-    subtotal += dbProd.price * item.quantity;
+    const vPrice = item.variant?.price || dbProd.price;
+    subtotal += (parseInt(vPrice) || dbProd.price) * item.quantity;
   }
 
   // M1: Removed duplicate coupon fetch — single query handles both discount and freeship
@@ -516,6 +517,22 @@ export async function POST({ request }) {
         quantity: it.quantity
       }));
 
+      // Validate stock availability before any order
+      for (const ri of formattedRawItems) {
+        const { data: dbVar, error: varErr } = await supabase
+          .from('product_variants')
+          .select('stock')
+          .eq('product_id', ri.product_id)
+          .eq('variant_name', ri.variant_name)
+          .single();
+        if (varErr || !dbVar) {
+          return new Response(JSON.stringify({ success: false, error: "Insufficient stock" }), { status: 400 });
+        }
+        if (dbVar.stock < ri.quantity) {
+          return new Response(JSON.stringify({ success: false, error: "Insufficient stock" }), { status: 400 });
+        }
+      }
+
       const isCOD = paymentId.startsWith('cod_');
 
       if (!isCOD) {
@@ -742,11 +759,14 @@ export async function POST({ request }) {
       }
       const queryVal = rawQuery.toLowerCase();
 
-      // H3: Push filtering to DB using .or() — avoids full table scan in JS
+      // H3: Push filtering to DB using .or() with sanitized inputs
+      const sanitize = (s) => s.replace(/'/g, "''");
+      const sanitizedQuery = sanitize(rawQuery);
+      const sanitizedVal = sanitize(queryVal).replace(/[+\s]/g, '');
       const { data: matchedOrders, error: orderFetchErr } = await supabase
         .from('orders')
         .select('*')
-        .or(`id.eq.${rawQuery},shipping_email.eq.${queryVal},shipping_phone.ilike.%${queryVal.replace(/[+\s]/g, '')}%`)
+        .or(`id.eq.${sanitizedQuery},shipping_email.eq.${sanitizedVal},shipping_phone.ilike.%${sanitizedVal}%`)
         .order('date', { ascending: false })
         .limit(50);
 

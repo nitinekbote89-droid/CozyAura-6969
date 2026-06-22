@@ -111,10 +111,15 @@ window.showToast = function(message, isError = false) {
 
 function optimizeCloudinaryUrl(url, width) {
   if (!url || !url.includes('/image/upload/')) return url;
-  if (url.includes('/image/upload/f_auto')) {
-    return url.replace(/\/w_\d+/, `/w_${width}`);
+  const parts = url.split('/image/upload/');
+  let transform = parts[1].split('/')[0];
+  const rest = parts[1].substring(parts[1].indexOf('/'));
+  if (transform.includes('w_')) {
+    transform = transform.replace(/w_\d+/, 'w_' + width);
+  } else {
+    transform += ',w_' + width;
   }
-  return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
+  return parts[0] + '/image/upload/' + transform + rest;
 }
 
 async function syncCatalogDataset() {
@@ -339,10 +344,11 @@ window.renderProducts = function(list) {
 
 window.renderCategoryFilters = function() {
   const bar = document.getElementById('categoryFilters'); if (!bar) return;
-  bar.innerHTML = categories.map(cat => `<button class="filter-btn ${cat === window.activeCategory ? 'active' : ''}" onclick="window.selectCategory('${cat.replace(/'/g, "\\'")}')">${cat}</button>`).join('');
+  bar.innerHTML = categories.map(cat => `<button class="filter-btn ${cat === window.activeCategory ? 'active' : ''}" onclick="window.selectCategory('${encodeURIComponent(cat)}')">${cat}</button>`).join('');
 };
 
 window.selectCategory = function(cat) { 
+  cat = decodeURIComponent(cat); 
   window.activeCategory = cat; 
   window.showPage('shop'); 
   window.renderCategoryFilters(); 
@@ -1062,6 +1068,10 @@ window.proceedToPayment = async function() {
       window.showToast("Please select a saved shipping address, or add a new one.", true);
       return;
     }
+    if (!selectedAddr.phone || selectedAddr.phone.replace(/[^0-9]/g, '').length < 10) {
+      window.showToast("Please provide a valid phone number for this saved address.", true);
+      return;
+    }
     window.shippingInfo = {
       fname: selectedAddr.fname,
       lname: selectedAddr.lname,
@@ -1229,7 +1239,8 @@ window.executeSecurePayment = async function() {
   document.getElementById('processingOverlay').classList.add('active');
   const prices = window.calculatePrices();
   const userEmail = localStorage.getItem('lumiere_user_email') || window.shippingInfo.email;
-  const sessionToken = sessionStorage.getItem('lumiere_checkout_session') || userEmail;
+  const sessionToken = sessionStorage.getItem('lumiere_checkout_session') || 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  sessionStorage.setItem('lumiere_checkout_session', sessionToken);
 
   const isCOD = window.currentPaymentMethod === 'COD';
 
@@ -1444,13 +1455,17 @@ window.showLogin = function() {
 
 window.loginWithGoogle = async function() {
   const supabase = await getSupabase();
+  const oauthState = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+  sessionStorage.setItem('lumiere_oauth_state', oauthState);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin + '/auth/callback'
+      redirectTo: window.location.origin + '/auth/callback',
+      state: oauthState
     }
   });
   if (error) {
+    sessionStorage.removeItem('lumiere_oauth_state');
     const errEl = document.getElementById('loginError');
     if (errEl) {
       errEl.textContent = 'Google sign-in failed: ' + error.message;
@@ -1597,6 +1612,10 @@ window.renderSavedAddresses = function() {
 
 window.selectAddressCard = function(id) {
   window.selectedAddressId = id;
+  const rawAddrs = localStorage.getItem('lumiere_user_addresses');
+  const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
+  const addr = addresses.find(a => String(a.id) === String(id));
+  window.selectedAddressLabel = addr ? addr.label : '';
   window.renderSavedAddresses();
   window.calculatePrices();
 };
@@ -2030,7 +2049,14 @@ window.fetchMyOrders = async function() {
     var res = await fetch(CORE_STORE_PROXY_ROUTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "track_order", query: email, siteToken: "LUMIERE_STORE_2026" }) });
     var json = await res.json();
     if (json.success && json.data.length > 0) {
-      list.innerHTML = json.data.map(function(o) {
+      const sortVal = (document.getElementById('ordersSortSelect')?.value) || 'desc';
+      const processedOrders = [...json.data];
+      if (sortVal === 'asc') {
+        processedOrders.sort((a, b) => new Date(a.date) - new Date(b.date));
+      } else {
+        processedOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+      }
+      list.innerHTML = processedOrders.map(function(o) {
         return '<div class="my-order-card' + (o.id === (window._selectedOrderId || json.data[0].id) ? ' active' : '') + '" onclick="window.showOrderDetail(\'' + o.id + '\')">' +
           '<div class="my-order-card-header">' +
             '<span class="my-order-card-id">' + o.id + '</span>' +
@@ -2516,7 +2542,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             window.showPage('payment');
             window.prefillCheckoutForm();
             // Show the add-address modal automatically
-            setTimeout(() => window.showAddressesPageForm && window.showAddressesPageForm(), 300);
+            setTimeout(() => window.showNewAddressesPageForm && window.showNewAddressesPageForm(), 300);
           } else {
             window.goToCheckout();
           }

@@ -469,7 +469,7 @@ export async function POST({ request }) {
       if (data.status === 'Shipped') {
         const { data: order } = await supabase.from('orders').select('*').eq('id', data.orderId).single();
         if (order?.shipping_email) {
-          sendOrderShipped({
+          await sendOrderShipped({
             email: order.shipping_email,
             name: `${order.shipping_fname || ''} ${order.shipping_lname || ''}`.trim(),
             orderId: order.id,
@@ -484,22 +484,25 @@ export async function POST({ request }) {
     }
 
     if (action === 'save_coupon') {
-      await supabase.from('coupons').upsert({
+      const { error: couponErr } = await supabase.from('coupons').upsert({
         code: (data.coupon.code || '').toUpperCase().trim(),
         discount: data.coupon.discount,
         type: data.coupon.type,
         status: data.coupon.status
       });
+      if (couponErr) return new Response(JSON.stringify({ success: false, error: couponErr.message }), { status: 500 });
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
 
     if (action === 'delete_coupon') {
-      await supabase.from('coupons').delete().eq('code', data.code);
+      const { error: deleteErr } = await supabase.from('coupons').delete().eq('code', data.code);
+      if (deleteErr) return new Response(JSON.stringify({ success: false, error: deleteErr.message }), { status: 500 });
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
 
     if (action === 'save_global_fragrances') {
-      await supabase.from('settings').upsert({ key: 'GLOBAL_FRAGRANCES', value: data.fragrances });
+      const { error: fragErr } = await supabase.from('settings').upsert({ key: 'GLOBAL_FRAGRANCES', value: data.fragrances });
+      if (fragErr) return new Response(JSON.stringify({ success: false, error: fragErr.message }), { status: 500 });
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
 

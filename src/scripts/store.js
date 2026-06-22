@@ -196,6 +196,8 @@ class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">loc
             window.renderHomeScentGuide();
             window.renderPromos();
             window.applyStorefrontImages();
+            init3DAnimations();
+            initInstagramScrollPin();
         } else { 
             window.renderCategoryFilters(); 
             window.triggerSearch(); 
@@ -203,6 +205,8 @@ class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">loc
             window.renderHomeScentGuide(); 
             window.renderPromos();
             window.applyStorefrontImages();
+            init3DAnimations();
+            initInstagramScrollPin();
         }
     } catch(e) {
       console.error("Could not sync with Supabase instance.", e);
@@ -228,6 +232,8 @@ class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">loc
       window.renderHomeBestsellers();
       window.renderHomeScentGuide();
       window.applyStorefrontImages();
+      init3DAnimations();
+      initInstagramScrollPin();
     }
 }
 
@@ -1148,17 +1154,6 @@ function initInstagramScrollPin() {
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll, { passive: true });
   onScroll();
-}
-
-// Init on DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    init3DAnimations();
-    initInstagramScrollPin();
-  });
-} else {
-  init3DAnimations();
-  initInstagramScrollPin();
 }
 
 // Toggle scrolled class on navbar

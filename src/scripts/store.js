@@ -170,7 +170,7 @@ src="${optimizeCloudinaryUrl(item.fragranceImages[fName], 1000)}"  alt="${fName}
                 return {
                    id: item.id, name: item.name, scent: normalizedCategory, price: item.price, category: normalizedCategory,
                    image: item.coverImage ? `<img 
-src="${optimizeCloudinaryUrl(item.coverImage, 300)}" alt="${item.name}" width="300" height="400" 
+src="${optimizeCloudinaryUrl(item.coverImage, 1000)}"  alt="${item.name}" width="300" height="400" 
 style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback"><span 
 class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">local_fire_department</span></div>`,
                   description: item.description, specs: Array.isArray(item.specifications) ? item.specifications.join('\n') : item.specifications,

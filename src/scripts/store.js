@@ -2896,7 +2896,7 @@ window.applyStorefrontImages = function() {
       const widths = [400, 800, 1200];
       let srcset = '';
       if (uploadIdx !== -1) {
-        const prefix = rawUrl.substring(0, uploadIdx + 13); // up to '/image/upload/'
+        const prefix = rawUrl.substring(0, uploadIdx + 14); // include trailing '/'
         const rest = rawUrl.substring(uploadIdx + 14); // after '/image/upload/'
         const slashIdx = rest.indexOf('/');
         if (slashIdx !== -1) {

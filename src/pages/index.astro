@@ -41,7 +41,7 @@ function ssrOptimizeUrl(url, width) {
 function ssrSrcset(url) {
   if (!url || !url.includes('/image/upload/')) return '';
   const uploadIdx = url.indexOf('/image/upload/');
-  const prefix = url.substring(0, uploadIdx + 13);
+  const prefix = url.substring(0, uploadIdx + 14);
   let rest = url.substring(uploadIdx + 14);
   const slashIdx = rest.indexOf('/');
   if (slashIdx !== -1) {

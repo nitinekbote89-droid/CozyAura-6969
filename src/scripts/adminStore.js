@@ -658,9 +658,17 @@ window.downloadInvoiceBill = function() {
     doc.line(15, y, 195, y); y += 6;
 
     const orderTotal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
-    const discountAmt = parseFloat(order.discount) || 0;
-    const shippingAmt = parseFloat(order.shipping) || 0;
-    const subtotalAmt = orderTotal + discountAmt - shippingAmt;
+    let discountAmt = parseFloat(order.discount) || 0;
+    let shippingAmt = parseFloat(order.shipping) || 0;
+    let subtotalAmt = orderTotal + discountAmt - shippingAmt;
+    if (discountAmt === 0 && shippingAmt === 0) {
+      const itemsSubtotal = (order.items || []).reduce((sum, it) => sum + ((parseInt(it.variant?.price || it.product?.price || it.price) || 0) * it.quantity), 0);
+      if (itemsSubtotal > 0 && itemsSubtotal !== orderTotal) {
+        subtotalAmt = itemsSubtotal;
+        shippingAmt = orderTotal - itemsSubtotal;
+        if (shippingAmt < 0) { shippingAmt = 0; subtotalAmt = orderTotal; }
+      }
+    }
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
@@ -841,9 +849,15 @@ window.viewOrderDetails = function(orderId) {
     }
 
     const totalVal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
-    const discountVal = parseFloat(order.discount) || 0;
-    const shippingVal = parseFloat(order.shipping) || 0;
-    const subtotalVal = totalVal + discountVal - shippingVal;
+    let discountVal = parseFloat(order.discount) || 0;
+    let shippingVal = parseFloat(order.shipping) || 0;
+    const itemsSubtotal = items.reduce((sum, it) => sum + ((it._price || parseInt(it.variant?.price || it.product?.price || it.price) || 0) * it.quantity), 0);
+    let subtotalVal = totalVal + discountVal - shippingVal;
+    if (discountVal === 0 && shippingVal === 0 && itemsSubtotal > 0 && itemsSubtotal !== totalVal) {
+      subtotalVal = itemsSubtotal;
+      shippingVal = totalVal - itemsSubtotal;
+      if (shippingVal < 0) { shippingVal = 0; subtotalVal = totalVal; }
+    }
 
     document.getElementById('orderModalSubtotalRow').textContent = `Subtotal: ₹${subtotalVal.toLocaleString('en-IN')}`;
     document.getElementById('orderModalShippingRow').textContent = shippingVal > 0 ? `Shipping: ₹${shippingVal.toLocaleString('en-IN')}` : `Shipping: Free`;

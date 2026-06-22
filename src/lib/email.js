@@ -1,25 +1,10 @@
-import nodemailer from 'nodemailer';
+const RESEND_API = 'https://api.resend.com/emails';
 
-let _transporter = null;
-function getTransporter() {
-  if (!_transporter) {
-    _transporter = nodemailer.createTransport({
-      host: import.meta.env.SMTP_HOST,
-      port: parseInt(import.meta.env.SMTP_PORT || '587'),
-      secure: false,
-      auth: {
-        user: import.meta.env.SMTP_USER,
-        pass: import.meta.env.SMTP_PASS
-      },
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 10000
-    });
-  }
-  return _transporter;
+function getFrom() {
+  const name = import.meta.env.EMAIL_FROM_NAME || 'Lumière Soya Candles';
+  const email = import.meta.env.EMAIL_FROM || 'onboarding@resend.dev';
+  return `${name} <${email}>`;
 }
-
-const fromAddr = `"${import.meta.env.EMAIL_FROM_NAME}" <${import.meta.env.EMAIL_FROM}>`;
 
 function orderConfirmationHTML({ orderId, name, items, total, address }) {
   const itemsRows = items.map(item => `
@@ -133,36 +118,52 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 </html>`;
 }
 
-export async function sendOrderConfirmation({ email, name, orderId, items, total, address }) {
+async function sendViaResend({ to, subject, html }) {
+  const apiKey = import.meta.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn('RESEND_API_KEY not set — email not sent');
+    return false;
+  }
   try {
-    const transporter = getTransporter();
-    const info = await transporter.sendMail({
-      from: fromAddr,
-      to: email,
-      subject: `Order Confirmed — ${orderId}`,
-      html: orderConfirmationHTML({ orderId, name, items, total, address })
+    const res = await fetch(RESEND_API, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: getFrom(),
+        to: [to],
+        subject,
+        html
+      })
     });
-    console.log(`Order confirmation email sent to ${email} (${orderId}): ${info.messageId}`);
-    return true;
+    const data = await res.json();
+    if (res.ok) {
+      console.log(`Email sent to ${to} (${subject}): ${data.id}`);
+      return true;
+    } else {
+      console.error(`Resend API error for ${to}:`, data);
+      return false;
+    }
   } catch (err) {
-    console.error(`Failed to send order confirmation to ${email} (${orderId}):`, err.message);
+    console.error(`Failed to send email to ${to} (${subject}):`, err.message);
     return false;
   }
 }
 
+export async function sendOrderConfirmation({ email, name, orderId, items, total, address }) {
+  return sendViaResend({
+    to: email,
+    subject: `Order Confirmed — ${orderId}`,
+    html: orderConfirmationHTML({ orderId, name, items, total, address })
+  });
+}
+
 export async function sendOrderShipped({ email, name, orderId, trackingNumber, courier, trackingLink }) {
-  try {
-    const transporter = getTransporter();
-    const info = await transporter.sendMail({
-      from: fromAddr,
-      to: email,
-      subject: `Order Shipped — ${orderId}`,
-      html: orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink })
-    });
-    console.log(`Shipping notification sent to ${email} (${orderId}): ${info.messageId}`);
-    return true;
-  } catch (err) {
-    console.error(`Failed to send shipping notification to ${email} (${orderId}):`, err.message);
-    return false;
-  }
+  return sendViaResend({
+    to: email,
+    subject: `Order Shipped — ${orderId}`,
+    html: orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink })
+  });
 }

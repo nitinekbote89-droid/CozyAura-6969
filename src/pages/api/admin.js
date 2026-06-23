@@ -63,7 +63,7 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
 function optimizeImageUrl(url, width) {
   if (!url || !url.includes('/image/upload/')) return url;
   if (url.includes('/image/upload/f_auto')) {
-    return url.replace(/\/w_\d+/, `/w_${width}`);
+    return url.replace(/([,/])w_\d+/, `$1w_${width}`);
   }
   return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
 }

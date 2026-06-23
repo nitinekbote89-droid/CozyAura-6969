@@ -341,51 +341,51 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <form id="checkoutForm" class="contact-form">
             <div class="form-row">
               <div class="form-group">
-                <label>First name</label>
+                <label for="fname">First name</label>
                 <input type="text" id="fname" autocomplete="given-name" required/>
               </div>
               <div class="form-group">
-                <label>Last name</label>
+                <label for="lname">Last name</label>
                 <input type="text" id="lname" autocomplete="family-name" required/>
               </div>
             </div>
             <div class="form-group">
-              <label>Email</label>
+              <label for="email">Email</label>
               <input type="email" id="email" autocomplete="email" required/>
             </div>
             <div class="form-group">
-              <label>Phone Number</label>
+              <label for="phone">Phone Number</label>
               <input type="text" id="phone" autocomplete="tel" inputMode="numeric" maxlength="14" required/>
             </div>
             <div class="form-group">
-              <label>Address</label>
+              <label for="address">Address</label>
               <input type="text" id="address" autocomplete="street-address" required/>
             </div>
             <div class="form-group">
-              <label>Pincode</label>
+              <label for="pincode">Pincode</label>
               <input type="text" id="pincode" autocomplete="postal-code" maxlength="6" required/>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>City</label>
+                <label for="city">City</label>
                 <input type="text" id="city" autocomplete="address-level2" required/>
               </div>
               <div class="form-group">
-                <label>State</label>
+                <label for="state">State</label>
                 <input type="text" id="state" autocomplete="address-level1" required/>
               </div>
             </div>
 
             <!-- Zomato-style Label and Default options -->
             <div id="addressMetaFields" style="display:none; margin-top:1.2rem;">
-              <div class="form-group" style="margin-bottom:1.2rem;">
-                <label style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--stone);">Address Label</label>
+              <fieldset class="form-group" style="margin-bottom:1.2rem; border:none; padding:0;">
+                <legend style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--stone); padding:0;">Address Label</legend>
                 <div style="display:flex; gap:10px; margin-top:0.4rem;">
                   <button type="button" class="label-btn active" onclick="window.setAddressLabel('Home')" id="labelBtnHome" style="flex:1; padding:0.6rem; border:1px solid var(--stone); background:var(--cream); cursor:pointer; font-size:0.75rem; font-family:inherit; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; font-weight:500; transition:all 0.3s;">Home</button>
                   <button type="button" class="label-btn" onclick="window.setAddressLabel('Work')" id="labelBtnWork" style="flex:1; padding:0.6rem; border:1px solid var(--sand); background:white; cursor:pointer; font-size:0.75rem; font-family:inherit; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; font-weight:500; transition:all 0.3s;">Work</button>
                   <button type="button" class="label-btn" onclick="window.setAddressLabel('Other')" id="labelBtnOther" style="flex:1; padding:0.6rem; border:1px solid var(--sand); background:white; cursor:pointer; font-size:0.75rem; font-family:inherit; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; font-weight:500; transition:all 0.3s;">Other</button>
                 </div>
-              </div>
+              </fieldset>
               <div class="form-group" style="display:flex; align-items:center; gap:8px; margin-bottom:1.2rem;">
                 <input type="checkbox" id="isAddressDefault" style="width:auto; height:auto; margin:0; cursor:pointer;" />
                 <label for="isAddressDefault" style="margin:0; font-size:0.8rem; cursor:pointer; text-transform:none; letter-spacing:normal; color:var(--charcoal);">Save as default address</label>

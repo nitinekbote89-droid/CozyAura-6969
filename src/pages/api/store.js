@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendOrderConfirmation, sendContactMessage } from '../../lib/email.js';
 
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+const jsonRes = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
+
 let catalogCache = null;
 let catalogCacheTime = 0;
 const CACHE_TTL = 30_000;
@@ -149,7 +152,7 @@ export async function GET({ request }) {
     }
     await autoCleanInactiveVariants();
     if (url.searchParams.get('siteToken') !== 'LUMIERE_STORE_2026') {
-      return new Response(JSON.stringify({ success: false, error: "Unauthorized endpoint origin." }), { status: 401 });
+      return jsonRes({ success: false, error: "Unauthorized endpoint origin." }, 401);
     }
 
     const [
@@ -273,7 +276,7 @@ export async function GET({ request }) {
     return new Response(JSON.stringify(responseBody), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err) {
-    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+    return jsonRes({ success: false, error: err.message }, 500);
   }
 }
 
@@ -282,7 +285,7 @@ export async function POST({ request }) {
     await autoCleanInactiveVariants();
     const body = await request.json();
     if (body.siteToken !== 'LUMIERE_STORE_2026') {
-      return new Response(JSON.stringify({ success: false, error: "Missing origin validity token." }), { status: 401 });
+      return jsonRes({ success: false, error: "Missing origin validity token." }, 401);
     }
 
     if (body.action === 'acquire_locks') {
@@ -827,6 +830,6 @@ export async function POST({ request }) {
     return new Response(JSON.stringify({ success: false, error: "Action route exception." }), { status: 400 });
 
   } catch (err) {
-    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500 });
+    return jsonRes({ success: false, error: err.message }, 500);
   }
 }

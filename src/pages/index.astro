@@ -10,7 +10,7 @@ const supabase = createClient(
 
 let ssrCatalogCache = null;
 let ssrCatalogCacheTime = 0;
-const SSR_CACHE_TTL = 30_000;
+const SSR_CACHE_TTL = 600_000;
 
 // SSR catalog data — direct Supabase query avoids self-fetch bottleneck on Railway
 let initialCatalog = null;
@@ -103,7 +103,7 @@ if (initialCatalog?.inventory) {
       displayCategory = 'jar';
     }
     const imgHtml = item.coverImage
-      ? `<img src="${ssrOptimizeUrl(item.coverImage, 300)}" alt="${item.name}" width="300" height="400" style="width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${ssrOptimizeUrl(item.coverImage, 800)}" alt="${item.name}" width="600" height="800" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`
       : '<div class="cream-fallback"><span class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">local_fire_department</span></div>';
     return `<div class="product-card" onclick="window.openProductModal('${item.id}')">
       <div class="product-img">
@@ -134,7 +134,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 ---
 
 <Layout>
-  {heroImageUrl && <link rel="preload" as="image" href={heroImageUrl} imagesrcset={heroSrcset} imagesizes="(max-width: 480px) 90vw, (max-width: 768px) 50vw, 380px" fetchpriority="high" slot="head" />}
+  {heroImageUrl && <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" slot="head" />}
   <div class="page-wrapper">
   <nav>
     <a href="#" class="nav-logo" onclick="event.preventDefault(); window.showPage('home')">Lumi<span>ère</span></a>
@@ -177,7 +177,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="hero-visual" style={heroImageUrl ? '' : 'display: none;'}>
         <div class="hero-float-wrapper">
           <div class="hero-image-frame">
-            <img src={heroImageUrl || "data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'&gt;&lt;/svg&gt;"} srcset={heroSrcset} sizes="(max-width: 480px) 90vw, (max-width: 768px) 50vw, 380px" id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" style={heroImageUrl ? 'opacity:1' : 'opacity:0;transition:opacity 0.4s ease'} />
+            <img src={heroImageUrl || "data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'&gt;&lt;/svg&gt;"} id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" style={heroImageUrl ? 'opacity:1' : 'opacity:0;transition:opacity 0.4s ease'} />
             <div class="hero-frame-glow"></div>
             <div class="hero-frame-border"></div>
           </div>

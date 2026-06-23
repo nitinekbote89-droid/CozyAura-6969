@@ -157,7 +157,7 @@ async function syncCatalogDataset() {
                let vars = Object.entries(item.fragranceStocks || {}).map(([fName, qty]) => ({
                   id: fName, name: fName, price: item.price, inStock: qty > 0, maxStock: qty,
 image: item.fragranceImages?.[fName] ? `<img 
-src="${optimizeCloudinaryUrl(item.fragranceImages[fName], 1000)}"  alt="${fName}" width="400" height="500" style="width:100%;height:100%;object-fit:cover;">` : null,
+ src="${optimizeCloudinaryUrl(item.fragranceImages[fName], 800)}"  alt="${fName}" width="400" height="500" style="width:100%;height:100%;object-fit:cover;">` : null,
                   rawImage: item.fragranceImages?.[fName] || null
                }));
                if (vars.length === 0) {
@@ -170,8 +170,8 @@ src="${optimizeCloudinaryUrl(item.fragranceImages[fName], 1000)}"  alt="${fName}
                 return {
                    id: item.id, name: item.name, scent: normalizedCategory, price: item.price, category: normalizedCategory,
                    image: item.coverImage ? `<img 
-src="${optimizeCloudinaryUrl(item.coverImage, 1000)}"  alt="${item.name}" width="300" height="400" 
-style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback"><span 
+ src="${optimizeCloudinaryUrl(item.coverImage, 800)}"  alt="${item.name}" width="300" height="400" 
+ style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback"><span 
 class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">local_fire_department</span></div>`,
                   description: item.description, specs: Array.isArray(item.specifications) ? item.specifications.join('\n') : item.specifications,
                   inStock: item.stock > 0, variants: vars,
@@ -429,9 +429,6 @@ window.renderHomeBestsellers = function() {
     const rank = 5 - idx; // index 0 = rank 5, index 4 = rank 1
     const rankColor = rank === 1 ? 'var(--gold)' : 'var(--charcoal)';
     const rankTextColor = rank === 1 ? 'var(--black)' : 'var(--cream)';
-
-    // Stacking offset with a cascading deck effect (60px offset per card)
-    const stickyTopOffset = 130 + idx * 60;
 
     return `
       <div class="bestseller-card" style="--card-idx: ${idx}; z-index: ${10 + idx};" onclick="window.openProductModal('${prod.id}')">

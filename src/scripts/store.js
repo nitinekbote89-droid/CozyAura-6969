@@ -2459,7 +2459,7 @@ window.showOrderDetail = function(id) {
             (trackingLink ? '<a href="' + trackingLink + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.8rem; color:var(--gold-dark); text-decoration:none; font-weight:500; background:var(--cream); border:1px solid rgba(184,151,90,0.2); padding:0.3rem 0.6rem; border-radius:4px; transition:all 0.2s;">' + window.__svg.external + 'Track</a>' : '') +
             '<div class="tracking-copy-btn" onclick="window.copyToClipboard(\'' + details.tracking + '\', event)">' +
               '<span class="tracking-text-span">' + details.tracking + '</span>' +
-              window.__svg.copy + ' +
+              window.__svg.copy +
             '</div>' +
           '</div>' +
         '</div>' +

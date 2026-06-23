@@ -120,7 +120,7 @@ async function syncCatalogDataset() {
           json = await res.json();
         }
         if (json.success && json.data) {
-            window.PROMOS = json.data.coupons.map(c => ({ code: c.code, type: c.type, discount: c.discount }));
+            window.PROMOS = (json.data.coupons || []).map(c => ({ code: c.code, type: c.type, discount: c.discount }));
             window.PRODUCTS = json.data.inventory.map(item => {
                let vars = Object.entries(item.fragranceStocks || {}).map(([fName, qty]) => ({
                   id: fName, name: fName, price: item.price, inStock: qty > 0, maxStock: qty,

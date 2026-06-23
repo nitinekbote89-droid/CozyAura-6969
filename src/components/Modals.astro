@@ -1,6 +1,6 @@
 <div class="modal-overlay" id="productModalOverlay" onclick="window.closeProductModal()">
   <div class="quickview-modal" onclick="event.stopPropagation()">
-    <button class="close-modal-btn" onclick="window.closeProductModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <button class="close-modal-btn" onclick="window.closeProductModal()" aria-label="Close product details"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     
     <div class="modal-gallery-pane">
       <div class="modal-main-img-wrap" id="modalImgWrap"></div>
@@ -39,7 +39,7 @@
 
 <div class="modal-overlay" id="celebrationModal" style="z-index: 1200;" onclick="window.closeSuccessOverlay()">
   <div class="celebration-modal" onclick="event.stopPropagation()">
-    <button class="close-modal-btn" onclick="window.closeSuccessOverlay()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <button class="close-modal-btn" onclick="window.closeSuccessOverlay()" aria-label="Close order confirmation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div class="celebration-icon">
       <svg width="72" height="72" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="32" cy="32" r="30" stroke="#B8975A" stroke-width="1.5" stroke-dasharray="4 2"/>
@@ -75,7 +75,7 @@
 
 <div class="modal-overlay" id="addressesPageFormModal" onclick="window.hideAddressesPageForm()">
   <div class="confirm-modal" onclick="event.stopPropagation()" style="max-width: 600px; padding: 2.5rem 2rem; border-radius: 6px; text-align: left; align-items: stretch; max-height: 90vh; overflow-y: auto;">
-    <button class="close-modal-btn" onclick="window.hideAddressesPageForm()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <button class="close-modal-btn" onclick="window.hideAddressesPageForm()" aria-label="Close address form"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <h3 id="addressesPageFormTitle" style="font-family:'Jost',sans-serif; font-size: 0.88rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--black); font-weight: 500; margin-bottom: 1.5rem; text-align: left;">Add New Address</h3>
     
     <form id="addressesPageForm" class="contact-form" onsubmit="event.preventDefault()">

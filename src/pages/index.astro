@@ -10,17 +10,11 @@ const supabase = createClient(
 
 let ssrCatalogCache = null;
 let ssrCatalogCacheTime = 0;
-const SSR_CACHE_TTL = 600_000;
+let ssrCacheRefreshing = false;
+const SSR_CACHE_FRESH_TTL = 600_000;
+const SSR_CACHE_STALE_TTL = 86_400_000;
 
-// SSR catalog data — direct Supabase query avoids self-fetch bottleneck on Railway
-let initialCatalog = null;
-let heroImageUrl = null;
-const now = Date.now();
-if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_TTL) {
-  const cached = ssrCatalogCache;
-  initialCatalog = cached.initialCatalog;
-  heroImageUrl = cached.heroImageUrl;
-} else try {
+async function fetchCatalogData() {
   const [{ data: setRow }, { data: sfRow }, { data: dbCoupons }, { data: dbProducts }, { data: dbVariants }] = await Promise.all([
     supabase.from('settings').select('value').eq('key', 'GLOBAL_FRAGRANCES').single(),
     supabase.from('settings').select('value').eq('key', 'STOREFRONT_IMAGES').single(),
@@ -30,6 +24,7 @@ if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_TTL) {
   ]);
 
   const storefrontImages = sfRow?.value || null;
+  let heroImageUrl = null;
   if (storefrontImages?.home_hero) {
     heroImageUrl = storefrontImages.home_hero;
   }
@@ -55,8 +50,34 @@ if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_TTL) {
     };
   });
 
-  initialCatalog = { inventory, fragrances: setRow?.value || [], coupons: dbCoupons || [], storefrontImages };
-  ssrCatalogCache = { initialCatalog, heroImageUrl };
+  const initialCatalog = { inventory, fragrances: setRow?.value || [], coupons: dbCoupons || [], storefrontImages };
+  return { initialCatalog, heroImageUrl };
+}
+
+// Stale-while-revalidate: serve cached instantly, refresh in background if stale
+let initialCatalog = null;
+let heroImageUrl = null;
+const now = Date.now();
+
+if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_STALE_TTL) {
+  const cached = ssrCatalogCache;
+  initialCatalog = cached.initialCatalog;
+  heroImageUrl = cached.heroImageUrl;
+  if ((now - ssrCatalogCacheTime) > SSR_CACHE_FRESH_TTL && !ssrCacheRefreshing) {
+    ssrCacheRefreshing = true;
+    fetchCatalogData().then(result => {
+      ssrCatalogCache = result;
+      ssrCatalogCacheTime = Date.now();
+      ssrCacheRefreshing = false;
+    }).catch(() => {
+      ssrCacheRefreshing = false;
+    });
+  }
+} else try {
+  const result = await fetchCatalogData();
+  initialCatalog = result.initialCatalog;
+  heroImageUrl = result.heroImageUrl;
+  ssrCatalogCache = result;
   ssrCatalogCacheTime = Date.now();
 } catch (e) {
   console.warn('SSR catalog query failed, will load client-side');

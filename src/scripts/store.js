@@ -1,5 +1,20 @@
 const CORE_STORE_PROXY_ROUTE = "/api/store";
 
+window.__svg = {
+  close: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  check_circle: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  fire: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--taupe)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.5-.75-3-1.5-4.5.25 1 1.5 2 1.5 3.5s-1.25 2.5-2.5 3.5z"/><path d="M12 2C10 6 8 10 8 14c0 3.5 2 5 4 5s4-1.5 4-5c0-4-2-8-4-12z"/><circle cx="12" cy="14" r="3" fill="var(--taupe)" opacity="0.3"/></svg>',
+  fire_sm: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--taupe)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5A2.5 2.5 0 0 0 12 12c0-1.5-.75-3-1.5-4.5.25 1 1.5 2 1.5 3.5s-1.25 2.5-2.5 3.5z"/><path d="M13 2C11 6 9 10 9 14c0 3.5 2 5 4 5s4-1.5 4-5c0-4-2-8-4-12z"/><circle cx="13" cy="14" r="3" fill="var(--taupe)" opacity="0.3"/></svg>',
+  arrow_right: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+  sell: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold-dark)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+  check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  truck: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+  external: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+  copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  home: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/></svg>',
+};
+
 let _supabaseLazy = null;
 async function getSupabase() {
   if (!_supabaseLazy) {
@@ -95,8 +110,8 @@ window.showToast = function(message, isError = false) {
     document.body.appendChild(toast);
   }
   const icon = isError 
-    ? '<span class="material-symbols-outlined" style="color:var(--danger);font-size:16px;vertical-align:middle;">error</span>' 
-    : '<span class="material-symbols-outlined" style="color:var(--gold-dark);font-size:16px;vertical-align:middle;">check_circle</span>';
+    ? window.__svg.error 
+    : window.__svg.check_circle;
   toast.innerHTML = `${icon} <span>${message}</span>`;
   toast.style.borderLeft = isError ? '3px solid var(--danger)' : '3px solid var(--gold)';
   if (window._toastTimeout) clearTimeout(window._toastTimeout);
@@ -143,8 +158,7 @@ image: item.fragranceImages?.[fName] ? `<img
                    id: item.id, name: item.name, scent: normalizedCategory, price: item.price, category: normalizedCategory,
                    image: item.coverImage ? `<img 
  src="${item.coverImage}"  alt="${item.name}" width="300" height="400" 
- style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback"><span 
-class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">local_fire_department</span></div>`,
+ style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback">${window.__svg.fire}</div>`,
                   description: item.description, specs: Array.isArray(item.specifications) ? item.specifications.join('\n') : item.specifications,
                   inStock: item.stock > 0, variants: vars,
                   totalSales: item.totalSales || 0,
@@ -420,7 +434,7 @@ window.renderHomeBestsellers = function() {
             <p class="bestseller-card-desc">${prod.description ? prod.description.substring(0, 120) + '...' : 'Hand-poured 100% natural soya candle blended with botanical oils.'}</p>
             <div class="bestseller-card-footer">
               <span class="bestseller-card-price">₹${prod.price}</span>
-              <span class="bestseller-card-cta">View Details <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">arrow_forward</span></span>
+              <span class="bestseller-card-cta">View Details ${window.__svg.arrow_right}</span>
             </div>
           </div>
           <div class="bestseller-card-right">
@@ -691,7 +705,7 @@ window.renderCart = function() {
   }
   container.innerHTML = window.cart.map((item, idx) => `
     <div class="order-item">
-      <div class="order-thumb">${item.product?.image || '<span class="material-symbols-outlined" style="font-size:1.5rem;color:var(--taupe);">local_fire_department</span>'}</div>
+      <div class="order-thumb">${item.product?.image || window.__svg.fire_sm}</div>
       <div class="order-item-info">
         <strong style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;">${item.product?.name || 'Candle'}</strong>
         <span style="font-size:0.72rem;color:var(--stone);letter-spacing:0.1em;text-transform:uppercase;">${item.variant?.name || 'Standard'}</span>
@@ -1377,7 +1391,7 @@ window.renderCheckoutAppliedPromo = function() {
     if (box) box.style.display = 'none';
     container.innerHTML = `
       <div class="applied-promo-tag">
-        <span class="material-symbols-outlined" style="font-size:14px;color:var(--gold-dark);">sell</span>
+        ${window.__svg.sell}
         <span>${window.appliedPromoCode.code}</span>
         <button onclick="window.removeCheckoutPromo()" style="background:none;border:none;cursor:pointer;color:var(--stone);font-size:1.1rem;line-height:1;margin-left:0.3rem;padding:0;font-weight:bold;">&times;</button>
       </div>
@@ -1410,7 +1424,7 @@ window.renderCheckoutSidebarItems = function() {
       <div class="checkout-item-row" style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;">
         <div class="checkout-item-thumbnail-wrap" style="position:relative;width:64px;height:64px;flex-shrink:0;">
           <div class="checkout-item-thumbnail" style="width:100%;height:100%;background:white;border:1px solid var(--sand);border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:2px;">
-            ${finalImg || '<span class="material-symbols-outlined" style="font-size:1.5rem;color:var(--taupe);">local_fire_department</span>'}
+            ${finalImg || window.__svg.fire_sm}
           </div>
         </div>
         <div class="checkout-item-info" style="flex:1;">
@@ -2295,7 +2309,7 @@ window.copyToClipboard = function(text, event) {
   navigator.clipboard.writeText(text).then(function() {
     var btn = event.currentTarget;
     var originalHTML = btn.innerHTML;
-    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;color:#059669;">check</span> <span class="tracking-text-span" style="color:#059669;">Copied</span>';
+    btn.innerHTML = `${window.__svg.check} <span class="tracking-text-span" style="color:#059669;">Copied</span>`;
     btn.classList.add('copied');
     setTimeout(function() {
       btn.innerHTML = originalHTML;
@@ -2432,20 +2446,20 @@ window.showOrderDetail = function(id) {
 
   detail.innerHTML =
     '<div class="order-detail-header"><h3 class="order-detail-title" style="margin:0;line-height:1;">Order ID: ' + order.id + '</h3><span class="status-pill ' + order.status.toLowerCase() + '" style="margin:0;">' + order.status + '</span></div>' +
-    '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle"><span class="material-symbols-outlined" style="font-size:16px;">check</span></div><span class="tracker-label">Confirmed</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle"><span class="material-symbols-outlined" style="font-size:16px;">local_shipping</span></div><span class="tracker-label">Shipped</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle"><span class="material-symbols-outlined" style="font-size:16px;">home</span></div><span class="tracker-label">Delivered</span></div></div></div>' +
+    '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle">' + window.__svg.check + '</div><span class="tracker-label">Confirmed</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle">' + window.__svg.truck + '</div><span class="tracker-label">Shipped</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle">' + window.__svg.home + '</div><span class="tracker-label">Delivered</span></div></div></div>' +
     (details.tracking ? 
       ('<div class="order-tracking-card" style="margin-top:0; margin-bottom:1.5rem;">' +
         '<div>' +
           '<div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Courier Partner</div>' +
-          '<div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;"><span class="material-symbols-outlined" style="font-size:16px;color:var(--gold-dark);">local_shipping</span>' + details.courier + '</div>' +
+          '<div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">' + window.__svg.truck + details.courier + '</div>' +
         '</div>' +
         '<div style="text-align:right;">' +
           '<div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Waybill / Tracking No.</div>' +
           '<div style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-end;">' +
-            (trackingLink ? '<a href="' + trackingLink + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.8rem; color:var(--gold-dark); text-decoration:none; font-weight:500; background:var(--cream); border:1px solid rgba(184,151,90,0.2); padding:0.3rem 0.6rem; border-radius:4px; transition:all 0.2s;"><span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Track</a>' : '') +
+            (trackingLink ? '<a href="' + trackingLink + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.8rem; color:var(--gold-dark); text-decoration:none; font-weight:500; background:var(--cream); border:1px solid rgba(184,151,90,0.2); padding:0.3rem 0.6rem; border-radius:4px; transition:all 0.2s;">' + window.__svg.external + 'Track</a>' : '') +
             '<div class="tracking-copy-btn" onclick="window.copyToClipboard(\'' + details.tracking + '\', event)">' +
               '<span class="tracking-text-span">' + details.tracking + '</span>' +
-              '<span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>' +
+              window.__svg.copy + ' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -2479,20 +2493,20 @@ window.trackPackage = async function(e) {
                 <div class="order-tracking-card" style="margin-top:0; margin-bottom:1.25rem;">
                   <div>
                     <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Courier Partner</div>
-                    <div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;"><span class="material-symbols-outlined" style="font-size:16px;color:var(--gold-dark);">local_shipping</span>${details.courier}</div>
+                    <div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">${window.__svg.truck}${details.courier}</div>
                   </div>
                   <div style="text-align:right;">
                     <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Waybill / Tracking No.</div>
                     <div style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-end;">
                       ${o.trackingLink ? `
                         <a href="${o.trackingLink}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.8rem; color:var(--gold-dark); text-decoration:none; font-weight:500; background:var(--cream); border:1px solid rgba(184,151,90,0.2); padding:0.3rem 0.6rem; border-radius:4px; transition:all 0.2s;">
-                          <span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Track
+                          ${window.__svg.external}Track
                         </a>
                       ` : ''}
                       <div class="tracking-copy-btn" onclick="window.copyToClipboard('${details.tracking}', event)">
                         <span class="tracking-text-span">${details.tracking}</span>
-                        <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
-                      </div>
+${window.__svg.copy}
+                       </div>
                     </div>
                   </div>
                 </div>

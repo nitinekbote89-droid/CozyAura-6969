@@ -75,7 +75,7 @@ async function calculateCartTotalOnServer(items, couponCode) {
       }
     }
     const vPrice = item.variant?.price || dbProd.price;
-    subtotal += (parseInt(vPrice) || dbProd.price) * item.quantity;
+    subtotal += (Number(vPrice) || dbProd.price) * item.quantity;
   }
 
   // M1: Removed duplicate coupon fetch — single query handles both discount and freeship
@@ -94,7 +94,7 @@ async function calculateCartTotalOnServer(items, couponCode) {
       } else if (coupon.type === 'fixed') {
         discount = coupon.discount;
       } else if (coupon.type === 'freeship') {
-        discount = 150;
+        discount = 0;
         finalShipping = 0;
       }
     }

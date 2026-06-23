@@ -1586,9 +1586,350 @@ section.active {
     font-size: 1.5rem;
   }
   .bestseller-card-desc {
-    display: none; /* Hide description on extremely short screens to preserve layout */
+    display: none;
   }
 }
 
+/* ── TABLET (481px – 1024px) ── */
+@media (max-width: 1024px) {
+  :root {
+    --home-px: 2rem;
+  }
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    text-align: center;
+  }
+  .hero-text {
+    order: 2;
+  }
+  .hero-text p {
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-btns {
+    justify-content: center;
+  }
+  .hero-visual {
+    order: 1;
+  }
+  .hero-image-frame {
+    width: 300px;
+    height: 380px;
+  }
+  .hero-text h1 {
+    font-size: clamp(2.5rem, 6vw, 3.8rem);
+  }
+  .hero-subtitle {
+    font-size: 0.65rem;
+  }
+  .glow-orb-1 {
+    width: 250px;
+    height: 250px;
+  }
+  .glow-orb-2 {
+    width: 300px;
+    height: 300px;
+  }
+  .glow-orb-3 {
+    display: none;
+  }
+  #home {
+    padding-top: 7rem;
+  }
+  .home-section {
+    padding: 5rem 2rem;
+  }
+  .bestseller-sticky-section {
+    padding: 5rem 2rem;
+  }
+  .bestseller-sticky-header h2 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+  }
+  .bestseller-sticky-header p {
+    font-size: 0.95rem;
+    max-width: 100%;
+  }
+  #shop {
+    padding: 6rem 2rem 4rem;
+  }
+  .shop-controls {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 1rem !important;
+  }
+  .quickview-modal {
+    grid-template-columns: 1fr;
+    max-width: 550px;
+  }
+  .modal-gallery-pane {
+    min-height: 300px;
+    border-right: none;
+    border-bottom: 1px solid rgba(196,181,160,0.2);
+  }
+  .modal-main-img-wrap {
+    max-height: 300px;
+  }
+  .modal-info-pane {
+    padding: 2rem 1.5rem;
+  }
+  .modal-title {
+    font-size: 1.8rem;
+  }
+  .instagram-scroll-container {
+    height: 280dvh;
+  }
+  #about, #contact {
+    padding: 6rem 2rem 3rem;
+  }
+  .cart-inner {
+    gap: 2.5rem;
+  }
+  .checkout-summary {
+    position: static;
+  }
+  .footer-inner {
+    gap: 2rem;
+  }
+  .modal-overlay {
+    padding: 1rem;
+  }
+  .celebration-modal {
+    padding: 2.5rem 2rem;
+  }
+}
 
+/* ── MOBILE (320px – 480px) ── */
+@media (max-width: 480px) {
+  :root {
+    --home-px: 1.2rem;
+    --ig-track-padding: 1.5rem;
+    --ig-card-gap: 1rem;
+  }
+  nav {
+    padding: 0.7rem 1.2rem;
+  }
+  nav.scrolled {
+    padding: 0.7rem 1.2rem;
+  }
+  .nav-logo {
+    font-size: 1.3rem;
+  }
+  .nav-links {
+    gap: 0.6rem;
+  }
+  .nav-links a {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+  }
+  .nav-cta {
+    font-size: 0.6rem;
+    padding: 0.5rem 1rem;
+    letter-spacing: 0.12em;
+  }
+  .nav-account-btn {
+    width: 34px;
+    height: 34px;
+  }
+  #home {
+    padding-top: 5.5rem;
+  }
+  .hero-inner {
+    gap: 1.5rem;
+  }
+  .hero-text h1 {
+    font-size: clamp(2rem, 8vw, 2.8rem);
+  }
+  .hero-text p {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+  .hero-image-frame {
+    width: 100%;
+    max-width: 280px;
+    height: 340px;
+  }
+  .home-section {
+    padding: 3rem 1.2rem;
+  }
+  .section-header h2 {
+    font-size: clamp(1.6rem, 6vw, 2.2rem);
+  }
+  .values-grid {
+    gap: 1.2rem;
+  }
+  .value-card {
+    padding: 2rem 1.2rem;
+  }
+  .value-card h3 {
+    font-size: 1.15rem;
+  }
+  .value-card p {
+    font-size: 0.82rem;
+  }
+  .scent-grid {
+    gap: 1rem;
+  }
+  .scent-card {
+    padding: 2rem 1rem;
+  }
+  .testimonial-grid {
+    gap: 1.2rem;
+  }
+  .testimonial-card {
+    padding: 2rem 1.5rem;
+  }
+  .bestseller-sticky-section {
+    padding: 3rem 1.2rem;
+  }
+  .bestseller-sticky-header h2 {
+    font-size: clamp(1.8rem, 6vw, 2.4rem);
+    margin-bottom: 1.2rem;
+  }
+  .bestseller-sticky-header p {
+    font-size: 0.88rem;
+    margin-bottom: 1.5rem;
+  }
+  .bestseller-card-left {
+    padding: 1.5rem;
+  }
+  .bestseller-card-left h3 {
+    font-size: 1.6rem;
+  }
+  .bestseller-card-price {
+    font-size: 1.3rem;
+  }
+  .bestseller-card-right {
+    height: 220px;
+  }
+  .bestseller-card {
+    --base-top: 100px;
+    --step-offset: 40px;
+  }
+  #shop {
+    padding: 5rem 1.2rem 3rem;
+  }
+  .products-grid {
+    gap: 1.2rem;
+  }
+  .product-card h3 {
+    font-size: 1.15rem;
+  }
+  .product-card .price {
+    font-size: 1.1rem;
+  }
+  .quickview-modal {
+    max-width: 100%;
+    border-radius: 0;
+  }
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal-gallery-pane {
+    min-height: 260px;
+  }
+  .modal-main-img-wrap {
+    max-height: 260px;
+  }
+  .modal-info-pane {
+    padding: 1.5rem 1.2rem 1.2rem;
+  }
+  .modal-title {
+    font-size: 1.5rem;
+  }
+  .modal-price {
+    font-size: 1.4rem;
+  }
+  .modal-footer-action {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  .modal-action-btn, .notify-btn, .btn-primary {
+    padding: 0.85rem 1.5rem;
+    min-height: 44px;
+    font-size: 0.72rem;
+  }
+  #cartPage {
+    padding: 5rem 1.2rem 3rem;
+  }
+  .order-items-container .checkout-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+  .order-items-container .checkout-item-img {
+    width: 80px;
+    height: 80px;
+  }
+  .cart-inner {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  #payment {
+    padding: 5rem 1rem 3rem;
+  }
+  .checkout-main-content {
+    padding: 1.5rem 1.2rem;
+  }
+  .checkout-sidebar-content {
+    padding: 1.5rem 1.2rem;
+  }
+  #about, #contact {
+    padding: 5rem 1.2rem 3rem;
+  }
+  .about-intro p {
+    font-size: 0.88rem;
+  }
+  .about-step {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .contact-layout {
+    gap: 2rem;
+  }
+  #ordersPage, #addressesPage {
+    padding: 5rem 1.2rem 3rem;
+  }
+  .orders-detail-view {
+    padding: 1.5rem;
+  }
+  .celebration-modal {
+    padding: 2rem 1.5rem;
+    max-width: 100%;
+    border-radius: 0;
+  }
+  .celebration-order-id {
+    font-size: 1.5rem;
+  }
+  .footer-inner {
+    gap: 2rem;
+  }
+  #siteFooter {
+    padding: 2.5rem 1.2rem 1.5rem;
+  }
+  .instagram-scroll-container {
+    height: 240dvh;
+  }
+  .account-dropdown {
+    left: auto;
+    right: 0;
+    width: 180px;
+  }
+  .filter-btn {
+    font-size: 0.6rem;
+    padding: 0.5rem 0.8rem;
+  }
+  .glow-orb-1 {
+    width: 150px;
+    height: 150px;
+  }
+  .glow-orb-2 {
+    width: 200px;
+    height: 200px;
+  }
+}
 

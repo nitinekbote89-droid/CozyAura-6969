@@ -2885,13 +2885,6 @@ window.applyStorefrontImages = function() {
       if (heroVisual) heroVisual.style.display = '';
       if (heroInner) heroInner.style.gridTemplateColumns = '';
       
-      if (targetSrc.includes('/image/upload/')) {
-        if (targetSrc.includes('/image/upload/f_auto')) {
-          targetSrc = targetSrc.replace(/\/w_\d+/, '/w_1000');
-        } else {
-          targetSrc = targetSrc.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1000/');
-        }
-      }
       // Build srcset from original raw URL
       const rawUrl = sf.home_hero || "";
       const uploadIdx = rawUrl.indexOf('/image/upload/');

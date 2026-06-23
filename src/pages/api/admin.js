@@ -50,7 +50,7 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
     const parsedAsset = await cloudinaryResponse.json();
     const url = parsedAsset.secure_url || "";
     if (url && url.includes('/image/upload/')) {
-      const maxWidth = 1200;
+      const maxWidth = 800;
       return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${maxWidth}/`);
     }
     return url;
@@ -58,6 +58,14 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
     console.error("Cloudinary upload error:", e);
     return base64Payload;
   }
+}
+
+function optimizeImageUrl(url, width) {
+  if (!url || !url.includes('/image/upload/')) return url;
+  if (url.includes('/image/upload/f_auto')) {
+    return url.replace(/\/w_\d+/, `/w_${width}`);
+  }
+  return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
 }
 
 async function executeCloudinaryCleanup() {
@@ -376,6 +384,7 @@ export async function POST({ request }) {
       if (liveCoverUrl && liveCoverUrl.startsWith("data:image")) {
         liveCoverUrl = await uploadToCloudinary(liveCoverUrl, `cover_${data.product.id}`);
       }
+      liveCoverUrl = optimizeImageUrl(liveCoverUrl, 800);
 
       const { error: upsertErr } = await supabase.from('products').upsert({
         id: data.product.id,
@@ -415,6 +424,7 @@ export async function POST({ request }) {
         if (variantMediaUrl && variantMediaUrl.startsWith("data:image")) {
           variantMediaUrl = await uploadToCloudinary(variantMediaUrl, `var_${data.product.id}_${fragranceName.replace(/\s+/g, '')}`);
         }
+        variantMediaUrl = optimizeImageUrl(variantMediaUrl, 800);
         variantRows.push({
           product_id: data.product.id,
           variant_name: fragranceName,
@@ -516,8 +526,10 @@ export async function POST({ request }) {
         let val = images[key] || "";
         if (val && val.startsWith("data:image")) {
           const publicId = `sf_${key}`;
-          updatedImages[key] = await uploadToCloudinary(val, publicId);
+          val = await uploadToCloudinary(val, publicId);
         }
+        const targetWidth = key === 'home_hero' ? 1000 : 800;
+        updatedImages[key] = optimizeImageUrl(val, targetWidth);
       }));
 
       const { error } = await supabase.from('settings').upsert({

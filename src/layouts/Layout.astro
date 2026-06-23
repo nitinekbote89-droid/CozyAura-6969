@@ -21,7 +21,9 @@ import '/src/styles/global.css';
   <meta name="twitter:title" content="Lumière — Hand-Poured Soya Candles" />
   <meta name="twitter:description" content="Hand-poured 100% natural soya candles crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless — from our studio in India." />
   <meta name="twitter:image" content="https://lumierecandles.in/favicon.svg" />
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
   <link rel="preconnect" href="https://checkout.razorpay.com" crossorigin>
+  <slot name="head" />
   <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
   <script type="application/ld+json" is:inline>
   {
@@ -46,7 +48,6 @@ import '/src/styles/global.css';
     "url": "https://lumierecandles.in/"
   }
   </script>
-  <slot name="head" />
 </head>
 <body>
   <slot />

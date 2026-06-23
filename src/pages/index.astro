@@ -1,33 +1,59 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Modals from '../components/Modals.astro';
+import { createClient } from '@supabase/supabase-js';
 
-// SSR initial catalog data to avoid client-side API round-trip
+const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+// SSR catalog data — direct Supabase query avoids self-fetch bottleneck on Railway
 let initialCatalog = null;
 let heroImageUrl = null;
 try {
-  const apiUrl = new URL('/api/store', Astro.request.url);
-  apiUrl.searchParams.set('siteToken', 'LUMIERE_STORE_2026');
-  apiUrl.searchParams.set('t', Date.now().toString());
-  const res = await fetch(apiUrl);
-  if (res.ok) {
-    const json = await res.json();
-    if (json.success) {
-      initialCatalog = json.data;
-      const sf = json.data.storefrontImages;
-      if (sf?.home_hero) {
-        let url = sf.home_hero;
-        if (url.includes('/image/upload/f_auto')) {
-          url = url.replace(/\/w_\d+/, '/w_1200');
-        } else if (url.includes('/image/upload/')) {
-          url = url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1200/');
-        }
-        heroImageUrl = url;
-      }
+  const [{ data: setRow }, { data: sfRow }, { data: dbProducts }, { data: dbVariants }] = await Promise.all([
+    supabase.from('settings').select('value').eq('key', 'GLOBAL_FRAGRANCES').single(),
+    supabase.from('settings').select('value').eq('key', 'STOREFRONT_IMAGES').single(),
+    supabase.from('products').select('*').order('created_at', { ascending: false }),
+    supabase.from('product_variants').select('*')
+  ]);
+
+  const storefrontImages = sfRow?.value || null;
+  if (storefrontImages?.home_hero) {
+    let url = storefrontImages.home_hero;
+    if (url.includes('/image/upload/f_auto')) {
+      url = url.replace(/\/w_\d+/, '/w_1200');
+    } else if (url.includes('/image/upload/')) {
+      url = url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1200/');
     }
+    heroImageUrl = url;
   }
+
+  const variantsByProductId = {};
+  (dbVariants || []).forEach(v => {
+    if (!variantsByProductId[v.product_id]) variantsByProductId[v.product_id] = [];
+    variantsByProductId[v.product_id].push(v);
+  });
+
+  const inventory = (dbProducts || []).map(p => {
+    const pVars = variantsByProductId[p.id] || [];
+    let fragranceStocks = {}, fragranceImages = {};
+    pVars.forEach(v => {
+      fragranceStocks[v.variant_name] = v.stock;
+      if (v.image_url) fragranceImages[v.variant_name] = v.image_url;
+    });
+    return {
+      id: p.id, name: p.name, category: p.category, price: p.price,
+      weight: p.weight, stock: p.stock, coverImage: p.cover_image,
+      description: p.description, specifications: p.specifications,
+      fragranceStocks, fragranceImages
+    };
+  });
+
+  initialCatalog = { inventory, fragrances: setRow?.value || [], storefrontImages };
 } catch (e) {
-  console.warn('SSR catalog fetch failed, will load client-side');
+  console.warn('SSR catalog query failed, will load client-side');
 }
 
 // SSR products grid HTML to eliminate CLS from JS-populated product cards
@@ -97,7 +123,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 ---
 
 <Layout>
-  {heroImageUrl && <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" slot="head" />}
+  {heroImageUrl && <link rel="preload" as="image" href={heroImageUrl} imagesrcset={heroSrcset} imagesizes="(max-width: 480px) 90vw, (max-width: 768px) 50vw, 380px" fetchpriority="high" slot="head" />}
   <div class="page-wrapper">
   <nav>
     <a href="#" class="nav-logo" onclick="event.preventDefault(); window.showPage('home')">Lumi<span>ère</span></a>

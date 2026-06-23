@@ -121,6 +121,10 @@ async function syncCatalogDataset() {
         }
         if (json.success && json.data) {
             window.PROMOS = (json.data.coupons || []).map(c => ({ code: c.code, type: c.type, discount: c.discount }));
+            if (window.appliedPromoCode && !window.PROMOS.find(p => p.code === window.appliedPromoCode.code)) {
+              window.appliedPromoCode = null;
+              sessionStorage.removeItem('lumiere_applied_promo');
+            }
             window.PRODUCTS = json.data.inventory.map(item => {
                let vars = Object.entries(item.fragranceStocks || {}).map(([fName, qty]) => ({
                   id: fName, name: fName, price: item.price, inStock: qty > 0, maxStock: qty,

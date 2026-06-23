@@ -18,7 +18,7 @@ async function fetchCatalogData() {
   const [{ data: setRow }, { data: sfRow }, { data: dbCoupons }, { data: dbProducts }, { data: dbVariants }] = await Promise.all([
     supabase.from('settings').select('value').eq('key', 'GLOBAL_FRAGRANCES').single(),
     supabase.from('settings').select('value').eq('key', 'STOREFRONT_IMAGES').single(),
-    supabase.from('coupons').select('*'),
+    supabase.from('coupons').select('*').eq('status', 'Active'),
     supabase.from('products').select('*').order('created_at', { ascending: false }),
     supabase.from('product_variants').select('*')
   ]);

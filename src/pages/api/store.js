@@ -162,7 +162,7 @@ export async function GET({ request }) {
     ] = await Promise.all([
       supabase.from('settings').select('value').eq('key', 'GLOBAL_FRAGRANCES').single(),
       supabase.from('settings').select('value').eq('key', 'STOREFRONT_IMAGES').single(),
-      supabase.from('coupons').select('*')
+      supabase.from('coupons').select('*').eq('status', 'Active')
     ]);
     const fragrances = setRow ? setRow.value : [];
     const storefrontImages = storefrontImagesRow ? storefrontImagesRow.value : null;

@@ -1190,7 +1190,7 @@ section.active {
 .footer-brand .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 400; letter-spacing: 0.12em; color: var(--cream); text-decoration: none; display: inline-block; margin-bottom: 1rem; }
 .footer-brand .footer-logo span { color: var(--gold); font-style: italic; }
 .footer-brand p { font-size: 0.82rem; line-height: 1.8; color: var(--taupe); font-weight: 300; max-width: 280px; }
-.footer-col h4 { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--taupe); margin-bottom: 1.2rem; font-weight: 600; font-family: 'Jost', sans-serif; }
+.footer-col h3.footer-heading { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--taupe); margin-bottom: 1.2rem; font-weight: 600; font-family: 'Jost', sans-serif; }
 .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
 .footer-col a { color: var(--sand); text-decoration: none; font-size: 0.82rem; transition: color 0.2s; cursor: pointer; }
 .footer-col a:hover { color: var(--gold); }

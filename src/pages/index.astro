@@ -785,7 +785,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     <span id="checkoutTimerText">Stock reserved for 10:00</span>
   </div>
 
-  {initialCatalog && <script is:inline>window.__INITIAL_CATALOG__ = {JSON.stringify(initialCatalog)};</script>}
+  {initialCatalog && <script is:inline set:html={`window.__INITIAL_CATALOG__ = ${JSON.stringify(initialCatalog)};`} />}
 </Layout>
   <script is:inline>
   window.addEventListener('error', function(e) {

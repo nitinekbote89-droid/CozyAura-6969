@@ -34,7 +34,9 @@ window.syncCloudInventory = async function() {
     }
     const startTime = Date.now();
     try {
-        const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?adminSecret=${pwd}&t=${Date.now()}`);
+        const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?t=${Date.now()}`, {
+            headers: { 'X-Admin-Secret': pwd }
+        });
         const json = await res.json();
         if (json.success && json.data) {
             localStorage.setItem('lumiere_inventory', JSON.stringify(json.data.inventory));
@@ -450,7 +452,7 @@ window.deleteProduct = async function(id) {
             body: JSON.stringify({ action: "delete_product", productId: decodedId, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
         window.syncCloudInventory();
-    } catch(e){}
+    } catch(e){ console.error("Failed to delete product:", e); }
 };
 
 window.updateOrderStatus = async function(orderId, newStatus) {
@@ -737,7 +739,7 @@ window.handleCouponSubmit = async function(e) {
             body: JSON.stringify({ action: "save_coupon", coupon: couponPayload, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
         window.closeCouponModal(); window.syncCloudInventory();
-    } catch(e){}
+    } catch(e){ console.error("Failed to save coupon:", e); }
 };
 
 window.deleteCoupon = async function(code) {
@@ -749,7 +751,7 @@ window.deleteCoupon = async function(code) {
             body: JSON.stringify({ action: "delete_coupon", code: decodedCode, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
         window.syncCloudInventory();
-    } catch(e){}
+    } catch(e){ console.error("Failed to delete coupon:", e); }
 };
 
 window.addGlobalFragrance = async function() {
@@ -762,7 +764,7 @@ window.addGlobalFragrance = async function() {
             body: JSON.stringify({ action: "save_global_fragrances", fragrances, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
         input.value = ''; window.syncCloudInventory();
-    } catch(e){}
+    } catch(e){ console.error("Failed to add global fragrance:", e); }
 };
 
 window.removeGlobalFragrance = async function(fragrance) {
@@ -775,7 +777,7 @@ window.removeGlobalFragrance = async function(fragrance) {
             body: JSON.stringify({ action: "save_global_fragrances", fragrances, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
         window.syncCloudInventory();
-    } catch(e){}
+    } catch(e){ console.error("Failed to remove global fragrance:", e); }
 };
 
 window.viewOrderDetails = function(orderId) {

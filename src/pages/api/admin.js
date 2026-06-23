@@ -212,7 +212,7 @@ export async function GET({ request }) {
     if (!adminSecret) {
       return new Response(JSON.stringify({ success: false, error: "Server misconfiguration: ADMIN_SECRET not set." }), { status: 503 });
     }
-    if (url.searchParams.get('adminSecret') !== adminSecret) {
+    if (request.headers.get('x-admin-secret') !== adminSecret) {
       return new Response(JSON.stringify({ success: false, error: "Access Denied." }), { status: 401 });
     }
 

@@ -2228,6 +2228,12 @@ window.saveAddressesPageForm = function() {
 };
 
 window.syncUserProfile = function(email, callback) {
+  // Skip if no auth token exists — profile fetch requires a valid Supabase session
+  const authToken = getAuthTokenFromStorage();
+  if (!authToken) {
+    if (callback) callback(null);
+    return;
+  }
   fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
     method: "POST",
     body: JSON.stringify({
@@ -2235,13 +2241,18 @@ window.syncUserProfile = function(email, callback) {
       email,
       siteToken: "LUMIERE_STORE_2026"
     })
-  }).then(res => res.json())
-    .then(json => {
-      if (json.success && json.user) {
-        localStorage.setItem('lumiere_user_addresses', JSON.stringify(json.user.addresses || []));
-        if (callback) callback(json.user); // pass user data so callers can inspect addresses
-      }
-    }).catch(e => console.error("Profile sync failed:", e));
+  }).then(res => {
+    if (res.status === 401) {
+      if (callback) callback(null);
+      return null;
+    }
+    return res.json();
+  }).then(json => {
+    if (json && json.success && json.user) {
+      localStorage.setItem('lumiere_user_addresses', JSON.stringify(json.user.addresses || []));
+      if (callback) callback(json.user);
+    }
+  }).catch(e => console.error("Profile sync failed:", e));
 };
 
 window.fetchMyOrders = async function() {

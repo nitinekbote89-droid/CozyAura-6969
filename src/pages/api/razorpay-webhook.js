@@ -33,7 +33,9 @@ export async function POST({ request }) {
         .update(rawBody)
         .digest('hex');
 
-      if (expectedSignature !== signature) {
+      const sigBuf = Buffer.from(signature, 'hex');
+      const expBuf = Buffer.from(expectedSignature, 'hex');
+      if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
         console.error("Webhook signature mismatch — request rejected.");
         return new Response("Invalid signature", { status: 200 });
       }

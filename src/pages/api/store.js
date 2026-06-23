@@ -542,8 +542,10 @@ export async function POST({ request }) {
             .createHmac('sha256', razorpayKeySecret)
             .update(`${razorpayOrderId}|${paymentId}`)
             .digest('hex');
-            
-          if (generatedSig !== razorpaySignature) {
+
+          const sigBuf = Buffer.from(razorpaySignature, 'hex');
+          const expBuf = Buffer.from(generatedSig, 'hex');
+          if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
             return new Response(JSON.stringify({ success: false, error: "Razorpay signature verification failed. Security alert!" }), { status: 400 });
           }
         } else if (isProd) {

@@ -116,8 +116,6 @@ CREATE INDEX idx_addresses_email ON user_addresses(user_email);
 CREATE INDEX idx_orders_address ON orders(shipping_address_id);
 CREATE INDEX idx_orders_date ON orders(date DESC);
 CREATE INDEX idx_orders_status ON orders(status);
-CREATE INDEX idx_locks_session ON inventory_locks(session_id);
-CREATE INDEX idx_bis_product_variant ON back_in_stock_requests(product_id, variant_name);
 CREATE INDEX idx_coupons_status ON coupons(status);
 
 -- Stock Decrement Functions
@@ -183,6 +181,8 @@ CREATE TABLE back_in_stock_requests (
     UNIQUE(product_id, variant_name, email)
 );
 
+CREATE INDEX idx_bis_product_variant ON back_in_stock_requests(product_id, variant_name);
+
 -- 11. Inventory Locks Table
 CREATE TABLE inventory_locks (
     id BIGSERIAL PRIMARY KEY,
@@ -195,6 +195,7 @@ CREATE TABLE inventory_locks (
 );
 
 CREATE INDEX idx_locks_product_variant ON inventory_locks(product_id, variant_name, expires_at);
+CREATE INDEX idx_locks_session ON inventory_locks(session_id);
 
 -- Atomic check-and-lock function using row-level locking
 CREATE OR REPLACE FUNCTION acquire_stock_locks(

@@ -124,6 +124,14 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
 <Layout>
   {heroImageUrl && <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" slot="head" />}
+  <script is:inline slot="head">
+  window.showPage = window.showPage || function showPage(pageId, updateHistory) {
+    var _orig = window.showPage;
+    window._pageQueue = window._pageQueue || [];
+    window._pageQueue.push([pageId, updateHistory]);
+    window.showPage = _orig;
+  };
+  </script>
   <div class="page-wrapper">
   <nav>
     <a href="#" class="nav-logo" onclick="event.preventDefault(); window.showPage('home')">Lumi<span>ère</span></a>

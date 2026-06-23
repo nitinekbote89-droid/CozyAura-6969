@@ -283,6 +283,14 @@ window.showPage = function(pageId, updateHistory = true) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+(function() {
+  var q = window._pageQueue;
+  if (q) {
+    delete window._pageQueue;
+    q.forEach(function(args) { window.showPage(args[0], args[1]); });
+  }
+})();
+
 window.injectItemListJsonLd = function(list) {
   const existing = document.getElementById('itemListJsonLd');
   if (existing) existing.remove();

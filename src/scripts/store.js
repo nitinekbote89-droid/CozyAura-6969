@@ -838,6 +838,25 @@ window.toggleAccountMenu = function() {
   if (dd) dd.classList.toggle('show');
 };
 
+window.toggleMobileNav = function() {
+  const overlay = document.getElementById('mobileNavOverlay');
+  const hamburger = document.getElementById('navHamburger');
+  if (!overlay) return;
+  const isActive = overlay.classList.toggle('active');
+  if (hamburger) hamburger.classList.toggle('active', isActive);
+  document.body.style.overflow = isActive ? 'hidden' : '';
+};
+
+window.closeMobileNav = function(e) {
+  if (e && e.target !== document.getElementById('mobileNavOverlay')) return;
+  const overlay = document.getElementById('mobileNavOverlay');
+  const hamburger = document.getElementById('navHamburger');
+  if (!overlay) return;
+  overlay.classList.remove('active');
+  if (hamburger) hamburger.classList.remove('active');
+  document.body.style.overflow = '';
+};
+
 document.addEventListener('click', function(e) {
   const wrap = document.querySelector('.nav-account-wrap');
   if (wrap && !wrap.contains(e.target)) {

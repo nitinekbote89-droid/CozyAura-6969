@@ -158,6 +158,28 @@ nav.scrolled { padding: 0.9rem 4rem; background: rgba(250, 243, 223, 0.97); bord
 .account-dropdown a:last-child { border-bottom: none; }
 .account-dropdown a:hover { background: var(--cream); color: var(--gold-dark); }
 
+/* Hamburger */
+.nav-hamburger { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; margin-left: auto; }
+.nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--charcoal); border-radius: 2px; transition: all 0.3s ease; }
+.nav-hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.active span:nth-child(2) { opacity: 0; }
+.nav-hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Mobile nav overlay */
+.mobile-nav-overlay { position: fixed; inset: 0; z-index: 200; background: var(--warm-white); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+.mobile-nav-overlay.active { opacity: 1; pointer-events: auto; }
+.mobile-nav-close { position: absolute; top: 1.2rem; right: 1.2rem; background: none; border: none; cursor: pointer; color: var(--charcoal); font-size: 1.5rem; padding: 0.5rem; }
+.mobile-nav-links { list-style: none; text-align: center; display: flex; flex-direction: column; gap: 2rem; padding: 0; }
+.mobile-nav-links a { text-decoration: none; font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; color: var(--charcoal); letter-spacing: 0.05em; transition: color 0.2s; }
+.mobile-nav-links a:hover { color: var(--gold-dark); }
+
+@media (max-width: 768px) {
+  .nav-hamburger { display: flex; }
+  .nav-links { display: none; }
+  .nav-cta { font-size: 0.6rem; padding: 0.5rem 1rem; letter-spacing: 0.12em; }
+  .nav-account-btn { width: 34px; height: 34px; }
+}
+
 section { display: none; }
 section.active { 
   display: block; 

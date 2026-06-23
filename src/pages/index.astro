@@ -135,6 +135,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
   <div class="page-wrapper">
   <nav>
     <a href="#" class="nav-logo" onclick="event.preventDefault(); window.showPage('home')">Lumi<span>ère</span></a>
+    <button class="nav-hamburger" id="navHamburger" onclick="window.toggleMobileNav()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
     <ul class="nav-links">
       <li><a href="#" onclick="event.preventDefault(); window.showPage('home')">Home</a></li>
       <li><a href="#" onclick="event.preventDefault(); window.showPage('shop')">Shop</a></li>
@@ -156,6 +159,16 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <button class="nav-cta" onclick="window.showPage('cartPage')">Checkout (0)</button>
     </div>
   </nav>
+  <div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="window.closeMobileNav(event)">
+    <button class="mobile-nav-close" onclick="window.closeMobileNav()"><span class="material-symbols-outlined">close</span></button>
+    <ul class="mobile-nav-links">
+      <li><a href="#" onclick="event.preventDefault(); window.closeMobileNav(); window.showPage('home')">Home</a></li>
+      <li><a href="#" onclick="event.preventDefault(); window.closeMobileNav(); window.showPage('shop')">Shop</a></li>
+      <li><a href="#" onclick="event.preventDefault(); window.closeMobileNav(); window.showPage('about')">About</a></li>
+      <li><a href="#" onclick="event.preventDefault(); window.closeMobileNav(); window.showPage('contact')">Contact</a></li>
+      <li><a href="#" onclick="event.preventDefault(); window.closeMobileNav(); window.showPage('ordersPage')">Your Orders</a></li>
+    </ul>
+  </div>
 
   <main>
   <section id="home" class={initialPage === 'home' ? 'active' : ''}>

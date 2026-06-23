@@ -1700,7 +1700,7 @@ section.active {
     font-size: 1.8rem;
   }
   .instagram-scroll-container {
-    height: 280dvh;
+    display: none;
   }
   #about, #contact {
     padding: 6rem 2rem 3rem;
@@ -1934,7 +1934,7 @@ section.active {
     padding: 2.5rem 1.2rem 1.5rem;
   }
   .instagram-scroll-container {
-    height: 240dvh;
+    display: none;
   }
   .account-dropdown {
     left: auto;

@@ -1035,6 +1035,7 @@ window.stopCheckoutTimer = function() {
 
 // --- 3D INTERACTIVE TILT EFFECT ---
 function init3DAnimations() {
+  if (window.innerWidth <= 1024) return;
   const heroVisual = document.querySelector('.hero-visual');
   const heroFrame = document.querySelector('.hero-image-frame');
   
@@ -1130,6 +1131,7 @@ function init3DAnimations() {
 
 // --- INSTAGRAM HORIZONTAL SCROLL ---
 function initInstagramScrollPin() {
+  if (window.innerWidth <= 1024) return;
   const container = document.getElementById('instagramScrollContainer');
   const track     = document.getElementById('socialTrack');
 

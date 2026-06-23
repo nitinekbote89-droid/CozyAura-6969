@@ -51,7 +51,7 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
     const url = parsedAsset.secure_url || "";
     if (url && url.includes('/image/upload/')) {
       const maxWidth = 800;
-      return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${maxWidth}/`);
+      return url.replace('/image/upload/', `/image/upload/f_auto,q_auto:eco,w_${maxWidth}/`);
     }
     return url;
   } catch (e) {
@@ -63,9 +63,11 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
 function optimizeImageUrl(url, width) {
   if (!url || !url.includes('/image/upload/')) return url;
   if (url.includes('/image/upload/f_auto')) {
-    return url.replace(/([,/])w_\d+/, `$1w_${width}`);
+    let result = url.replace(/([,/])w_\d+/, `$1w_${width}`);
+    result = result.replace(/,q_auto(?![:\w])/, ',q_auto:eco');
+    return result;
   }
-  return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
+  return url.replace('/image/upload/', `/image/upload/f_auto,q_auto:eco,w_${width}/`);
 }
 
 async function executeCloudinaryCleanup() {

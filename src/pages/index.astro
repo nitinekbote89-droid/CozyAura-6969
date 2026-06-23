@@ -62,33 +62,6 @@ if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_TTL) {
 }
 
 // SSR products grid HTML to eliminate CLS from JS-populated product cards
-function ssrOptimizeUrl(url, width) {
-  if (!url || !url.includes('/image/upload/')) return url;
-  if (url.includes('/image/upload/f_auto')) {
-    return url.replace(/\/w_\d+/, `/w_${width}`);
-  }
-  return url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
-}
-function ssrSrcset(url) {
-  if (!url || !url.includes('/image/upload/')) return '';
-  const uploadIdx = url.indexOf('/image/upload/');
-  const prefix = url.substring(0, uploadIdx + 14);
-  let rest = url.substring(uploadIdx + 14);
-  const slashIdx = rest.indexOf('/');
-  if (slashIdx !== -1) {
-    let transform = rest.substring(0, slashIdx);
-    const publicId = rest.substring(slashIdx);
-    if (transform.includes('f_auto')) {
-      transform = transform.replace(/w_\d+/, 'w_');
-    } else {
-      transform = 'f_auto,q_auto,w_';
-    }
-    const widths = [400, 800, 1200];
-    return widths.map(w => `${prefix}${transform.replace(/w_$/, `w_${w}`)}${publicId} ${w}w`).join(', ');
-  }
-  return '';
-}
-let heroSrcset = heroImageUrl ? ssrSrcset(heroImageUrl) : '';
 let productsGridHtml = '';
 if (initialCatalog?.inventory) {
   const cards = initialCatalog.inventory.map(item => {
@@ -97,7 +70,7 @@ if (initialCatalog?.inventory) {
       displayCategory = 'jar';
     }
     const imgHtml = item.coverImage
-      ? `<img src="${ssrOptimizeUrl(item.coverImage, 800)}" alt="${item.name}" width="600" height="800" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`
+      ? `<img src="${item.coverImage}" alt="${item.name}" width="600" height="800" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`
       : '<div class="cream-fallback"><span class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">local_fire_department</span></div>';
     return `<div class="product-card" onclick="window.openProductModal('${item.id}')">
       <div class="product-img">

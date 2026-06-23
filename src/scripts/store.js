@@ -109,38 +109,6 @@ window.showToast = function(message, isError = false) {
   }, 4000);
 };
 
-function optimizeCloudinaryUrl(url, width) {
-  if (!url || !url.includes('/image/upload/')) return url;
-  const parts = url.split('/image/upload/');
-  const afterUpload = parts[1];
-  const versionMatch = afterUpload.match(/(v\d+\/)/);
-  if (versionMatch) {
-    const versionIdx = versionMatch.index;
-    const beforeVersion = afterUpload.substring(0, versionIdx);
-    const afterVersion = afterUpload.substring(versionIdx);
-    if (beforeVersion.includes('w_')) {
-      const newTransform = beforeVersion.replace(/w_\d+/, 'w_' + width);
-      return parts[0] + '/image/upload/' + newTransform + afterVersion;
-    }
-    const prefix = beforeVersion ? beforeVersion + ',' : '';
-    return parts[0] + '/image/upload/' + prefix + 'w_' + width + '/' + afterVersion;
-  }
-  // No version — look for existing transforms
-  const slashIdx = afterUpload.indexOf('/');
-  if (slashIdx !== -1) {
-    const possibleTransform = afterUpload.substring(0, slashIdx);
-    if (possibleTransform.includes('w_')) {
-      return parts[0] + '/image/upload/' + possibleTransform.replace(/w_\d+/, 'w_' + width) + afterUpload.substring(slashIdx);
-    }
-  }
-  // No version, no transform — insert w_ before the public ID
-  const insertAt = afterUpload.indexOf('/');
-  if (insertAt !== -1) {
-    return parts[0] + '/image/upload/w_' + width + '/' + afterUpload.substring(insertAt + 1);
-  }
-  return parts[0] + '/image/upload/w_' + width + '/' + afterUpload;
-}
-
 async function syncCatalogDataset() {
     try {
         let json;
@@ -157,7 +125,7 @@ async function syncCatalogDataset() {
                let vars = Object.entries(item.fragranceStocks || {}).map(([fName, qty]) => ({
                   id: fName, name: fName, price: item.price, inStock: qty > 0, maxStock: qty,
 image: item.fragranceImages?.[fName] ? `<img 
- src="${optimizeCloudinaryUrl(item.fragranceImages[fName], 800)}"  alt="${fName}" width="400" height="500" style="width:100%;height:100%;object-fit:cover;">` : null,
+ src="${item.fragranceImages[fName]}"  alt="${fName}" width="400" height="500" style="width:100%;height:100%;object-fit:cover;">` : null,
                   rawImage: item.fragranceImages?.[fName] || null
                }));
                if (vars.length === 0) {
@@ -170,7 +138,7 @@ image: item.fragranceImages?.[fName] ? `<img
                 return {
                    id: item.id, name: item.name, scent: normalizedCategory, price: item.price, category: normalizedCategory,
                    image: item.coverImage ? `<img 
- src="${optimizeCloudinaryUrl(item.coverImage, 800)}"  alt="${item.name}" width="300" height="400" 
+ src="${item.coverImage}"  alt="${item.name}" width="300" height="400" 
  style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback"><span 
 class="material-symbols-outlined" style="font-size:2rem;color:var(--taupe);">local_fire_department</span></div>`,
                   description: item.description, specs: Array.isArray(item.specifications) ? item.specifications.join('\n') : item.specifications,
@@ -2885,33 +2853,11 @@ window.applyStorefrontImages = function() {
       if (heroVisual) heroVisual.style.display = '';
       if (heroInner) heroInner.style.gridTemplateColumns = '';
       
-      // Build srcset from original raw URL
-      const rawUrl = sf.home_hero || "";
-      const uploadIdx = rawUrl.indexOf('/image/upload/');
-      const widths = [400, 800, 1200];
-      let srcset = '';
-      if (uploadIdx !== -1) {
-        const prefix = rawUrl.substring(0, uploadIdx + 14); // include trailing '/'
-        const rest = rawUrl.substring(uploadIdx + 14); // after '/image/upload/'
-        const slashIdx = rest.indexOf('/');
-        if (slashIdx !== -1) {
-          let transform = rest.substring(0, slashIdx);
-          const publicId = rest.substring(slashIdx);
-          if (transform.includes('f_auto')) {
-            transform = transform.replace(/w_\d+/, 'w_');
-          } else {
-            transform = 'f_auto,q_auto,w_';
-          }
-          srcset = widths.map(w => `${prefix}${transform.replace(/w_$/, `w_${w}`)}${publicId} ${w}w`).join(', ');
-        } else {
-          srcset = widths.map(w => `${prefix}f_auto,q_auto,w_${w}/${rest} ${w}w`).join(', ');
-        }
-      }
       if (heroImg.getAttribute('src') !== targetSrc) {
         heroImg.style.opacity = '0';
         heroImg.setAttribute('src', targetSrc);
-        heroImg.setAttribute('srcset', srcset);
-        heroImg.setAttribute('sizes', '(max-width: 480px) 90vw, (max-width: 768px) 50vw, 380px');
+        heroImg.removeAttribute('srcset');
+        heroImg.removeAttribute('sizes');
         heroImg.onload = () => {
           heroImg.style.opacity = '1';
         };

@@ -8,10 +8,19 @@ const supabase = createClient(
   import.meta.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+let ssrCatalogCache = null;
+let ssrCatalogCacheTime = 0;
+const SSR_CACHE_TTL = 30_000;
+
 // SSR catalog data — direct Supabase query avoids self-fetch bottleneck on Railway
 let initialCatalog = null;
 let heroImageUrl = null;
-try {
+const now = Date.now();
+if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_TTL) {
+  const cached = ssrCatalogCache;
+  initialCatalog = cached.initialCatalog;
+  heroImageUrl = cached.heroImageUrl;
+} else try {
   const [{ data: setRow }, { data: sfRow }, { data: dbProducts }, { data: dbVariants }] = await Promise.all([
     supabase.from('settings').select('value').eq('key', 'GLOBAL_FRAGRANCES').single(),
     supabase.from('settings').select('value').eq('key', 'STOREFRONT_IMAGES').single(),
@@ -23,9 +32,9 @@ try {
   if (storefrontImages?.home_hero) {
     let url = storefrontImages.home_hero;
     if (url.includes('/image/upload/f_auto')) {
-      url = url.replace(/\/w_\d+/, '/w_1200');
+      url = url.replace(/\/w_\d+/, '/w_1000');
     } else if (url.includes('/image/upload/')) {
-      url = url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1200/');
+      url = url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1000/');
     }
     heroImageUrl = url;
   }
@@ -52,6 +61,8 @@ try {
   });
 
   initialCatalog = { inventory, fragrances: setRow?.value || [], storefrontImages };
+  ssrCatalogCache = { initialCatalog, heroImageUrl };
+  ssrCatalogCacheTime = Date.now();
 } catch (e) {
   console.warn('SSR catalog query failed, will load client-side');
 }

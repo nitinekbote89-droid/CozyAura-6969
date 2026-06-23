@@ -60,6 +60,23 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
   }
 }
 
+function extractPublicId(url) {
+  if (!url || !url.includes('cloudinary.com')) return null;
+  try {
+    const parts = url.split('/image/upload/');
+    if (parts.length < 2) return null;
+    let subPath = parts[1];
+    subPath = subPath.replace(/^.*\/v\d+\//, '');
+    const dotIdx = subPath.lastIndexOf('.');
+    if (dotIdx !== -1) {
+      subPath = subPath.substring(0, dotIdx);
+    }
+    return subPath;
+  } catch (e) {
+    return null;
+  }
+}
+
 function optimizeImageUrl(url, width) {
   if (!url || !url.includes('/image/upload/')) return url;
   if (url.includes('/image/upload/f_auto')) {
@@ -77,25 +94,6 @@ async function executeCloudinaryCleanup() {
     const { data: dbVariants } = await supabase.from('product_variants').select('image_url');
 
     const activePublicIds = new Set();
-
-    const extractPublicId = (url) => {
-      if (!url || !url.includes('cloudinary.com')) return null;
-      try {
-        const parts = url.split('/image/upload/');
-        if (parts.length < 2) return null;
-        let subPath = parts[1];
-        // Remove transformations + version prefix (e.g. f_auto,q_auto,w_1200/v123456/)
-        subPath = subPath.replace(/^.*\/v\d+\//, '');
-        // Remove file extension
-        const dotIdx = subPath.lastIndexOf('.');
-        if (dotIdx !== -1) {
-          subPath = subPath.substring(0, dotIdx);
-        }
-        return subPath;
-      } catch (e) {
-        return null;
-      }
-    };
 
     if (dbProducts) {
       dbProducts.forEach(p => {
@@ -456,8 +454,32 @@ export async function POST({ request }) {
     }
 
     if (action === 'delete_product') {
+      const { data: prod } = await supabase.from('products').select('cover_image').eq('id', data.productId).single();
+      const { data: variants } = await supabase.from('product_variants').select('image_url').eq('product_id', data.productId);
+
+      await supabase.from('product_variants').delete().eq('product_id', data.productId);
+
       const { error: delProdErr } = await supabase.from('products').delete().eq('id', data.productId);
       if (delProdErr) return new Response(JSON.stringify({ success: false, error: delProdErr.message }), { status: 500 });
+
+      const publicIds = [];
+      const pid = extractPublicId(prod?.cover_image);
+      if (pid) publicIds.push(pid);
+      if (variants) variants.forEach(v => { const id = extractPublicId(v.image_url); if (id && !publicIds.includes(id)) publicIds.push(id); });
+      if (publicIds.length > 0) {
+        const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME;
+        const apiKey = import.meta.env.CLOUDINARY_API_KEY;
+        const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
+        const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+        const bodyParams = new URLSearchParams();
+        publicIds.forEach(id => bodyParams.append('public_ids[]', id));
+        await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: bodyParams.toString()
+        });
+      }
+
       const { error: refreshErr } = await supabase.rpc('refresh_sales_view');
       if (refreshErr) {
         return new Response(JSON.stringify({ success: false, error: "Failed to refresh catalog: " + refreshErr.message }), { status: 500 });

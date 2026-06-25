@@ -255,9 +255,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <button class="btn-primary" onclick="window.showPage('shop')">View All Collection</button>
         </div>
       </div>
-      <div class="bestseller-right" id="bestsellerStickyContainer" data-ssr={bestsellerHtml ? '' : undefined}>
-        {bestsellerHtml ? <fragment set:html={bestsellerHtml} /> : '<p style="text-align:center;color:var(--stone);padding-top:4rem;">Loading...</p>'}
-      </div>
+      <div class="bestseller-right" id="bestsellerStickyContainer" data-ssr={bestsellerHtml ? '' : undefined} set:html={bestsellerHtml || '<p style="text-align:center;color:var(--stone);padding-top:4rem;">Loading...</p>'}></div>
     </div>
 
     <div class="home-section home-values">
@@ -287,7 +285,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="section-header">
         <h2>Find Your <em>Scent</em></h2>
       </div>
-      <div class="scent-grid" id="homeScentGrid" data-ssr={scentGridHtml ? '' : undefined}>{scentGridHtml ? <fragment set:html={scentGridHtml} /> : ''}</div>
+      <div class="scent-grid" id="homeScentGrid" data-ssr={scentGridHtml ? '' : undefined} set:html={scentGridHtml || undefined}></div>
     </div>
 
     <div class="instagram-scroll-container" id="instagramScrollContainer">
@@ -377,7 +375,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           </select>
         </div>
       </div>
-      <div class="products-grid" id="productsGrid">{productsGridHtml ? <fragment set:html={productsGridHtml} /> : ''}</div>
+      <div class="products-grid" id="productsGrid" set:html={productsGridHtml || undefined}></div>
     </div>
   </section>
 

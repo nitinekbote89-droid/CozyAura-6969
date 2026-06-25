@@ -489,7 +489,7 @@ window.renderHomeScentGuide = function() {
       <div class="scent-card-bg" style="background:linear-gradient(135deg,${colors[i % colors.length]});">
         ${getScentIcon(f)}
       </div>
-      <h3>${toTitleCase(f)}</h3>
+      <h3>${f.charAt(0).toUpperCase() + f.slice(1)}</h3>
       <p>Explore our ${f} scented candles — hand-poured with natural soya wax.</p>
     </div>`
   ).join('');

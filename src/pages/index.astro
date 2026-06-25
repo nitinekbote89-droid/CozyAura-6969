@@ -15,13 +15,26 @@ const SSR_CACHE_FRESH_TTL = 600_000;
 const SSR_CACHE_STALE_TTL = 86_400_000;
 
 async function fetchCatalogData() {
-  const [{ data: setRow }, { data: sfRow }, { data: dbCoupons }, { data: dbProducts }, { data: dbVariants }] = await Promise.all([
+  const [{ data: setRow }, { data: sfRow }, { data: dbCoupons }] = await Promise.all([
     supabase.from('settings').select('value').eq('key', 'GLOBAL_FRAGRANCES').single(),
     supabase.from('settings').select('value').eq('key', 'STOREFRONT_IMAGES').single(),
-    supabase.from('coupons').select('*').eq('status', 'Active'),
-    supabase.from('products').select('*').order('created_at', { ascending: false }),
-    supabase.from('product_variants').select('*')
+    supabase.from('coupons').select('*').eq('status', 'Active')
   ]);
+
+  let dbProducts = [], dbVariants = [];
+  let hasSalesView = false;
+  try {
+    const { data, error } = await supabase.from('products_with_sales').select('*').order('created_at', { ascending: false });
+    if (data && !error) { dbProducts = data; hasSalesView = true; }
+  } catch (e) {}
+  if (!hasSalesView) {
+    const { data } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    dbProducts = data || [];
+  }
+  try {
+    const { data } = await supabase.from('product_variants').select('*');
+    dbVariants = data || [];
+  } catch (e) {}
 
   const storefrontImages = sfRow?.value || null;
   let heroImageUrl = null;
@@ -30,12 +43,12 @@ async function fetchCatalogData() {
   }
 
   const variantsByProductId = {};
-  (dbVariants || []).forEach(v => {
+  dbVariants.forEach(v => {
     if (!variantsByProductId[v.product_id]) variantsByProductId[v.product_id] = [];
     variantsByProductId[v.product_id].push(v);
   });
 
-  const inventory = (dbProducts || []).map(p => {
+  const inventory = dbProducts.map(p => {
     const pVars = variantsByProductId[p.id] || [];
     let fragranceStocks = {}, fragranceImages = {};
     pVars.forEach(v => {
@@ -46,7 +59,9 @@ async function fetchCatalogData() {
       id: p.id, name: p.name, category: p.category, price: p.price,
       weight: p.weight, stock: p.stock, coverImage: p.cover_image,
       description: p.description, specifications: p.specifications,
-      fragranceStocks, fragranceImages
+      fragranceStocks, fragranceImages,
+      totalSales: hasSalesView ? (p.total_sales || 0) : 0,
+      salesRank: hasSalesView ? (p.sales_rank || null) : null
     };
   });
 
@@ -83,6 +98,14 @@ if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_STALE_TTL) {
   console.warn('SSR catalog query failed, will load client-side');
 }
 
+// Cloudinary auto-optimization: serve WebP + auto quality
+function cloudinaryOpt(url, width) {
+  if (!url || !url.includes('res.cloudinary.com')) return url;
+  const params = ['f_auto', 'q_auto'];
+  if (width) params.push(`w_${width}`);
+  return url.replace('/image/upload/', `/image/upload/${params.join(',')}/`);
+}
+
 // SSR products grid HTML to eliminate CLS from JS-populated product cards
 let productsGridHtml = '';
 if (initialCatalog?.inventory) {
@@ -105,6 +128,34 @@ if (initialCatalog?.inventory) {
   productsGridHtml = cards.join('');
 }
 
+// SSR bestseller cards + scent guide HTML to eliminate CLS from JS injection
+let bestsellerHtml = '';
+let scentGridHtml = '';
+if (initialCatalog?.inventory) {
+  const sorted = [...initialCatalog.inventory].sort((a, b) => (b.totalSales || 0) - (a.totalSales || 0));
+  const top5 = sorted.slice(0, 5);
+  const reversed = [...top5].reverse();
+  const arrowSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+  const fireSvg = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--taupe)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.5-.75-3-1.5-4.5.25 1 1.5 2 1.5 3.5s-1.25 2.5-2.5 3.5z"/><path d="M12 2C10 6 8 10 8 14c0 3.5 2 5 4 5s4-1.5 4-5c0-4-2-8-4-12z"/><circle cx="12" cy="14" r="3" fill="var(--taupe)" opacity="0.3"/></svg>';
+  bestsellerHtml = reversed.map((prod, idx) => {
+    const rank = 5 - idx;
+    const rankColor = rank === 1 ? 'var(--gold)' : 'var(--charcoal)';
+    const rankTextColor = rank === 1 ? 'var(--black)' : 'var(--cream)';
+    const displayCategory = (prod.category || '').toLowerCase().trim() === 'jar2' ? 'jar' : (prod.category || 'Luxury Scent');
+    const imgHtml = prod.coverImage
+      ? `<img src="${prod.coverImage}" alt="${prod.name}" width="300" height="400" style="width:100%;height:100%;object-fit:cover;">`
+      : `<div class="cream-fallback">${fireSvg}</div>`;
+    return `<div class="bestseller-card" style="--card-idx: ${idx}; z-index: ${10 + idx};" onclick="window.openProductModal('${prod.id}')"><div class="bestseller-card-content"><div class="bestseller-card-left"><span class="bestseller-rank-badge" style="background:${rankColor};color:${rankTextColor};">#${rank} Best Seller</span><h3>${prod.name}</h3><div class="bestseller-card-scent">${displayCategory}</div><p class="bestseller-card-desc">${prod.description ? prod.description.substring(0, 120) + '...' : 'Hand-poured 100% natural soya candle blended with botanical oils.'}</p><div class="bestseller-card-footer"><span class="bestseller-card-price">₹${prod.price}</span><span class="bestseller-card-cta">View Details ${arrowSvg}</span></div></div><div class="bestseller-card-right">${imgHtml}</div></div></div>`;
+  }).join('');
+}
+if (initialCatalog?.fragrances && initialCatalog.fragrances.length > 0) {
+  const colors = ['#F3E8DC,#EDE0D0', '#E8DDD0,#D4C4B0', '#F5EDE0,#EADCC8', '#F7F0E6,#EFE5D8', '#EDE5D8,#D4C4B0', '#F0E8DC,#E0D4C3'];
+  const scentIcon = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--stone)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19h6a2 2 0 0 0 2-2v-3a5 5 0 0 0-10 0v3a2 2 0 0 0 2 2z"/><path d="M14 9h2v-2h-2z"/><path d="M13.5 7h3v-2h-3z"/><path d="M16.5 5.5h2.5"/><circle cx="20.5" cy="5.5" r="1.2" fill="var(--stone)"/><circle cx="9" cy="14.8" r="1.3" fill="var(--warm-white)"/><circle cx="9" cy="19.2" r="1.3" fill="var(--warm-white)"/><circle cx="11.2" cy="17" r="1.3" fill="var(--warm-white)"/><circle cx="6.8" cy="17" r="1.3" fill="var(--warm-white)"/><circle cx="10.6" cy="15.4" r="1.3" fill="var(--warm-white)"/><circle cx="10.6" cy="18.6" r="1.3" fill="var(--warm-white)"/><circle cx="7.4" cy="18.6" r="1.3" fill="var(--warm-white)"/><circle cx="7.4" cy="15.4" r="1.3" fill="var(--warm-white)"/><circle cx="9" cy="17" r="1" fill="var(--stone)"/></svg>';
+  scentGridHtml = initialCatalog.fragrances.map((f, i) =>
+    `<div class="scent-card" onclick="window.selectCategory('${encodeURIComponent(f)}')"><div class="scent-card-bg" style="background:linear-gradient(135deg,${colors[i % colors.length]});">${scentIcon}</div><h3>${f.charAt(0).toUpperCase() + f.slice(1)}</h3><p>Explore our ${f} scented candles — hand-poured with natural soya wax.</p></div>`
+  ).join('');
+}
+
 // SSR page state — only show the correct section to eliminate CLS from section transitions
 const initialPage = Astro.url.searchParams.get('page') || 'home';
 const pages_list = ['home', 'shop', 'cartPage', 'payment', 'about', 'contact', 'ordersPage', 'addressesPage'];
@@ -123,7 +174,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 ---
 
 <Layout>
-  {heroImageUrl && <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" slot="head" />}
+  {heroImageUrl && <link rel="preload" as="image" href={cloudinaryOpt(heroImageUrl)} fetchpriority="high" slot="head" />}
   <script is:inline slot="head">
   window.showPage = window.showPage || function showPage(pageId, updateHistory) {
     var _orig = window.showPage;
@@ -175,7 +226,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     <div class="glow-orb orb-1"></div>
     <div class="glow-orb orb-2"></div>
     <div class="glow-orb orb-3"></div>
-    <div class="hero-inner" style={heroImageUrl ? '' : 'grid-template-columns: 1fr;'}>
+    <div class="hero-inner">
       <div class="hero-text">
         <span class="hero-subtitle">Meticulously Hand-Poured Soya Candles</span>
         <h1>Where<br><em>stillness</em><br>finds its flame.</h1>
@@ -184,10 +235,10 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <button class="btn-primary" onclick="window.showPage('shop')">Explore the Collection</button>
         </div>
       </div>
-      <div class="hero-visual" style={heroImageUrl ? '' : 'display: none;'}>
+      <div class="hero-visual">
         <div class="hero-float-wrapper">
           <div class="hero-image-frame">
-            <img src={heroImageUrl || "data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'&gt;&lt;/svg&gt;"} id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" style={heroImageUrl ? 'opacity:1' : 'opacity:0;transition:opacity 0.4s ease'} />
+            <img src={cloudinaryOpt(heroImageUrl) || ''} srcset={heroImageUrl ? `${cloudinaryOpt(heroImageUrl, 380)} 380w, ${cloudinaryOpt(heroImageUrl, 760)} 760w` : ''} sizes="(max-width: 768px) 280px, 380px" id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" />
             <div class="hero-frame-glow"></div>
             <div class="hero-frame-border"></div>
           </div>
@@ -204,8 +255,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <button class="btn-primary" onclick="window.showPage('shop')">View All Collection</button>
         </div>
       </div>
-      <div class="bestseller-right" id="bestsellerStickyContainer">
-        <p style="text-align:center;color:var(--stone);padding-top:4rem;">Loading...</p>
+      <div class="bestseller-right" id="bestsellerStickyContainer" data-ssr={bestsellerHtml ? '' : undefined}>
+        {bestsellerHtml ? <fragment set:html={bestsellerHtml} /> : '<p style="text-align:center;color:var(--stone);padding-top:4rem;">Loading...</p>'}
       </div>
     </div>
 
@@ -236,7 +287,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="section-header">
         <h2>Find Your <em>Scent</em></h2>
       </div>
-      <div class="scent-grid" id="homeScentGrid"></div>
+      <div class="scent-grid" id="homeScentGrid" data-ssr={scentGridHtml ? '' : undefined}>{scentGridHtml ? <fragment set:html={scentGridHtml} /> : ''}</div>
     </div>
 
     <div class="instagram-scroll-container" id="instagramScrollContainer">

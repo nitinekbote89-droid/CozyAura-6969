@@ -126,13 +126,20 @@ window.showToast = function(message, isError = false) {
 
 async function syncCatalogDataset() {
     try {
-        let json;
+        let json, fromSsr = false;
         if (window.__INITIAL_CATALOG__) {
           json = { success: true, data: window.__INITIAL_CATALOG__ };
           delete window.__INITIAL_CATALOG__;
+          fromSsr = true;
         } else {
           const res = await fetch(`${CORE_STORE_PROXY_ROUTE}?siteToken=LUMIERE_STORE_2026&t=${Date.now()}`);
           json = await res.json();
+        }
+        if (!fromSsr) {
+          const bs = document.getElementById('bestsellerStickyContainer');
+          if (bs) delete bs.dataset.ssr;
+          const sg = document.getElementById('homeScentGrid');
+          if (sg) delete sg.dataset.ssr;
         }
         if (json.success && json.data) {
             window.PROMOS = (json.data.coupons || []).map(c => ({ code: c.code, type: c.type, discount: c.discount }));
@@ -413,8 +420,9 @@ window.triggerSearch = function() {
 window.renderHomeBestsellers = function() {
   const grid = document.getElementById('bestsellerStickyContainer');
   if (!grid) return;
+  if (grid.dataset.ssr !== undefined && grid.querySelector('.bestseller-card')) return;
   const top = [...window.PRODUCTS].sort((a, b) => b.totalSales - a.totalSales).slice(0, 5);
-  if (top.length === 0) { grid.innerHTML = ''; return; }
+  if (top.length === 0) { grid.innerHTML = ''; grid.dataset.ssr = ''; return; }
 
   // Reverse the top 5 array to show #5 first at the bottom of the stack up to #1 at the top
   const reversedTop = [...top].reverse();
@@ -444,13 +452,15 @@ window.renderHomeBestsellers = function() {
       </div>
     `;
   }).join('');
+  grid.dataset.ssr = '';
 };
 
 window.renderHomeScentGuide = function() {
   const grid = document.getElementById('homeScentGrid');
   if (!grid) return;
+  if (grid.dataset.ssr !== undefined && grid.querySelector('.scent-card')) return;
   const fragrances = window.GLOBAL_FRAGRANCES || [];
-  if (fragrances.length === 0) { grid.innerHTML = ''; return; }
+  if (fragrances.length === 0) { grid.innerHTML = ''; grid.dataset.ssr = ''; return; }
   const colors = ['#F3E8DC,#EDE0D0', '#E8DDD0,#D4C4B0', '#F5EDE0,#EADCC8', '#F7F0E6,#EFE5D8', '#EDE5D8,#D4C4B0', '#F0E8DC,#E0D4C3'];
 
   // Map fragrances dynamically to relevant luxury/botanical icons
@@ -483,6 +493,7 @@ window.renderHomeScentGuide = function() {
       <p>Explore our ${f} scented candles — hand-poured with natural soya wax.</p>
     </div>`
   ).join('');
+  grid.dataset.ssr = '';
 };
 
 window.injectProductJsonLd = function(prod) {
@@ -2887,37 +2898,32 @@ window.addEventListener('storage', (e) => {
   }
 });
 
+function cloudinaryOpt(url, width) {
+  if (!url || !url.includes('res.cloudinary.com')) return url;
+  const params = ['f_auto', 'q_auto'];
+  if (width) params.push('w_' + width);
+  return url.replace('/image/upload/', '/image/upload/' + params.join(',') + '/');
+}
+
 window.applyStorefrontImages = function() {
   const sf = window.STOREFRONT_IMAGES || {};
   
   // 1. Hero image
   const heroImg = document.getElementById('storefrontHeroImg');
-  const heroVisual = document.querySelector('.hero-visual');
-  const heroInner = document.querySelector('.hero-inner');
   if (heroImg) {
     let targetSrc = sf.home_hero || "";
     if (targetSrc) {
-      if (heroVisual) heroVisual.style.display = '';
-      if (heroInner) heroInner.style.gridTemplateColumns = '';
-      
       if (heroImg.getAttribute('src') !== targetSrc) {
         heroImg.style.opacity = '0';
-        heroImg.setAttribute('src', targetSrc);
-        heroImg.removeAttribute('srcset');
-        heroImg.removeAttribute('sizes');
-        heroImg.onload = () => {
-          heroImg.style.opacity = '1';
-        };
-        if (heroImg.complete) {
-          heroImg.style.opacity = '1';
-        }
+        heroImg.setAttribute('src', cloudinaryOpt(targetSrc));
+        heroImg.setAttribute('srcset', cloudinaryOpt(targetSrc, 380) + ' 380w, ' + cloudinaryOpt(targetSrc, 760) + ' 760w');
+        heroImg.setAttribute('sizes', '(max-width: 768px) 280px, 380px');
+        heroImg.onload = () => { heroImg.style.opacity = '1'; };
+        if (heroImg.complete) heroImg.style.opacity = '1';
       } else {
         heroImg.style.opacity = '1';
       }
     } else {
-      if (heroVisual) heroVisual.style.display = 'none';
-      if (heroInner) heroInner.style.gridTemplateColumns = '1fr';
-      heroImg.setAttribute('src', '');
       heroImg.style.opacity = '0';
     }
   }

@@ -1,9 +1,10 @@
 ---
-import '/src/styles/global.css';
+import globalCss from '/src/styles/global.css?raw';
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <style is:inline set:html={globalCss} />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lumière — Hand-Poured Soya Candles</title>

@@ -1139,6 +1139,13 @@ window.setDeliveryMethod = function(method) {
     if (guestFields) guestFields.style.display = 'none';
     if (shippingHeader) shippingHeader.style.display = 'none';
     
+    const metaFields = document.getElementById('addressMetaFields');
+    const actionsWrap = document.getElementById('addressFormActions');
+    const guestBtn = document.getElementById('guestProceedBtn');
+    if (metaFields) metaFields.style.display = 'none';
+    if (actionsWrap) actionsWrap.style.display = 'none';
+    if (guestBtn) guestBtn.style.display = 'block';
+    
     // Always show contact form for name/email/phone
     if (form) form.style.display = 'block';
     
@@ -2034,9 +2041,15 @@ window.prefillCheckoutForm = async function() {
 
   if (loggedInEmail) {
     if (autofillBtn) autofillBtn.style.display = 'none';
-    if (guestBtn) guestBtn.style.display = 'none';
-    if (actionsWrap) actionsWrap.style.display = 'flex';
-    if (metaFields) metaFields.style.display = 'block';
+    if (window.deliveryMethod === 'Pickup') {
+      if (guestBtn) guestBtn.style.display = 'block';
+      if (actionsWrap) actionsWrap.style.display = 'none';
+      if (metaFields) metaFields.style.display = 'none';
+    } else {
+      if (guestBtn) guestBtn.style.display = 'none';
+      if (actionsWrap) actionsWrap.style.display = 'flex';
+      if (metaFields) metaFields.style.display = 'block';
+    }
 
     const emailField = document.getElementById('email');
     if (emailField) {

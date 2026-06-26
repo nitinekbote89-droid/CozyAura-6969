@@ -809,6 +809,8 @@ export async function POST({ request }) {
           date: o.date,
           total: `₹${o.total}`,
           status: o.status,
+          shipping: o.shipping || 0,
+          discount: o.discount || 0,
           trackingNumber: o.tracking_number,
           courier: o.courier,
           trackingLink: o.tracking_link || '',

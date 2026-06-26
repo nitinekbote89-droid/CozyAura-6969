@@ -595,11 +595,12 @@ window.downloadInvoiceBill = function() {
     // --- shipping address ---
     if (order.shippingInfo) {
         const addr = order.shippingInfo;
+        const isPickup = order.deliveryMethod === 'Pickup';
         doc.setFont('helvetica', 'bold');
-        doc.text(order.deliveryMethod === 'Pickup' ? 'Pickup Location:' : 'Shipping Address:', 15, y); y += 6;
+        doc.text(isPickup ? 'Pickup Location:' : 'Shipping Address:', 15, y); y += 6;
         doc.setFont('helvetica', 'normal');
         const addrLine = addr.address || '';
-        const cityLine = [addr.city, addr.state, addr.pincode].filter(Boolean).join(', ');
+        const cityLine = isPickup ? '' : [addr.city, addr.state, addr.pincode].filter(Boolean).join(', ');
         if (addrLine && cityLine) {
             y = addWrapped(addrLine, 15, y, 175, 5);
             y = addWrapped(cityLine, 15, y, 175, 5);
@@ -826,13 +827,22 @@ window.viewOrderDetails = function(orderId) {
         if (updateTrackingBtn) updateTrackingBtn.textContent = 'Update Tracking & Ship Order';
     }
 
+    const addressLabelEl = document.getElementById('orderModalAddressLabel');
+    if (addressLabelEl) {
+        addressLabelEl.textContent = isPickup ? 'Pickup Location' : 'Shipping Address';
+    }
+
     const addrParts = [];
     if (order.shippingInfo) {
         const s = order.shippingInfo;
-        if (s.address) addrParts.push(s.address);
-        if (s.city) addrParts.push(s.city);
-        if (s.state) addrParts.push(s.state);
-        if (s.pincode) addrParts.push(s.pincode);
+        if (isPickup) {
+            addrParts.push(s.address || 'Lumière Studio, Koregaon Park, Pune, Maharashtra - 411001');
+        } else {
+            if (s.address) addrParts.push(s.address);
+            if (s.city) addrParts.push(s.city);
+            if (s.state) addrParts.push(s.state);
+            if (s.pincode) addrParts.push(s.pincode);
+        }
     }
     document.getElementById('orderModalAddress').textContent = addrParts.length > 0 ? addrParts.join(', ') : (order.shippingInfo?.address || '—');
 

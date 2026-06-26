@@ -1027,6 +1027,14 @@ window.calculatePrices = function() {
   if (shippingMethodPriceEl) {
     shippingMethodPriceEl.textContent = window.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : (shipping > 0 ? `₹${shipping}` : 'Free');
   }
+  const shippingMethodNameEl = document.getElementById('shippingMethodName');
+  if (shippingMethodNameEl) {
+    shippingMethodNameEl.textContent = window.deliveryMethod === 'Pickup' ? 'Self Pickup In Store' : 'India Post Speed Post';
+  }
+  const shippingMethodTitleEl = document.getElementById('shippingMethodSectionTitle');
+  if (shippingMethodTitleEl) {
+    shippingMethodTitleEl.textContent = window.deliveryMethod === 'Pickup' ? 'Delivery method' : 'Shipping method';
+  }
 
   // Update Shopify-like checkout sidebar breakdown
   if (document.getElementById('checkoutSidebarTotal')) {
@@ -1573,8 +1581,15 @@ window.proceedToPayment = async function() {
     summaryContact.textContent = window.shippingInfo.email + (window.shippingInfo.phone ? `, ${window.shippingInfo.phone}` : '');
   }
   const summaryAddress = document.getElementById('summaryAddressValue');
+  const summaryAddressLabel = document.getElementById('summaryAddressLabel');
   if (summaryAddress) {
-    summaryAddress.textContent = `${window.shippingInfo.address}, ${window.shippingInfo.city}, ${window.shippingInfo.state} - ${window.shippingInfo.pincode}`;
+    if (window.deliveryMethod === 'Pickup') {
+      if (summaryAddressLabel) summaryAddressLabel.textContent = 'Pickup Location';
+      summaryAddress.textContent = window.shippingInfo.address;
+    } else {
+      if (summaryAddressLabel) summaryAddressLabel.textContent = 'Ship to';
+      summaryAddress.textContent = `${window.shippingInfo.address}, ${window.shippingInfo.city}, ${window.shippingInfo.state} - ${window.shippingInfo.pincode}`;
+    }
   }
 
   window.checkoutStep = 'payment';

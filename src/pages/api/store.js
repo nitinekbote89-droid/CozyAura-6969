@@ -820,6 +820,7 @@ export async function POST({ request }) {
           courier: o.courier,
           trackingLink: o.tracking_link || '',
           itemsString: o.items_summary,
+          deliveryMethod: o.delivery_method || 'Shipping',
           shippingInfo: {
             fname: o.shipping_fname || '',
             lname: o.shipping_lname || '',

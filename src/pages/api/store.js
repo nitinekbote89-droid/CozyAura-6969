@@ -95,7 +95,7 @@ async function calculateCartTotalOnServer(items, couponCode, state, pincode, del
       .select('*')
       .eq('code', couponCode.toUpperCase())
       .eq('status', 'Active')
-      .single();
+      .maybeSingle();
     if (coupon) {
       if (coupon.type === 'percent') {
         discount = Math.round(subtotal * (Math.min(coupon.discount, 100) / 100));
@@ -527,16 +527,32 @@ export async function POST({ request }) {
 
       // Validate stock availability before any order
       for (const ri of formattedRawItems) {
-        const { data: dbVar, error: varErr } = await supabase
-          .from('product_variants')
-          .select('stock')
-          .eq('product_id', ri.product_id)
-          .eq('variant_name', ri.variant_name)
-          .single();
-        if (varErr || !dbVar) {
-          return new Response(JSON.stringify({ success: false, error: "Insufficient stock" }), { status: 400 });
+        const isStandard = ri.variant_name === 'Standard' || ri.variant_name === '' || !ri.variant_name;
+        let dbStock = 0;
+        if (isStandard) {
+          const { data: dbProd, error: prodErr } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', ri.product_id)
+            .maybeSingle();
+          if (prodErr || !dbProd) {
+            return new Response(JSON.stringify({ success: false, error: "Insufficient stock" }), { status: 400 });
+          }
+          dbStock = dbProd.stock;
+        } else {
+          const { data: dbVar, error: varErr } = await supabase
+            .from('product_variants')
+            .select('stock')
+            .eq('product_id', ri.product_id)
+            .eq('variant_name', ri.variant_name)
+            .maybeSingle();
+          if (varErr || !dbVar) {
+            return new Response(JSON.stringify({ success: false, error: "Insufficient stock" }), { status: 400 });
+          }
+          dbStock = dbVar.stock;
         }
-        if (dbVar.stock < ri.quantity) {
+
+        if (dbStock < ri.quantity) {
           return new Response(JSON.stringify({ success: false, error: "Insufficient stock" }), { status: 400 });
         }
       }
@@ -570,7 +586,7 @@ export async function POST({ request }) {
           .from('payment_intents')
           .select('*')
           .eq('razorpay_order_id', razorpayOrderId)
-          .single();
+          .maybeSingle();
 
         if (fetchIntentErr || !intent) {
           return new Response(JSON.stringify({ success: false, error: "Payment checkout session not found or already consumed." }), { status: 400 });
@@ -693,9 +709,9 @@ export async function POST({ request }) {
 
     // M5: Shared helper — ensure user profile row exists
     async function ensureUserExists(email) {
-      let { data: user } = await supabase.from('users').select('email').eq('email', email).single();
+      let { data: user } = await supabase.from('users').select('email').eq('email', email).maybeSingle();
       if (!user) {
-        const { data: inserted, error } = await supabase.from('users').insert([{ email }]).select().single();
+        const { data: inserted, error } = await supabase.from('users').insert([{ email }]).select().maybeSingle();
         if (error) throw new Error("Profile sync failed: " + error.message);
         user = inserted;
       }
@@ -764,8 +780,9 @@ export async function POST({ request }) {
         pincode: body.pincode,
         phone: body.phone,
         is_default: body.isDefault || false
-      }).eq('id', body.addressId).eq('user_email', email).select().single();
+      }).eq('id', body.addressId).eq('user_email', email).select().maybeSingle();
       if (error) return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      if (!updatedAddr) return new Response(JSON.stringify({ success: false, error: "Address not found." }), { status: 404 });
       return new Response(JSON.stringify({ success: true, address: updatedAddr }), { status: 200 });
     }
 

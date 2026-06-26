@@ -455,7 +455,7 @@ export async function POST({ request }) {
     }
 
     if (action === 'delete_product') {
-      const { data: prod } = await supabase.from('products').select('cover_image').eq('id', data.productId).single();
+      const { data: prod } = await supabase.from('products').select('cover_image').eq('id', data.productId).maybeSingle();
       const { data: variants } = await supabase.from('product_variants').select('image_url').eq('product_id', data.productId);
 
       await supabase.from('product_variants').delete().eq('product_id', data.productId);
@@ -504,7 +504,7 @@ export async function POST({ request }) {
       if (trackErr) return new Response(JSON.stringify({ success: false, error: trackErr.message }), { status: 500 });
 
       if (data.status === 'Shipped') {
-        const { data: order } = await supabase.from('orders').select('*').eq('id', data.orderId).single();
+        const { data: order } = await supabase.from('orders').select('*').eq('id', data.orderId).maybeSingle();
         if (order?.shipping_email) {
           await sendOrderShipped({
             email: order.shipping_email,

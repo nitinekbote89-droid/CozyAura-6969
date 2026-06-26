@@ -969,6 +969,12 @@ window.calculatePrices = function() {
     }
   }
 
+  // Update shipping method price
+  const shippingMethodPriceEl = document.getElementById('shippingMethodPrice');
+  if (shippingMethodPriceEl) {
+    shippingMethodPriceEl.textContent = shipping > 0 ? `₹${shipping}` : 'Free';
+  }
+
   // Update Shopify-like checkout sidebar breakdown
   if (document.getElementById('checkoutSidebarTotal')) {
     document.getElementById('checkoutSidebarSubtotal').textContent = `₹${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

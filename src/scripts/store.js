@@ -16,6 +16,7 @@ window.__svg = {
   external: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
   copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
   home: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m10-11l2 2m-2-2v10a1 1 0 0 1-1 1h-3m-6 0a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1m-6 0h6"/></svg>',
+  package: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><polygon points="12 22.08 12 12 3 6.92 3 17.08 12 22.08"></polygon><polygon points="12 22.08 12 12 21 6.92 21 17.08 12 22.08"></polygon><polygon points="12 12 3 6.92 12 1.84 21 6.92 12 12"></polygon></svg>',
 };
 
 let _supabaseLazy = null;
@@ -2620,6 +2621,11 @@ window.fetchMyOrders = async function() {
         processedOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
       }
       list.innerHTML = processedOrders.map(function(o) {
+        var displayStatus = o.status;
+        if (o.deliveryMethod === 'Pickup') {
+          if (o.status === 'Shipped') displayStatus = 'Ready to Pick';
+          else if (o.status === 'Delivered') displayStatus = 'Completed';
+        }
         return '<div class="my-order-card' + (o.id === (window._selectedOrderId || json.data[0].id) ? ' active' : '') + '" onclick="window.showOrderDetail(\'' + o.id + '\')">' +
           '<div class="my-order-card-header">' +
             '<span class="my-order-card-id">' + o.id + '</span>' +
@@ -2627,7 +2633,7 @@ window.fetchMyOrders = async function() {
           '</div>' +
           '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem;">' +
             '<div class="my-order-card-total" style="margin:0;">' + o.total + '</div>' +
-            '<span class="status-pill ' + o.status.toLowerCase() + '" style="margin:0;">' + o.status + '</span>' +
+            '<span class="status-pill ' + o.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span>' +
           '</div>' +
         '</div>';
       }).join('');
@@ -2782,9 +2788,24 @@ window.showOrderDetail = function(id) {
   var details = getTrackingDetails(order.courier, order.trackingNumber);
   var trackingLink = order.trackingLink || '';
 
+  var isPickup = order.deliveryMethod === 'Pickup';
+  var displayStatus = order.status;
+  if (isPickup) {
+    if (order.status === 'Shipped') displayStatus = 'Ready to Pick';
+    else if (order.status === 'Delivered') displayStatus = 'Completed';
+  }
+
+  var step1Label = isPickup ? 'Pending' : 'Confirmed';
+  var step2Label = isPickup ? 'Ready to Pick' : 'Shipped';
+  var step3Label = isPickup ? 'Completed' : 'Delivered';
+
+  var step1Icon = window.__svg.check;
+  var step2Icon = isPickup ? window.__svg.package : window.__svg.truck;
+  var step3Icon = isPickup ? window.__svg.check_circle : window.__svg.home;
+
   detail.innerHTML =
-    '<div class="order-detail-header"><h3 class="order-detail-title" style="margin:0;line-height:1;">Order ID: ' + order.id + '</h3><span class="status-pill ' + order.status.toLowerCase() + '" style="margin:0;">' + order.status + '</span></div>' +
-    '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle">' + window.__svg.check + '</div><span class="tracker-label">Confirmed</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle">' + window.__svg.truck + '</div><span class="tracker-label">Shipped</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle">' + window.__svg.home + '</div><span class="tracker-label">Delivered</span></div></div></div>' +
+    '<div class="order-detail-header"><h3 class="order-detail-title" style="margin:0;line-height:1;">Order ID: ' + order.id + '</h3><span class="status-pill ' + order.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span></div>' +
+    '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle">' + step1Icon + '</div><span class="tracker-label">' + step1Label + '</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle">' + step2Icon + '</div><span class="tracker-label">' + step2Label + '</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle">' + step3Icon + '</div><span class="tracker-label">' + step3Label + '</span></div></div></div>' +
     (details.tracking ? 
       ('<div class="order-tracking-card" style="margin-top:0; margin-bottom:1.5rem;">' +
         '<div>' +
@@ -2820,11 +2841,16 @@ window.trackPackage = async function(e) {
     if(json.success && json.data.length > 0) {
       box.innerHTML = json.data.map(o => {
         var details = getTrackingDetails(o.courier, o.trackingNumber);
+        var displayStatus = o.status;
+        if (o.deliveryMethod === 'Pickup') {
+          if (o.status === 'Shipped') displayStatus = 'Ready to Pick';
+          else if (o.status === 'Delivered') displayStatus = 'Completed';
+        }
         return `
           <div style="background:var(--cream); padding:1.5rem; border:1px solid var(--sand); border-radius:8px; margin-bottom:1rem; box-shadow: 0 4px 12px rgba(42,36,32,0.015);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid rgba(196,181,160,0.2); padding-bottom:0.75rem;">
               <strong style="font-family:'Cormorant Garamond',serif; font-size:1.25rem;">Order: ${o.id}</strong>
-              <span class="status-pill ${o.status.toLowerCase()}">${o.status}</span>
+              <span class="status-pill ${o.status.toLowerCase()}">${displayStatus}</span>
             </div>
             <div style="font-size:0.9rem; line-height:1.6; color:var(--charcoal);">
               ${details.tracking ? `

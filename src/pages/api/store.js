@@ -45,7 +45,7 @@ function getCanonicalItemsString(items) {
   return JSON.stringify(minimal);
 }
 
-async function calculateCartTotalOnServer(items, couponCode, state, pincode) {
+async function calculateCartTotalOnServer(items, couponCode, state, pincode, deliveryMethod) {
   if (!items || !Array.isArray(items)) return { subtotal: 0, discount: 0, shipping: 0, total: 0 };
 
   const productIds = items.map(it => it.product?.id).filter(Boolean);
@@ -86,7 +86,7 @@ async function calculateCartTotalOnServer(items, couponCode, state, pincode) {
 
   let discount = 0;
   let finalShipping = 0;
-  if (subtotal > 0) {
+  if (subtotal > 0 && deliveryMethod !== 'Pickup') {
     finalShipping = calculateShipping(items, state, pincode);
   }
   if (couponCode) {
@@ -385,7 +385,7 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'create_payment_intent') {
-      const { items, couponCode, email, name, phone, addressId, shippingAddress, city, state, pincode, addressLabel, sessionId } = body;
+      const { items, couponCode, email, name, phone, addressId, shippingAddress, city, state, pincode, addressLabel, sessionId, deliveryMethod } = body;
       
       if (!items || !email || !name) {
         return new Response(JSON.stringify({ success: false, error: "Missing required fields for payment intent." }), { status: 400 });
@@ -393,7 +393,7 @@ export async function POST({ request }) {
 
       let calculated;
       try {
-        calculated = await calculateCartTotalOnServer(items, couponCode, state, pincode);
+        calculated = await calculateCartTotalOnServer(items, couponCode, state, pincode, deliveryMethod);
       } catch (err) {
         return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
       }
@@ -496,7 +496,8 @@ export async function POST({ request }) {
         pincode, 
         addressLabel, 
         sessionId,
-        couponCode
+        couponCode,
+        deliveryMethod
       } = body;
 
       // H2: Null-guard paymentId BEFORE calling .startsWith()
@@ -593,7 +594,7 @@ export async function POST({ request }) {
       let recalculated;
       if (isCOD) {
         try {
-          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode);
+          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode, deliveryMethod);
         } catch (err) {
           return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
         }
@@ -629,10 +630,14 @@ export async function POST({ request }) {
         return new Response(JSON.stringify({ success: false, error: "Failed to securely place order: " + rpcErr.message }), { status: 500 });
       }
 
+      if (deliveryMethod === 'Pickup') {
+        await supabase.from('orders').update({ delivery_method: 'Pickup' }).eq('id', orderNumber);
+      }
+
       if (!isCOD) {
         await supabase.from('payment_intents').delete().eq('razorpay_order_id', razorpayOrderId);
         try {
-          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode);
+          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode, deliveryMethod);
         } catch (e) {
           recalculated = { subtotal: 0, discount: 0, shipping: 0, total: 0 };
         }

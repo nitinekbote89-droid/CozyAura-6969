@@ -103,7 +103,7 @@
     <!-- Tracking Section -->
     <div style="margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border);">
       <h4 style="font-weight:500; margin-bottom:12px; font-size:0.9rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Courier & Tracking Information</h4>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+      <div id="modalTrackingFields" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
         <div class="form-group" style="margin-bottom:0;">
           <label style="font-size:0.8rem; color:var(--text-muted);">Courier / Carrier Name</label>
           <input type="text" id="modalCourierInput" placeholder="e.g. BlueDart" style="background:var(--bg-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
@@ -116,6 +116,9 @@
           <label style="font-size:0.8rem; color:var(--text-muted);">Tracking Link / URL (Optional)</label>
           <input type="text" id="modalTrackingLinkInput" placeholder="e.g. https://delhivery.com/track/package/..." style="background:var(--bg-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
         </div>
+      </div>
+      <div id="modalPickupFields" style="display:none; margin-bottom:16px; background:var(--bg-main); padding:12px; border:1px solid var(--border); border-radius:6px;">
+        <p style="font-size:0.85rem; color:var(--text-main); margin:0;">This is a <strong>Self Pickup</strong> order. No courier tracking is needed. Clicking the button below will mark it as <strong>Ready for Pickup</strong>.</p>
       </div>
       <button type="button" class="btn btn-primary" onclick="window.saveTrackingFromModal()" style="width:100%; justify-content:center;">Update Tracking & Ship Order</button>
     </div>

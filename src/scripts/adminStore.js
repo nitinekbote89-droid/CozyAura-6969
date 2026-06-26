@@ -478,9 +478,12 @@ window.updateOrderStatus = async function(orderId, newStatus) {
 };
 
 window.saveTrackingFromModal = async function() {
-    const courierVal = document.getElementById('modalCourierInput').value.trim();
-    const trackingVal = document.getElementById('modalTrackingInput').value.trim();
-    const trackingLinkVal = document.getElementById('modalTrackingLinkInput').value.trim();
+    const ords = JSON.parse(localStorage.getItem('lumiere_orders') || '[]');
+    const order = ords.find(o => String(o.id) === String(window.currentViewingOrderId));
+    const isPickup = order && order.deliveryMethod === 'Pickup';
+    const courierVal = isPickup ? 'Self Pickup' : document.getElementById('modalCourierInput').value.trim();
+    const trackingVal = isPickup ? 'N/A' : document.getElementById('modalTrackingInput').value.trim();
+    const trackingLinkVal = isPickup ? '' : document.getElementById('modalTrackingLinkInput').value.trim();
     try {
         const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -593,7 +596,7 @@ window.downloadInvoiceBill = function() {
     if (order.shippingInfo) {
         const addr = order.shippingInfo;
         doc.setFont('helvetica', 'bold');
-        doc.text('Shipping Address:', 15, y); y += 6;
+        doc.text(order.deliveryMethod === 'Pickup' ? 'Pickup Location:' : 'Shipping Address:', 15, y); y += 6;
         doc.setFont('helvetica', 'normal');
         const addrLine = addr.address || '';
         const cityLine = [addr.city, addr.state, addr.pincode].filter(Boolean).join(', ');
@@ -797,6 +800,32 @@ window.viewOrderDetails = function(orderId) {
     document.getElementById('orderModalPayment').textContent = order.paymentMethod || 'COD / Pay on Delivery';
     document.getElementById('orderModalStatus').innerHTML = window.getOrderBadge(order.status);
 
+    const isPickup = order.deliveryMethod === 'Pickup';
+    const trackingFields = document.getElementById('modalTrackingFields');
+    const pickupFields = document.getElementById('modalPickupFields');
+    const trackingHeader = document.querySelector('#orderModal h4');
+    const updateTrackingBtn = document.querySelector('#orderModal button[onclick="window.saveTrackingFromModal()"]');
+    
+    if (isPickup) {
+        if (trackingFields) trackingFields.style.display = 'none';
+        if (pickupFields) pickupFields.style.display = 'block';
+        if (trackingHeader) trackingHeader.textContent = 'Store Pickup Options';
+        if (updateTrackingBtn) {
+            if (order.status === 'Shipped') {
+                updateTrackingBtn.textContent = 'Ready for Pickup (Click to Re-save)';
+            } else if (order.status === 'Delivered') {
+                updateTrackingBtn.textContent = 'Order Picked Up / Completed';
+            } else {
+                updateTrackingBtn.textContent = 'Mark as Ready for Pickup';
+            }
+        }
+    } else {
+        if (trackingFields) trackingFields.style.display = 'grid';
+        if (pickupFields) pickupFields.style.display = 'none';
+        if (trackingHeader) trackingHeader.textContent = 'Courier & Tracking Information';
+        if (updateTrackingBtn) updateTrackingBtn.textContent = 'Update Tracking & Ship Order';
+    }
+
     const addrParts = [];
     if (order.shippingInfo) {
         const s = order.shippingInfo;
@@ -862,7 +891,7 @@ window.viewOrderDetails = function(orderId) {
     }
 
     document.getElementById('orderModalSubtotalRow').textContent = `Subtotal: ₹${subtotalVal.toLocaleString('en-IN')}`;
-    document.getElementById('orderModalShippingRow').textContent = shippingVal > 0 ? `Shipping: ₹${shippingVal.toLocaleString('en-IN')}` : `Shipping: Free`;
+    document.getElementById('orderModalShippingRow').textContent = shippingVal > 0 ? `Shipping: ₹${shippingVal.toLocaleString('en-IN')}` : (order.deliveryMethod === 'Pickup' ? `Pickup: Free` : `Shipping: Free`);
     document.getElementById('orderModalPromoRow').textContent = discountVal > 0 ? `Discount Applied: -₹${discountVal.toLocaleString('en-IN')}` : '';
     document.getElementById('orderModalTotal').textContent = `₹${totalVal.toLocaleString('en-IN')}`;
 

@@ -1,5 +1,8 @@
 const CORE_STORE_PROXY_ROUTE = "/api/store";
 
+window.STORE_PICKUP_ADDRESS = "Lumière Studio, Koregaon Park, Pune, Maharashtra - 411001";
+window.deliveryMethod = "Shipping";
+
 window.__svg = {
   close: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
   error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
@@ -984,16 +987,16 @@ window.calculatePrices = function() {
   const hasAddress = window.checkoutStep === 'payment' || !!window.selectedAddressId || !!guestState || !!guestPincode;
   const shipState = window.shippingInfo?.state || guestState || '';
   const shipPincode = window.shippingInfo?.pincode || guestPincode || '';
-  const shipping = (subtotal > 0 && hasAddress) ? window.getShippingCharge(shipState, shipPincode) : 0;
+  const shipping = (subtotal > 0 && hasAddress && window.deliveryMethod !== 'Pickup') ? window.getShippingCharge(shipState, shipPincode) : 0;
   let total = Math.max(0, subtotal - discount + shipping);
 
   if (document.getElementById('summaryTotal')) {
-    document.getElementById('summaryShipping').textContent = `₹${shipping}`;
+    document.getElementById('summaryShipping').textContent = window.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : `₹${shipping}`;
     document.getElementById('summarySubtotal').textContent = `₹${subtotal}`;
     document.getElementById('summaryTotal').textContent = `₹${total}`;
     const summaryShippingLine = document.getElementById('summaryShipping').parentElement;
     if (summaryShippingLine) {
-      summaryShippingLine.style.display = shipping > 0 ? 'flex' : 'none';
+      summaryShippingLine.style.display = (shipping > 0 || window.deliveryMethod === 'Pickup') ? 'flex' : 'none';
     }
     const checkoutSummaryTotalEl = document.getElementById('checkoutSummaryTotal');
     if (checkoutSummaryTotalEl) {
@@ -1011,7 +1014,7 @@ window.calculatePrices = function() {
   // Update shipping method price
   const shippingMethodPriceEl = document.getElementById('shippingMethodPrice');
   if (shippingMethodPriceEl) {
-    shippingMethodPriceEl.textContent = shipping > 0 ? `₹${shipping}` : 'Free';
+    shippingMethodPriceEl.textContent = window.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : (shipping > 0 ? `₹${shipping}` : 'Free');
   }
 
   // Update Shopify-like checkout sidebar breakdown
@@ -1020,7 +1023,9 @@ window.calculatePrices = function() {
     
     const shippingEl = document.getElementById('checkoutSidebarShipping');
     if (shippingEl) {
-      if (!hasAddress) {
+      if (window.deliveryMethod === 'Pickup') {
+        shippingEl.textContent = 'Free (Self Pickup)';
+      } else if (!hasAddress) {
         shippingEl.textContent = 'Enter shipping address';
       } else {
         shippingEl.textContent = `₹${shipping.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -1048,7 +1053,118 @@ window.calculatePrices = function() {
     }
   }
 
-  return { subtotal, discount, total };
+  return { subtotal, discount, shipping, total };
+};
+
+window.setDeliveryMethod = function(method) {
+  window.deliveryMethod = method;
+  
+  const shipBtn = document.getElementById('deliveryMethodShippingBtn');
+  const pickupBtn = document.getElementById('deliveryMethodPickupBtn');
+  const pickupCard = document.getElementById('pickupInfoCard');
+  const guestFields = document.getElementById('guestShippingFields');
+  const savedSec = document.getElementById('savedAddressesSection');
+  const addAddressBtn = document.querySelector('button[onclick="window.showNewAddressForm()"]');
+  const form = document.getElementById('checkoutForm');
+  const shippingHeader = document.getElementById('shippingDetailsHeader');
+  
+  if (method === 'Pickup') {
+    if (shipBtn) {
+      shipBtn.style.border = '1px solid var(--sand)';
+      shipBtn.style.background = 'white';
+    }
+    if (pickupBtn) {
+      pickupBtn.style.border = '2px solid var(--stone)';
+      pickupBtn.style.background = 'var(--cream)';
+    }
+    
+    // Show pickup info card
+    if (pickupCard) {
+      pickupCard.style.display = 'block';
+      const addressText = document.getElementById('pickupAddressText');
+      if (addressText) {
+        addressText.textContent = window.STORE_PICKUP_ADDRESS || "Lumière Studio, Koregaon Park, Pune, Maharashtra - 411001";
+      }
+    }
+    
+    // Hide shipping specific UI elements
+    if (savedSec) savedSec.style.display = 'none';
+    if (addAddressBtn) addAddressBtn.style.display = 'none';
+    if (guestFields) guestFields.style.display = 'none';
+    if (shippingHeader) shippingHeader.style.display = 'none';
+    
+    // Always show contact form for name/email/phone
+    if (form) form.style.display = 'block';
+    
+    // Prefill form contact info if logged in
+    const loggedInEmail = localStorage.getItem('lumiere_user_email');
+    if (loggedInEmail) {
+      const emailField = document.getElementById('email');
+      if (emailField) {
+        emailField.value = loggedInEmail;
+        emailField.disabled = true;
+      }
+      
+      const rawAddrs = localStorage.getItem('lumiere_user_addresses');
+      const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
+      const defaultAddr = addresses.find(a => a.is_default) || addresses[0];
+      if (defaultAddr) {
+        if (!document.getElementById('fname').value) document.getElementById('fname').value = defaultAddr.fname || '';
+        if (!document.getElementById('lname').value) document.getElementById('lname').value = defaultAddr.lname || '';
+        if (!document.getElementById('phone').value) document.getElementById('phone').value = defaultAddr.phone || '';
+      } else {
+        const nameParts = (localStorage.getItem('lumiere_user_name') || '').split(' ');
+        if (!document.getElementById('fname').value) document.getElementById('fname').value = nameParts[0] || '';
+        if (!document.getElementById('lname').value) document.getElementById('lname').value = nameParts.slice(1).join(' ') || '';
+      }
+    }
+    
+    // Fill dummy address fields to pass validation
+    const addrField = document.getElementById('address');
+    const pinField = document.getElementById('pincode');
+    const cityField = document.getElementById('city');
+    const stateField = document.getElementById('state');
+    
+    if (addrField) addrField.value = "Self Pickup In Store";
+    if (pinField) pinField.value = "411001";
+    if (cityField) cityField.value = "Pune";
+    if (stateField) stateField.value = "maharashtra";
+    
+  } else {
+    // Shipping method chosen
+    if (shipBtn) {
+      shipBtn.style.border = '2px solid var(--stone)';
+      shipBtn.style.background = 'var(--cream)';
+    }
+    if (pickupBtn) {
+      pickupBtn.style.border = '1px solid var(--sand)';
+      pickupBtn.style.background = 'white';
+    }
+    
+    // Hide pickup card
+    if (pickupCard) pickupCard.style.display = 'none';
+    
+    // Show shipping specific fields and controls
+    if (addAddressBtn) addAddressBtn.style.display = 'block';
+    if (guestFields) guestFields.style.display = 'block';
+    if (shippingHeader) shippingHeader.style.display = 'flex';
+    
+    // Clear dummy fields
+    const addrField = document.getElementById('address');
+    const pinField = document.getElementById('pincode');
+    const cityField = document.getElementById('city');
+    const stateField = document.getElementById('state');
+    
+    if (addrField && addrField.value === "Self Pickup In Store") addrField.value = "";
+    if (pinField && pinField.value === "411001") pinField.value = "";
+    if (cityField && cityField.value === "Pune") cityField.value = "";
+    if (stateField && stateField.value === "maharashtra") stateField.value = "";
+    
+    // Restore normal prefill state (saved addresses vs form)
+    window.prefillCheckoutForm();
+  }
+  
+  window.calculatePrices();
 };
 
 window.acquireCheckoutLocks = async function() {
@@ -1373,7 +1489,23 @@ window.goBackToShipping = function() {
 
 window.proceedToPayment = async function() {
   const loggedInEmail = localStorage.getItem('lumiere_user_email');
-  if (loggedInEmail) {
+  if (window.deliveryMethod === 'Pickup') {
+    const form = document.getElementById('checkoutForm');
+    if (form && !form.reportValidity()) {
+      return;
+    }
+    window.shippingInfo = {
+      fname: document.getElementById('fname').value,
+      lname: document.getElementById('lname').value,
+      email: document.getElementById('email').value || loggedInEmail,
+      address: window.STORE_PICKUP_ADDRESS,
+      city: "Pune",
+      state: "maharashtra",
+      pincode: "411001",
+      phone: document.getElementById('phone').value
+    };
+    window.selectedAddressId = null;
+  } else if (loggedInEmail) {
     const rawAddrs = localStorage.getItem('lumiere_user_addresses');
     const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
     const selectedAddr = addresses.find(a => String(a.id) === String(window.selectedAddressId));
@@ -1581,7 +1713,8 @@ window.executeSecurePayment = async function() {
       state: window.shippingInfo.state,
       pincode: window.shippingInfo.pincode,
       addressLabel: window.selectedAddressLabel || 'Home',
-      couponCode: window.appliedPromoCode?.code || null
+      couponCode: window.appliedPromoCode?.code || null,
+      deliveryMethod: window.deliveryMethod || 'Shipping'
     };
 
     try {
@@ -1626,7 +1759,8 @@ window.executeSecurePayment = async function() {
       state: window.shippingInfo.state,
       pincode: window.shippingInfo.pincode,
       addressLabel: window.selectedAddressLabel || 'Home',
-      sessionId: sessionToken
+      sessionId: sessionToken,
+      deliveryMethod: window.deliveryMethod || 'Shipping'
     };
 
     try {
@@ -1674,7 +1808,8 @@ window.executeSecurePayment = async function() {
             state: window.shippingInfo.state,
             pincode: window.shippingInfo.pincode,
             addressLabel: window.selectedAddressLabel || 'Home',
-            couponCode: window.appliedPromoCode?.code || null
+            couponCode: window.appliedPromoCode?.code || null,
+            deliveryMethod: window.deliveryMethod || 'Shipping'
           };
 
           try {
@@ -2545,8 +2680,12 @@ window.showOrderDetail = function(id) {
           '<span>-₹' + discount + '</span>' +
         '</div>') : '') +
         '<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--stone);">' +
+          '<span>Delivery Method</span>' +
+          '<span>' + (order.deliveryMethod === 'Pickup' ? 'Self Pickup In Store' : 'Shipping') + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--stone);">' +
           '<span>Shipping Charges</span>' +
-          '<span>₹' + shipping + '</span>' +
+          '<span>' + (order.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : '₹' + shipping) + '</span>' +
         '</div>' +
         '<div style="display:flex;justify-content:space-between;font-size:1.15rem;font-family:\'Cormorant Garamond\',serif;color:var(--gold-dark);font-weight:500;border-top:1px solid rgba(196,181,160,0.25);padding-top:0.75rem;margin-top:0.35rem;">' +
           '<span>Total</span>' +

@@ -166,7 +166,6 @@ import AdminModals from '../components/AdminModals.astro';
                 <th>Customer</th>
                 <th>Date</th>
                 <th>Total (₹)</th>
-                <th>Delivery</th>
                 <th>Status</th>
                 <th>Update Status</th>
                 <th>Actions</th>
@@ -639,7 +638,7 @@ import AdminModals from '../components/AdminModals.astro';
     }
 
     if (processedOrders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding: 24px;">No matching order records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 24px;">No matching order records found.</td></tr>`;
         return;
     }
 
@@ -654,11 +653,6 @@ import AdminModals from '../components/AdminModals.astro';
         <td style="font-weight:500; text-transform:capitalize;">${esc(customerFullName)}</td>
         <td>${order.date ? fmtDate(order.date) : '—'}</td>
         <td>₹${orderTotal.toLocaleString('en-IN')}</td>
-        <td>
-          <span class="status-badge" style="background:${order.deliveryMethod === 'Pickup' ? '#FEF3C7; color:#D97706; border:1px solid #FCD34D' : '#E0F2FE; color:#0284C7; border:1px solid #BAE6FD'}">
-            ${order.deliveryMethod === 'Pickup' ? 'Pickup' : 'Shipping'}
-          </span>
-        </td>
         <td>${window.getOrderBadge(order.status)}</td>
         <td>
           <select class="status-select" onchange="window.updateOrderStatus('${encodeURIComponent(String(order.id ?? ''))}', this.value)">

@@ -44,7 +44,18 @@ function getAuthTokenFromStorage() {
 }
 
 async function fetchWithAuth(url, options = {}) {
-  let token = getAuthTokenFromStorage();
+  const supabase = await getSupabase();
+  let session = null;
+  let token = null;
+
+  // Retry up to 5 times with a 200ms delay to wait for Supabase session initialization if needed
+  for (let i = 0; i < 5; i++) {
+    const res = await supabase.auth.getSession();
+    session = res.data?.session;
+    token = session?.access_token || getAuthTokenFromStorage();
+    if (token) break;
+    await new Promise(resolve => setTimeout(resolve, 200));
+  }
 
   const headers = {
     ...(options.headers || {}),
@@ -2494,9 +2505,21 @@ window.saveAddressesPageForm = function() {
     }).catch(e => console.error(e));
 };
 
-window.syncUserProfile = function(email, callback) {
+window.syncUserProfile = async function(email, callback) {
   // Skip if no auth token exists — profile fetch requires a valid Supabase session
-  const authToken = getAuthTokenFromStorage();
+  const supabase = await getSupabase();
+  let session = null;
+  let authToken = null;
+
+  // Retry up to 5 times with a 200ms delay to wait for Supabase session initialization if needed
+  for (let i = 0; i < 5; i++) {
+    const res = await supabase.auth.getSession();
+    session = res.data?.session;
+    authToken = session?.access_token || getAuthTokenFromStorage();
+    if (authToken) break;
+    await new Promise(resolve => setTimeout(resolve, 200));
+  }
+
   if (!authToken) {
     if (callback) callback(null);
     return;
@@ -3033,7 +3056,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     localStorage.removeItem('lumiere_login_redirect');
   }
 
-  if (userEmail && !localStorage.getItem('lumiere_user_email')) {
+  if (userEmail) {
     localStorage.setItem('lumiere_user_email', userEmail);
     const fullName = (userName || userEmail.split('@')[0]).trim();
     const parts = fullName.split(/\s+/);
@@ -3051,11 +3074,9 @@ window.addEventListener('DOMContentLoaded', async () => {
           // After Google login for checkout: ensure they have an address first
           const addresses = userData?.addresses || [];
           if (addresses.length === 0) {
-            // No address saved — open the address modal, then continue to checkout after save
+            // No address saved — open the address form, then continue to checkout after save
             window.showPage('payment');
             window.prefillCheckoutForm();
-            // Show the add-address modal automatically
-            setTimeout(() => window.showNewAddressesPageForm && window.showNewAddressesPageForm(), 300);
           } else {
             window.goToCheckout();
           }

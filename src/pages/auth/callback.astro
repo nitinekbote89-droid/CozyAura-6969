@@ -6,10 +6,7 @@ const errorParam = url.searchParams.get('error') || url.searchParams.get('error_
 <html><body>
   <div id="status" style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;color:#666;">Completing sign in...</div>
 <script>
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+import { supabase } from '../../lib/supabaseClient';
 
 async function handleAuth() {
   const statusEl = document.getElementById('status');
@@ -41,7 +38,6 @@ async function handleAuth() {
 
   try {
     statusEl.textContent = 'Exchanging code for session...';
-    const supabase = createClient(supabaseUrl, supabaseKey);
     const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError) {

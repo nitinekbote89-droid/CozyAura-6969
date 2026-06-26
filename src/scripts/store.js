@@ -1818,6 +1818,19 @@ window.prefillCheckoutForm = async function() {
       if (savedSec) savedSec.style.display = 'block';
       if (form) form.style.display = 'none';
       window.renderSavedAddresses();
+      const selectedAddr = addresses.find(a => String(a.id) === String(window.selectedAddressId));
+      if (selectedAddr) {
+        window.shippingInfo = {
+          fname: selectedAddr.fname,
+          lname: selectedAddr.lname,
+          email: loggedInEmail,
+          address: selectedAddr.address,
+          city: selectedAddr.city,
+          state: selectedAddr.state,
+          pincode: selectedAddr.pincode,
+          phone: selectedAddr.phone
+        };
+      }
     } else {
       if (savedSec) savedSec.style.display = 'none';
       if (form) form.style.display = 'block';

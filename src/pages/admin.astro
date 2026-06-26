@@ -409,7 +409,7 @@ import AdminModals from '../components/AdminModals.astro';
                       totalOutFragrancesCount++;
                   }
                   if (qty <= 15) {
-                      const fragrancePings = (item.fragranceRequests && item.fragranceRequests[fragranceName]) ? item.fragranceRequests[fragranceName] : 0;
+                      const fragrancePings = (item.fragranceRequests && (item.fragranceRequests[fragranceName] || item.fragranceRequests[fragranceName.toLowerCase().trim()])) ? (item.fragranceRequests[fragranceName] || item.fragranceRequests[fragranceName.toLowerCase().trim()]) : 0;
                       
                       let fragranceTier = 1;
                       if (fragrancePings > 0) {

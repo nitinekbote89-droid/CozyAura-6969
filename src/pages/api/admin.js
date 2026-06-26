@@ -447,6 +447,35 @@ export async function POST({ request }) {
       if (rpcErr) {
         return new Response(JSON.stringify({ success: false, error: "Failed to save variants: " + rpcErr.message }), { status: 500 });
       }
+
+      // Clear back-in-stock requests for restocked items/variants
+      try {
+        if (data.product.stock > 0) {
+          await supabase.from('back_in_stock_requests')
+            .delete()
+            .eq('product_id', data.product.id)
+            .in('variant_name', ['standard', 'Standard', '']);
+        }
+        const restockedVariants = Object.entries(submittedFragrances)
+          .filter(([_, stockCount]) => stockCount > 0)
+          .map(([fragranceName, _]) => fragranceName);
+
+        if (restockedVariants.length > 0) {
+          const variantNamesToDelete = [];
+          restockedVariants.forEach(v => {
+            variantNamesToDelete.push(v);
+            variantNamesToDelete.push(v.toLowerCase().trim());
+          });
+
+          await supabase.from('back_in_stock_requests')
+            .delete()
+            .eq('product_id', data.product.id)
+            .in('variant_name', variantNamesToDelete);
+        }
+      } catch (err) {
+        console.error("Failed to clear back in stock requests:", err);
+      }
+
       const { error: refreshErr } = await supabase.rpc('refresh_sales_view');
       if (refreshErr) {
         return new Response(JSON.stringify({ success: false, error: "Failed to refresh catalog: " + refreshErr.message }), { status: 500 });

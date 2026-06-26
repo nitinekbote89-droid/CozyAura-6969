@@ -68,7 +68,41 @@ window.appliedPromoCode = (function() {
     return null;
   }
 })();
-window.shippingFee = 150;
+window.getShippingCharge = function(state) {
+  var GROUP_MAP = {
+    'maharashtra':'A','goa':'A','karnataka':'A','telangana':'A',
+    'gujarat':'B','rajasthan':'B','madhya pradesh':'B','chhattisgarh':'B',
+    'andhra pradesh':'B','tamil nadu':'B','kerala':'B','puducherry':'B',
+    'dadra and nagar haveli':'B','daman and diu':'B','lakshadweep':'B',
+    'odisha':'C','uttar pradesh':'C','bihar':'C','jharkhand':'C',
+    'west bengal':'C','delhi':'C','haryana':'C','punjab':'C',
+    'himachal pradesh':'C','uttarakhand':'C','chandigarh':'C',
+    'jammu and kashmir':'C',
+    'assam':'D','arunachal pradesh':'D','meghalaya':'D','nagaland':'D',
+    'manipur':'D','mizoram':'D','tripura':'D','sikkim':'D',
+    'ladakh':'D','andaman and nicobar islands':'D'
+  };
+  var RATES = {
+    A:[60,77,94,113,130,147,166],
+    B:[70,106,142,178,212,248,284],
+    C:[94,142,188,236,284,330,378],
+    D:[106,166,224,284,342,402,460]
+  };
+  var SLABS = [500,1000,1500,2000,2500,3000,3500];
+  var group = GROUP_MAP[(state||'').toLowerCase().trim()];
+  if (!group) return 0;
+  var totalWeight = (window.cart||[]).reduce(function(sum, item) {
+    var prod = window.PRODUCTS.find(function(p) { return p.id === (item.product?.id); });
+    var w = (prod && prod.weight) || 220;
+    return sum + (w * (item.quantity || 1));
+  }, 0);
+  var idx = 0;
+  for (var i = 0; i < SLABS.length; i++) {
+    if (totalWeight <= SLABS[i]) { idx = i; break; }
+    idx = i;
+  }
+  return (RATES[group]||[])[idx] || 0;
+};
 window.currentPaymentMethod = 'Card';
 window.shippingInfo = {};
 window.currentProduct = null;
@@ -910,13 +944,18 @@ window.calculatePrices = function() {
   
   // Conditionally add shipping fee based on step or selected address
   const hasAddress = window.checkoutStep === 'payment' || !!window.selectedAddressId;
-  const shipping = (subtotal > 0 && hasAddress) ? window.shippingFee : 0;
+  const shipState = window.shippingInfo?.state || '';
+  const shipping = (subtotal > 0 && hasAddress) ? window.getShippingCharge(shipState) : 0;
   let total = Math.max(0, subtotal - discount + shipping);
 
   if (document.getElementById('summaryTotal')) {
-    document.getElementById('summaryShipping').textContent = '₹0';
+    document.getElementById('summaryShipping').textContent = `₹${shipping}`;
     document.getElementById('summarySubtotal').textContent = `₹${subtotal}`;
-    document.getElementById('summaryTotal').textContent = `₹${Math.max(0, subtotal - discount)}`;
+    document.getElementById('summaryTotal').textContent = `₹${total}`;
+    const summaryShippingLine = document.getElementById('summaryShipping').parentElement;
+    if (summaryShippingLine) {
+      summaryShippingLine.style.display = shipping > 0 ? 'flex' : 'none';
+    }
     const checkoutSummaryTotalEl = document.getElementById('checkoutSummaryTotal');
     if (checkoutSummaryTotalEl) {
       checkoutSummaryTotalEl.textContent = `₹${total}`;
@@ -939,7 +978,7 @@ window.calculatePrices = function() {
       if (!hasAddress) {
         shippingEl.textContent = 'Enter shipping address';
       } else {
-        shippingEl.textContent = `₹${window.shippingFee.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        shippingEl.textContent = `₹${shipping.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
     }
 
@@ -2405,7 +2444,7 @@ window.showOrderDetail = function(id) {
   
   var totalStr = order.total.replace(/[^0-9.]/g, '');
   var total = parseFloat(totalStr) || 0;
-  var shipping = subtotal > 0 ? 150 : 0;
+  var shipping = parseFloat(order.shipping) || 0;
   var discount = Math.max(0, subtotal + shipping - total);
 
   var itemsHtml = '';

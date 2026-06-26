@@ -389,7 +389,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <h3>Summary</h3>
         <div id="promoContainer"></div>
         <div class="summary-line"><span>Subtotal</span><span id="summarySubtotal">₹0</span></div>
-        <div class="summary-line" style="display: none;"><span>Shipping Freight</span><span id="summaryShipping">₹0</span></div>
+        <div class="summary-line"><span>Shipping Freight</span><span id="summaryShipping">₹0</span></div>
         <div class="summary-line" id="summaryPromoLine" style="display:none;"><span>Promo</span><span id="summaryPromo">—</span></div>
         <div class="summary-line total"><span>Total</span><span id="summaryTotal">₹0</span></div>
         <button class="btn-primary" onclick="window.goToCheckout()" style="width:100%; margin-top:1.5rem; padding: 1rem 2rem;">Proceed to Checkout <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
@@ -517,8 +517,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <div class="checkout-section">
             <h3 class="checkout-section-title">Shipping method</h3>
             <div class="shipping-method-box">
-              <span class="shipping-method-name">Standard Shipping</span>
-              <span class="shipping-method-price">₹150.00</span>
+              <span class="shipping-method-name">India Post Speed Post</span>
+              <span class="shipping-method-price" id="shippingMethodPrice">Calculated at checkout</span>
             </div>
           </div>
 

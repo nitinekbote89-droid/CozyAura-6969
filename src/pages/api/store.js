@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendOrderConfirmation, sendContactMessage } from '../../lib/email.js';
+import { calculateShipping } from '../../lib/shipping.js';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const jsonRes = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
@@ -44,14 +45,14 @@ function getCanonicalItemsString(items) {
   return JSON.stringify(minimal);
 }
 
-async function calculateCartTotalOnServer(items, couponCode) {
+async function calculateCartTotalOnServer(items, couponCode, state) {
   if (!items || !Array.isArray(items)) return { subtotal: 0, discount: 0, shipping: 0, total: 0 };
 
   const productIds = items.map(it => it.product?.id).filter(Boolean);
 
   // Fetch products and variants in parallel (M4: pre-group variants into Map)
   const [{ data: dbProducts }, { data: dbVariants }] = await Promise.all([
-    supabase.from('products').select('id, price').in('id', productIds),
+    supabase.from('products').select('id, price, weight').in('id', productIds),
     supabase.from('product_variants').select('product_id, variant_name').in('product_id', productIds)
   ]);
 
@@ -78,9 +79,11 @@ async function calculateCartTotalOnServer(items, couponCode) {
     subtotal += (Number(vPrice) || dbProd.price) * item.quantity;
   }
 
-  // M1: Removed duplicate coupon fetch — single query handles both discount and freeship
   let discount = 0;
-  let finalShipping = subtotal > 0 ? 150 : 0;
+  let finalShipping = 0;
+  if (subtotal > 0) {
+    finalShipping = calculateShipping(items, state);
+  }
   if (couponCode) {
     const { data: coupon } = await supabase
       .from('coupons')
@@ -385,7 +388,7 @@ export async function POST({ request }) {
 
       let calculated;
       try {
-        calculated = await calculateCartTotalOnServer(items, couponCode);
+        calculated = await calculateCartTotalOnServer(items, couponCode, state);
       } catch (err) {
         return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
       }
@@ -585,7 +588,7 @@ export async function POST({ request }) {
       let recalculated;
       if (isCOD) {
         try {
-          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null);
+          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state);
         } catch (err) {
           return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
         }
@@ -624,7 +627,7 @@ export async function POST({ request }) {
       if (!isCOD) {
         await supabase.from('payment_intents').delete().eq('razorpay_order_id', razorpayOrderId);
         try {
-          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null);
+          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state);
         } catch (e) {
           recalculated = { subtotal: 0, discount: 0, shipping: 0, total: 0 };
         }

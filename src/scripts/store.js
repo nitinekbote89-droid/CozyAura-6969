@@ -68,7 +68,12 @@ window.appliedPromoCode = (function() {
     return null;
   }
 })();
-window.getShippingCharge = function(state) {
+window.getShippingCharge = function(state, pincode) {
+  var cleanedPincode = String(pincode || '').replace(/\s+/g, '').trim();
+  if (cleanedPincode === '413531' || cleanedPincode === '413512') {
+    return 50;
+  }
+
   var GROUP_MAP = {
     'maharashtra':'A','goa':'A','karnataka':'A','telangana':'A',
     'gujarat':'B','rajasthan':'B','madhya pradesh':'B','chhattisgarh':'B',
@@ -958,9 +963,11 @@ window.calculatePrices = function() {
   
   // Conditionally add shipping fee based on step or selected address
   const guestState = document.getElementById('state')?.value || '';
-  const hasAddress = window.checkoutStep === 'payment' || !!window.selectedAddressId || !!guestState;
+  const guestPincode = document.getElementById('pincode')?.value || '';
+  const hasAddress = window.checkoutStep === 'payment' || !!window.selectedAddressId || !!guestState || !!guestPincode;
   const shipState = window.shippingInfo?.state || guestState || '';
-  const shipping = (subtotal > 0 && hasAddress) ? window.getShippingCharge(shipState) : 0;
+  const shipPincode = window.shippingInfo?.pincode || guestPincode || '';
+  const shipping = (subtotal > 0 && hasAddress) ? window.getShippingCharge(shipState, shipPincode) : 0;
   let total = Math.max(0, subtotal - discount + shipping);
 
   if (document.getElementById('summaryTotal')) {
@@ -2617,6 +2624,11 @@ ${window.__svg.copy}
 };
 
 document.addEventListener('input', function(e) {
+  if (e.target.id === 'pincode' || e.target.id === 'addr_pincode') {
+    window.shippingInfo = window.shippingInfo || {};
+    window.shippingInfo.pincode = e.target.value;
+    window.calculatePrices();
+  }
   if (e.target.id === 'phone' || e.target.id === 'addr_phone') {
     if (e.target._phoneBusy) return; e.target._phoneBusy = true;
     var digits = e.target.value.replace(/[^0-9]/g, '');

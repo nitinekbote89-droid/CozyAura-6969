@@ -45,7 +45,7 @@ function getCanonicalItemsString(items) {
   return JSON.stringify(minimal);
 }
 
-async function calculateCartTotalOnServer(items, couponCode, state) {
+async function calculateCartTotalOnServer(items, couponCode, state, pincode) {
   if (!items || !Array.isArray(items)) return { subtotal: 0, discount: 0, shipping: 0, total: 0 };
 
   const productIds = items.map(it => it.product?.id).filter(Boolean);
@@ -87,7 +87,7 @@ async function calculateCartTotalOnServer(items, couponCode, state) {
   let discount = 0;
   let finalShipping = 0;
   if (subtotal > 0) {
-    finalShipping = calculateShipping(items, state);
+    finalShipping = calculateShipping(items, state, pincode);
   }
   if (couponCode) {
     const { data: coupon } = await supabase
@@ -393,7 +393,7 @@ export async function POST({ request }) {
 
       let calculated;
       try {
-        calculated = await calculateCartTotalOnServer(items, couponCode, state);
+        calculated = await calculateCartTotalOnServer(items, couponCode, state, pincode);
       } catch (err) {
         return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
       }
@@ -593,7 +593,7 @@ export async function POST({ request }) {
       let recalculated;
       if (isCOD) {
         try {
-          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state);
+          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode);
         } catch (err) {
           return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
         }
@@ -632,7 +632,7 @@ export async function POST({ request }) {
       if (!isCOD) {
         await supabase.from('payment_intents').delete().eq('razorpay_order_id', razorpayOrderId);
         try {
-          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state);
+          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode);
         } catch (e) {
           recalculated = { subtotal: 0, discount: 0, shipping: 0, total: 0 };
         }

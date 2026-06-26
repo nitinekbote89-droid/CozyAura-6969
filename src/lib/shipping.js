@@ -54,8 +54,15 @@ export function getChargeForGroupWeight(group, weightGrams) {
   return baseRate + (extraSlabs * increment);
 }
 
-export function calculateShipping(items, state) {
+export function calculateShipping(items, state, pincode) {
   if (!items || !Array.isArray(items) || items.length === 0) return 0;
+  
+  // Flat ₹50 delivery only for 413531 and 413512 pincodes
+  const cleanedPincode = String(pincode || '').replace(/\s+/g, '').trim();
+  if (cleanedPincode === '413531' || cleanedPincode === '413512') {
+    return 50;
+  }
+
   const group = getShippingGroup(state);
   if (!group) return 0;
   const totalWeight = items.reduce((sum, item) => {

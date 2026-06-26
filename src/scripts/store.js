@@ -74,6 +74,7 @@ window.getShippingCharge = function(state) {
     'gujarat':'B','rajasthan':'B','madhya pradesh':'B','chhattisgarh':'B',
     'andhra pradesh':'B','tamil nadu':'B','kerala':'B','puducherry':'B',
     'dadra and nagar haveli':'B','daman and diu':'B','lakshadweep':'B',
+    'dadra and nagar haveli and daman and diu':'B','dadra & nagar haveli and daman & diu':'B',
     'odisha':'C','uttar pradesh':'C','bihar':'C','jharkhand':'C',
     'west bengal':'C','delhi':'C','haryana':'C','punjab':'C',
     'himachal pradesh':'C','uttarakhand':'C','chandigarh':'C',
@@ -88,7 +89,6 @@ window.getShippingCharge = function(state) {
     C:[94,142,188,236,284,330,378],
     D:[106,166,224,284,342,402,460]
   };
-  var SLABS = [500,1000,1500,2000,2500,3000,3500];
   var group = GROUP_MAP[(state||'').toLowerCase().trim()];
   if (!group) return 0;
   var totalWeight = (window.cart||[]).reduce(function(sum, item) {
@@ -96,12 +96,26 @@ window.getShippingCharge = function(state) {
     var w = (prod && prod.weight) || 220;
     return sum + (w * (item.quantity || 1));
   }, 0);
-  var idx = 0;
-  for (var i = 0; i < SLABS.length; i++) {
-    if (totalWeight <= SLABS[i]) { idx = i; break; }
-    idx = i;
+
+  if (totalWeight <= 3500) {
+    var SLABS = [500,1000,1500,2000,2500,3000,3500];
+    var idx = 0;
+    for (var i = 0; i < SLABS.length; i++) {
+      if (totalWeight <= SLABS[i]) { idx = i; break; }
+      idx = i;
+    }
+    return (RATES[group]||[])[idx] || 0;
+  } else {
+    var baseRate = RATES[group][6];
+    var extraWeight = totalWeight - 3500;
+    var extraSlabs = Math.ceil(extraWeight / 500);
+    var increment = 0;
+    if (group === 'A') increment = 17;
+    else if (group === 'B') increment = 36;
+    else if (group === 'C') increment = 48;
+    else if (group === 'D') increment = 60;
+    return baseRate + (extraSlabs * increment);
   }
-  return (RATES[group]||[])[idx] || 0;
 };
 window.currentPaymentMethod = 'Card';
 window.shippingInfo = {};
@@ -943,8 +957,9 @@ window.calculatePrices = function() {
   let discount = window.appliedPromoCode ? (window.appliedPromoCode.type === 'percent' ? Math.round(subtotal * (window.appliedPromoCode.discount / 100)) : window.appliedPromoCode.discount) : 0;
   
   // Conditionally add shipping fee based on step or selected address
-  const hasAddress = window.checkoutStep === 'payment' || !!window.selectedAddressId;
-  const shipState = window.shippingInfo?.state || '';
+  const guestState = document.getElementById('state')?.value || '';
+  const hasAddress = window.checkoutStep === 'payment' || !!window.selectedAddressId || !!guestState;
+  const shipState = window.shippingInfo?.state || guestState || '';
   const shipping = (subtotal > 0 && hasAddress) ? window.getShippingCharge(shipState) : 0;
   let total = Math.max(0, subtotal - discount + shipping);
 
@@ -2619,9 +2634,29 @@ document.addEventListener('input', function(e) {
         if (data[0]?.Status === 'Success') {
           var post = data[0].PostOffice[0];
           if (cityField) cityField.value = post.District || post.Name || '';
-          if (stateField) stateField.value = post.State || '';
+          if (stateField) {
+            var rawState = post.State || '';
+            var lowerState = rawState.toLowerCase().trim();
+            if (lowerState.includes('daman') || lowerState.includes('dadra')) {
+              lowerState = 'dadra and nagar haveli';
+            } else if (lowerState.includes('jammu')) {
+              lowerState = 'jammu and kashmir';
+            } else if (lowerState.includes('andaman')) {
+              lowerState = 'andaman and nicobar islands';
+            }
+            stateField.value = lowerState;
+            stateField.dispatchEvent(new Event('change', { bubbles: true }));
+          }
         }
       }).catch(function(){});
+  }
+});
+
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'state' || e.target.id === 'addr_state') {
+    window.shippingInfo = window.shippingInfo || {};
+    window.shippingInfo.state = e.target.value;
+    window.calculatePrices();
   }
 });
 

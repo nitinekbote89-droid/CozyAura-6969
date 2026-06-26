@@ -5,6 +5,7 @@ const STATE_GROUPS = {
   'gujarat': 'B', 'rajasthan': 'B', 'madhya pradesh': 'B', 'chhattisgarh': 'B',
   'andhra pradesh': 'B', 'tamil nadu': 'B', 'kerala': 'B', 'puducherry': 'B',
   'dadra and nagar haveli': 'B', 'daman and diu': 'B', 'lakshadweep': 'B',
+  'dadra and nagar haveli and daman and diu': 'B', 'dadra & nagar haveli and daman & diu': 'B',
   'odisha': 'C', 'uttar pradesh': 'C', 'bihar': 'C', 'jharkhand': 'C',
   'west bengal': 'C', 'delhi': 'C', 'haryana': 'C', 'punjab': 'C',
   'himachal pradesh': 'C', 'uttarakhand': 'C', 'chandigarh': 'C',
@@ -39,7 +40,18 @@ export function getSlabIndex(weightGrams) {
 export function getChargeForGroupWeight(group, weightGrams) {
   const rates = SHIPPING_RATES[group];
   if (!rates) return 0;
-  return rates[getSlabIndex(weightGrams)] || 0;
+  if (weightGrams <= 3500) {
+    return rates[getSlabIndex(weightGrams)] || 0;
+  }
+  const baseRate = rates[6]; // rate for 3500g
+  const extraWeight = weightGrams - 3500;
+  const extraSlabs = Math.ceil(extraWeight / 500);
+  let increment = 0;
+  if (group === 'A') increment = 17;
+  else if (group === 'B') increment = 36;
+  else if (group === 'C') increment = 48;
+  else if (group === 'D') increment = 60;
+  return baseRate + (extraSlabs * increment);
 }
 
 export function calculateShipping(items, state) {

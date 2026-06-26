@@ -68,6 +68,11 @@ async function calculateCartTotalOnServer(items, couponCode, state) {
     if (!dbProd) {
       throw new Error(`Invalid cart items`);
     }
+    if (item.product) {
+      item.product.weight = dbProd.weight;
+    } else {
+      item.product = { id: dbProd.id, weight: dbProd.weight };
+    }
     const variantName = item.variant?.name || 'Standard';
     if (variantName !== 'Standard' && variantName !== '') {
       const key = `${item.product?.id}::${variantName}`;

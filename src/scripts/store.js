@@ -1883,7 +1883,19 @@ window.selectAddressCard = function(id) {
   const rawAddrs = localStorage.getItem('lumiere_user_addresses');
   const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
   const addr = addresses.find(a => String(a.id) === String(id));
-  window.selectedAddressLabel = addr ? addr.label : '';
+  if (addr) {
+    window.selectedAddressLabel = addr.label || '';
+    window.shippingInfo = {
+      fname: addr.fname,
+      lname: addr.lname,
+      email: localStorage.getItem('lumiere_user_email') || '',
+      address: addr.address,
+      city: addr.city,
+      state: addr.state,
+      pincode: addr.pincode,
+      phone: addr.phone
+    };
+  }
   window.renderSavedAddresses();
   window.calculatePrices();
 };

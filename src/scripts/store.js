@@ -52,10 +52,27 @@ async function fetchWithAuth(url, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  return fetch(url, {
+  const res = await fetch(url, {
     ...options,
     headers
   });
+
+  if (res.status === 401) {
+    localStorage.removeItem('lumiere_user_email');
+    localStorage.removeItem('lumiere_user_fname');
+    localStorage.removeItem('lumiere_user_lname');
+    localStorage.removeItem('lumiere_user_name');
+    localStorage.removeItem('lumiere_user_avatar');
+    localStorage.removeItem('lumiere_user_addresses');
+    try {
+      const supabase = await getSupabase();
+      await supabase.auth.signOut();
+    } catch (e) {}
+    window.renderAccountAvatar();
+    window.showToast("Your session has expired. Please sign in again.", true);
+  }
+
+  return res;
 }
 
 window.PRODUCTS = [];
@@ -2922,18 +2939,31 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     window.history.replaceState({}, '', '/');
   } else if (localStorage.getItem('lumiere_user_email')) {
-    if (window.syncUserProfile) {
-      window.syncUserProfile(localStorage.getItem('lumiere_user_email'), () => {
-        const activePage = localStorage.getItem('lumiere_active_page');
-        if (activePage === 'payment') {
-          window.prefillCheckoutForm();
-        } else if (activePage === 'addressesPage') {
-          window.displayAddressesPageList();
-        } else if (activePage === 'contact') {
-          window.prefillContactForm();
-        }
-      });
-    }
+    getSupabase().then(async (supabase) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        localStorage.removeItem('lumiere_user_email');
+        localStorage.removeItem('lumiere_user_fname');
+        localStorage.removeItem('lumiere_user_lname');
+        localStorage.removeItem('lumiere_user_name');
+        localStorage.removeItem('lumiere_user_avatar');
+        localStorage.removeItem('lumiere_user_addresses');
+        window.renderAccountAvatar();
+        return;
+      }
+      if (window.syncUserProfile) {
+        window.syncUserProfile(localStorage.getItem('lumiere_user_email'), () => {
+          const activePage = localStorage.getItem('lumiere_active_page');
+          if (activePage === 'payment') {
+            window.prefillCheckoutForm();
+          } else if (activePage === 'addressesPage') {
+            window.displayAddressesPageList();
+          } else if (activePage === 'contact') {
+            window.prefillContactForm();
+          }
+        });
+      }
+    });
   }
   renderAccountAvatar();
 

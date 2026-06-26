@@ -2070,8 +2070,8 @@ section.active {
 }
 
 .btn-wishlist {
-  background: white;
-  border: 1px solid var(--sand);
+  background: transparent;
+  border: none;
   color: var(--stone);
   width: 46px;
   height: 46px;
@@ -2080,20 +2080,16 @@ section.active {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 2px;
   padding: 0;
   flex-shrink: 0;
 }
 
 .btn-wishlist:hover {
-  border-color: var(--danger);
   color: var(--danger);
 }
 
 .btn-wishlist.active {
   color: var(--danger);
-  border-color: var(--danger);
-  background: rgba(220, 38, 38, 0.04);
 }
 
 .btn-wishlist svg {

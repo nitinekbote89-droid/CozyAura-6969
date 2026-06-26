@@ -159,7 +159,7 @@ window.currentProduct = null;
 window.selectedVariant = null;
 window.activeCategory = 'all';
 window.PROMOS = [];
-let pages = ['home', 'shop', 'cartPage', 'payment', 'trackPage', 'about', 'contact', 'ordersPage', 'addressesPage'];
+let pages = ['home', 'shop', 'cartPage', 'payment', 'trackPage', 'about', 'contact', 'ordersPage', 'addressesPage', 'wishlistPage'];
 let categories = ['all'];
 
 function toTitleCase(str) {
@@ -343,7 +343,7 @@ window.updatePageMeta = function(pageId) {
 
 window.showPage = function(pageId, updateHistory = true) {
   // Require login for protected pages
-  const protectedPages = ['ordersPage', 'addressesPage'];
+  const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage'];
   if (protectedPages.includes(pageId) && !localStorage.getItem('lumiere_user_email')) {
     localStorage.setItem('lumiere_login_redirect', pageId);
     window.showLogin();
@@ -377,6 +377,7 @@ window.showPage = function(pageId, updateHistory = true) {
   if (pageId === 'cartPage') window.renderCart();
   if (pageId === 'ordersPage') window.fetchMyOrders();
   if (pageId === 'addressesPage') window.renderAddressesPage();
+  if (pageId === 'wishlistPage') window.renderWishlist();
   if (pageId === 'shop') { window.renderCategoryFilters(); window.triggerSearch(); }
   if (pageId === 'payment') { window.prefillCheckoutForm(); }
   if (pageId === 'contact') { window.prefillContactForm(); }
@@ -628,8 +629,26 @@ window.openProductModal = function(id) {
       <input type="radio" name="modal_variant" value="${v.id}" onchange="window.changeVariant('${v.id}')">
       <span class="variant-chip">${v.name}</span>
     </label>`).join('');
-  document.getElementById('modalActionContainer').innerHTML = `<button class="btn-primary" disabled style="opacity:0.5;cursor:not-allowed;" id="addToCartBtn" onclick="window.addProductToCartFromModal()">Add to Cart</button>`;
+
+  const wishlistButtonHtml = `
+    <button class="btn-wishlist" disabled style="opacity:0.5;cursor:not-allowed;" title="Select variant first">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+    </button>
+  `;
+  document.getElementById('modalActionContainer').innerHTML = `${wishlistButtonHtml}<button class="btn-primary" disabled style="opacity:0.5;cursor:not-allowed;" id="addToCartBtn" onclick="window.addProductToCartFromModal()">Add to Cart</button>`;
   document.getElementById('productModalOverlay').classList.add('active');
+
+  // Auto-select if single variant (e.g. Standard products)
+  if (prod.variants.length === 1) {
+    const firstVar = prod.variants[0];
+    setTimeout(() => {
+      const radio = document.querySelector(`input[name="modal_variant"][value="${firstVar.id}"]`);
+      if (radio) {
+        radio.checked = true;
+        window.changeVariant(firstVar.id);
+      }
+    }, 50);
+  }
 };
 
 window.changeVariant = function(varId) {
@@ -639,10 +658,18 @@ window.changeVariant = function(varId) {
   
   const actionContainer = document.getElementById('modalActionContainer');
   if (actionContainer) {
+    const isWishlisted = window.isProductWishlisted(window.currentProduct.id, window.selectedVariant.name);
+    const fillVal = isWishlisted ? 'currentColor' : 'none';
+    const activeClass = isWishlisted ? 'active' : '';
+    const wishlistButtonHtml = `
+      <button class="btn-wishlist ${activeClass}" onclick="window.toggleWishlistFromModal()" title="${isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="${fillVal}" stroke="currentColor" stroke-width="2" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      </button>
+    `;
     if (!window.selectedVariant.inStock) {
-      actionContainer.innerHTML = `<button class="btn-primary" id="addToCartBtn" onclick="window.notifyMe()" style="background:var(--stone); cursor:pointer;">Notify me</button>`;
+      actionContainer.innerHTML = `${wishlistButtonHtml}<button class="btn-primary" id="addToCartBtn" onclick="window.notifyMe()" style="background:var(--stone); cursor:pointer;">Notify me</button>`;
     } else {
-      actionContainer.innerHTML = `<button class="btn-primary" id="addToCartBtn" onclick="window.addProductToCartFromModal()">Add to Cart</button>`;
+      actionContainer.innerHTML = `${wishlistButtonHtml}<button class="btn-primary" id="addToCartBtn" onclick="window.addProductToCartFromModal()">Add to Cart</button>`;
     }
   }
 };
@@ -2555,6 +2582,7 @@ window.syncUserProfile = async function(email, callback) {
   }).then(json => {
     if (json && json.success && json.user) {
       localStorage.setItem('lumiere_user_addresses', JSON.stringify(json.user.addresses || []));
+      window.fetchWishlist();
       if (callback) callback(json.user);
     }
   }).catch(e => console.error("Profile sync failed:", e));
@@ -3141,6 +3169,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
   renderAccountAvatar();
+  window.fetchWishlist();
 
   const savedCart = localStorage.getItem('lumiere_cart');
   if (savedCart) {
@@ -3167,7 +3196,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Require login for protected pages on initial load
-  const protectedPages = ['ordersPage', 'addressesPage'];
+  const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage'];
   if (protectedPages.includes(targetPage) && !localStorage.getItem('lumiere_user_email')) {
     localStorage.setItem('lumiere_login_redirect', targetPage);
     window.showLogin();
@@ -3321,4 +3350,241 @@ window.applyStorefrontImages = function() {
       }
     }
   }
+};
+
+// --- WISHLIST FUNCTIONALITIES ---
+window.wishlistCache = [];
+
+window.isProductWishlisted = function(productId, variantName) {
+  if (!productId || !variantName) return false;
+  const lowerVar = variantName.toLowerCase().trim();
+  return window.wishlistCache.some(item => 
+    String(item.product_id) === String(productId) && 
+    String(item.variant_name).toLowerCase().trim() === lowerVar
+  );
+};
+
+window.toggleWishlistFromModal = async function() {
+  const email = localStorage.getItem('lumiere_user_email');
+  if (!email) {
+    localStorage.setItem('lumiere_login_redirect', 'wishlistPage');
+    window.showLogin();
+    return;
+  }
+
+  if (!window.currentProduct || !window.selectedVariant) {
+    window.showToast("Please select a variant first.", true);
+    return;
+  }
+
+  const productId = window.currentProduct.id;
+  const variantName = window.selectedVariant.name;
+  const isWishlisted = window.isProductWishlisted(productId, variantName);
+
+  const action = isWishlisted ? 'remove_from_wishlist' : 'add_to_wishlist';
+  
+  // Optimistically update UI cache
+  if (isWishlisted) {
+    window.wishlistCache = window.wishlistCache.filter(item => 
+      !(String(item.product_id) === String(productId) && 
+        String(item.variant_name).toLowerCase().trim() === variantName.toLowerCase().trim())
+    );
+  } else {
+    window.wishlistCache.push({ product_id: productId, variant_name: variantName });
+  }
+
+  // Update modal action buttons
+  const actionContainer = document.getElementById('modalActionContainer');
+  if (actionContainer) {
+    const activeClass = !isWishlisted ? 'active' : '';
+    const fillVal = !isWishlisted ? 'currentColor' : 'none';
+    const wishlistButtonHtml = `
+      <button class="btn-wishlist ${activeClass}" onclick="window.toggleWishlistFromModal()" title="${!isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="${fillVal}" stroke="currentColor" stroke-width="2" class="heart-icon"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      </button>
+    `;
+    if (!window.selectedVariant.inStock) {
+      actionContainer.innerHTML = `${wishlistButtonHtml}<button class="btn-primary" id="addToCartBtn" onclick="window.notifyMe()" style="background:var(--stone); cursor:pointer;">Notify me</button>`;
+    } else {
+      actionContainer.innerHTML = `${wishlistButtonHtml}<button class="btn-primary" id="addToCartBtn" onclick="window.addProductToCartFromModal()">Add to Cart</button>`;
+    }
+  }
+
+  try {
+    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        siteToken: 'LUMIERE_STORE_2026',
+        email,
+        product_id: productId,
+        variant_name: variantName
+      })
+    });
+    const json = await res.json();
+    if (!json.success) {
+      console.error("Wishlist operation failed on server:", json.error);
+      window.showToast("Failed to sync wishlist changes.", true);
+      await window.fetchWishlist();
+    } else {
+      window.showToast(isWishlisted ? "Removed from wishlist." : "Added to wishlist.");
+    }
+  } catch (err) {
+    console.error("Wishlist network error:", err);
+    window.showToast("Network error syncing wishlist.", true);
+    await window.fetchWishlist();
+  }
+};
+
+window.fetchWishlist = async function() {
+  const email = localStorage.getItem('lumiere_user_email');
+  if (!email) {
+    window.wishlistCache = [];
+    return;
+  }
+  try {
+    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'get_wishlist',
+        siteToken: 'LUMIERE_STORE_2026',
+        email
+      })
+    });
+    const json = await res.json();
+    if (json.success && json.data) {
+      window.wishlistCache = json.data;
+    }
+  } catch (e) {
+    console.error("Failed to fetch wishlist:", e);
+  }
+};
+
+window.renderWishlist = async function() {
+  const container = document.getElementById('myWishlistContainer');
+  if (!container) return;
+
+  container.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 4rem 0; grid-column: 1 / -1;">Loading your wishlist...</p>';
+  
+  await window.fetchWishlist();
+
+  if (window.wishlistCache.length === 0) {
+    container.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 4rem 0; grid-column: 1 / -1;">Your wishlist is empty.</p>';
+    return;
+  }
+
+  let html = '';
+  window.wishlistCache.forEach(item => {
+    const prod = window.PRODUCTS.find(p => String(p.id) === String(item.product_id));
+    if (!prod) return;
+
+    const variantNameLower = String(item.variant_name).toLowerCase().trim();
+    const variant = prod.variants.find(v => String(v.name).toLowerCase().trim() === variantNameLower);
+
+    const price = variant ? variant.price : prod.price;
+    const inStock = variant ? variant.inStock : prod.inStock;
+    const variantLabel = variant ? variant.name : item.variant_name;
+
+    let imgUrl = prod.rawImage || '';
+    if (variant && variant.rawImage) {
+      imgUrl = variant.rawImage;
+    } else if (prod.variants && prod.variants[0]?.rawImage) {
+      imgUrl = prod.variants[0].rawImage;
+    }
+    
+    let imgHtml = '';
+    if (imgUrl) {
+      imgHtml = `<img src="${imgUrl}" alt="${prod.name}" style="width:100%; height:100%; object-fit:cover;">`;
+    } else {
+      imgHtml = `<div class="cream-fallback" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--taupe)" stroke-width="1.5"><circle cx="12" cy="14" r="3" fill="var(--taupe)" opacity="0.3"/></svg></div>`;
+    }
+
+    html += `
+      <div class="wishlist-card" data-product-id="${prod.id}" data-variant="${variantLabel}">
+        <div class="wishlist-card-img" onclick="window.openProductModal('${prod.id}')">
+          ${imgHtml}
+          <button class="wishlist-remove-btn" onclick="event.stopPropagation(); window.removeFromWishlist('${prod.id}', '${variantLabel}')" title="Remove from Wishlist">
+            &times;
+          </button>
+        </div>
+        <div class="wishlist-card-info" onclick="window.openProductModal('${prod.id}')">
+          <h3>${prod.name}</h3>
+          <div class="wishlist-card-variant">Scent: ${variantLabel}</div>
+          <div class="wishlist-card-price">₹${price}</div>
+        </div>
+        <div class="wishlist-card-actions">
+          <button class="btn-primary" onclick="window.addWishlistItemToCart('${prod.id}', '${variantLabel}')" ${!inStock ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+            ${inStock ? 'Add to Cart' : 'Out of Stock'}
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  if (!html) {
+    container.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 4rem 0; grid-column: 1 / -1;">Your wishlist is empty.</p>';
+  } else {
+    container.innerHTML = html;
+  }
+};
+
+window.removeFromWishlist = async function(productId, variantName) {
+  const email = localStorage.getItem('lumiere_user_email');
+  if (!email) return;
+
+  try {
+    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'remove_from_wishlist',
+        siteToken: 'LUMIERE_STORE_2026',
+        email,
+        product_id: productId,
+        variant_name: variantName
+      })
+    });
+    const json = await res.json();
+    if (json.success) {
+      window.showToast("Removed from wishlist.");
+      await window.renderWishlist();
+    } else {
+      window.showToast("Failed to remove item.", true);
+    }
+  } catch (err) {
+    console.error("Remove from wishlist failed:", err);
+  }
+};
+
+window.addWishlistItemToCart = function(productId, variantName) {
+  const prod = window.PRODUCTS.find(p => String(p.id) === String(productId));
+  if (!prod) return;
+
+  const variant = prod.variants.find(v => String(v.name).toLowerCase().trim() === String(variantName).toLowerCase().trim());
+  if (!variant || !variant.inStock) {
+    window.showToast("Item is out of stock.", true);
+    return;
+  }
+
+  // Check if already in cart
+  const existing = window.cart.find(item => 
+    String(item.product.id) === String(productId) && 
+    String(item.variant.id) === String(variant.id)
+  );
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    window.cart.push({
+      product: prod,
+      variant: variant,
+      quantity: 1
+    });
+  }
+
+  localStorage.setItem('lumiere_cart', JSON.stringify(window.cart));
+  window.updateCartCount();
+  window.showToast("Added to cart!");
 };

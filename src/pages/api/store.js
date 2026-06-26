@@ -794,6 +794,60 @@ export async function POST({ request }) {
     }
 
 
+    if (body.action === 'get_wishlist') {
+      const email = body.email ? body.email.toLowerCase().trim() : '';
+      if (!email) {
+        return new Response(JSON.stringify({ success: false, error: "Email is required." }), { status: 400 });
+      }
+      const { data, error } = await supabase
+        .from('wishlist')
+        .select('product_id, variant_name')
+        .eq('user_email', email);
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ success: true, data }), { status: 200 });
+    }
+
+    if (body.action === 'add_to_wishlist') {
+      const { email, product_id, variant_name } = body;
+      const cleanEmail = email ? email.toLowerCase().trim() : '';
+      const cleanVariant = variant_name ? variant_name.toLowerCase().trim() : '';
+      if (!cleanEmail || !product_id || !cleanVariant) {
+        return new Response(JSON.stringify({ success: false, error: "Missing required fields." }), { status: 400 });
+      }
+      const { error } = await supabase
+        .from('wishlist')
+        .upsert({
+          user_email: cleanEmail,
+          product_id,
+          variant_name: cleanVariant
+        }, { onConflict: 'user_email,product_id,variant_name' });
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (body.action === 'remove_from_wishlist') {
+      const { email, product_id, variant_name } = body;
+      const cleanEmail = email ? email.toLowerCase().trim() : '';
+      const cleanVariant = variant_name ? variant_name.toLowerCase().trim() : '';
+      if (!cleanEmail || !product_id || !cleanVariant) {
+        return new Response(JSON.stringify({ success: false, error: "Missing required fields." }), { status: 400 });
+      }
+      const { error } = await supabase
+        .from('wishlist')
+        .delete()
+        .eq('user_email', cleanEmail)
+        .eq('product_id', product_id)
+        .eq('variant_name', cleanVariant);
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
     if (body.action === 'track_order') {
       const rawQuery = (body.query || '').trim();
       if (!rawQuery || rawQuery.length < 5) {

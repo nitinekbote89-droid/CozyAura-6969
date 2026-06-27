@@ -106,7 +106,7 @@ section.active {
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
 /* HERO */
-#home { display: block; padding: 9rem var(--home-px) 4rem; position: relative; background: var(--warm-white); overflow: hidden; }
+#home { display: block; padding: 9rem var(--home-px) 4rem; position: relative; background: var(--warm-white); overflow-x: clip; }
 #home.active { display: block; }
 #home::before { content: ''; position: absolute; top: 0; left: -20%; width: 140%; height: 1200px; background: radial-gradient(circle at 50% 40%, rgba(184,151,90,0.08) 0%, transparent 65%); pointer-events: none; animation: ambientGlow 8s ease-in-out infinite alternate; }
 @keyframes ambientGlow { 0% { opacity: 0.4; transform: scale(1); } 100% { opacity: 1; transform: scale(1.06); } }

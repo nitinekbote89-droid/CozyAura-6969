@@ -1144,6 +1144,18 @@ section.active {
 .footer-bottom a:hover { color: var(--gold); }
 
 @media (max-width: 960px) {
+  .nav-hamburger {
+    display: none !important;
+  }
+  .nav-cta {
+    display: none !important;
+  }
+  .bottom-nav {
+    display: flex !important;
+  }
+  .page-wrapper {
+    padding-bottom: 60px !important;
+  }
   :root {
     --home-px: 2rem;
   }
@@ -2549,4 +2561,89 @@ section.active {
   #orderDetailModalContent .order-detail-header {
     padding-right: 2.8rem;
   }
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--cream);
+  border-top: 1px solid rgba(196, 181, 160, 0.25);
+  box-shadow: 0 -5px 20px rgba(42, 36, 32, 0.05);
+  display: none;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 1000;
+}
+
+.bottom-nav-item {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--stone);
+  cursor: pointer;
+  padding: 0.5rem 0;
+  width: 25%;
+  height: 100%;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.bottom-nav-item svg {
+  stroke: var(--stone);
+  transition: stroke 0.3s ease;
+}
+
+.bottom-nav-item:hover, .bottom-nav-item.active {
+  color: var(--gold-dark);
+}
+
+.bottom-nav-item:hover svg, .bottom-nav-item.active svg {
+  stroke: var(--gold-dark);
+}
+
+.bottom-nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 30%;
+  right: 30%;
+  height: 2px;
+  background: var(--gold);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.bottom-nav-item.active::after {
+  opacity: 1;
+}
+
+.bottom-nav-cart-badge {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 18px);
+  background: var(--gold-dark);
+  color: var(--cream);
+  font-size: 0.55rem;
+  font-weight: 600;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 1px solid var(--cream);
 }

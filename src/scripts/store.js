@@ -410,6 +410,13 @@ window.showPage = function(pageId, updateHistory = true) {
   if (pageId === 'payment') { window.prefillCheckoutForm(); }
   if (pageId === 'contact') { window.prefillContactForm(); }
 
+  // Update active state in bottom nav
+  var bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+  bottomNavItems.forEach(function(item) {
+    var onclickAttr = item.getAttribute('onclick') || '';
+    item.classList.toggle('active', onclickAttr.indexOf("'" + pageId + "'") !== -1);
+  });
+
   window.updatePageMeta(pageId);
 
   if (updateHistory) {
@@ -1044,6 +1051,11 @@ window.updateCart = function() {
   localStorage.setItem('lumiere_cart', JSON.stringify(window.cart));
   const qty = window.cart.reduce((s, c) => s + c.quantity, 0);
   document.querySelectorAll('.nav-cta').forEach(b => b.textContent = `Checkout (${qty})`);
+  const badge = document.getElementById('bottomNavCartBadge');
+  if (badge) {
+    badge.textContent = qty;
+    badge.style.display = qty > 0 ? 'flex' : 'none';
+  }
   window.calculatePrices();
   if (document.getElementById('cartPage')?.classList.contains('active') || document.getElementById('cartPage')?.style.display !== 'none') {
     window.renderCart();
@@ -3441,17 +3453,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.fetchWishlist();
 
   const savedCart = localStorage.getItem('lumiere_cart');
+  window.cart = [];
   if (savedCart) {
     try {
       window.cart = JSON.parse(savedCart);
       if (!Array.isArray(window.cart)) window.cart = [];
-      window.updateCart();
     } catch (e) {
       console.error("Failed to parse cart:", e);
-      window.cart = [];
       localStorage.removeItem('lumiere_cart');
     }
   }
+  window.updateCart();
   const savedPage = localStorage.getItem('lumiere_active_page');
   const urlPage = params.get('page');
 
@@ -3856,4 +3868,8 @@ window.addWishlistItemToCart = function(productId, variantName) {
   localStorage.setItem('lumiere_cart', JSON.stringify(window.cart));
   window.updateCart();
   window.showToast("Added to cart!");
+};
+
+window.handleBottomNavClick = function(pageId, element) {
+  window.showPage(pageId);
 };

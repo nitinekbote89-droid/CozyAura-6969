@@ -1752,14 +1752,25 @@ section.active {
   #shop {
     padding: 5rem 1.2rem 3rem;
   }
-  .products-grid {
-    gap: 1.2rem;
+  .products-grid, .home-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  .product-card {
+    padding: 0.5rem;
+  }
+  .product-img {
+    margin-bottom: 0.6rem;
   }
   .product-card h3 {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
+  }
+  .product-card .scent {
+    font-size: 0.65rem;
+    margin-bottom: 0.3rem;
   }
   .product-card .price {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
   .quickview-modal {
     max-width: 100%;
@@ -2430,7 +2441,11 @@ section.active {
   .hero-btns {
     justify-content: center;
   }
-  .home-products-grid, .values-grid {
+  .products-grid, .home-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+  }
+  .values-grid {
     grid-template-columns: 1fr 1fr;
     gap: 1.8rem;
   }
@@ -2471,8 +2486,12 @@ section.active {
   .hero-btns {
     justify-content: flex-start;
   }
-  .home-products-grid, .values-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .products-grid, .home-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.8rem;
+  }
+  .values-grid {
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
   }
   .footer-inner {

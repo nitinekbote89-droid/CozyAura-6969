@@ -145,18 +145,23 @@ import AdminModals from '../components/AdminModals.astro';
 
       <!-- Orders Pane -->
       <div id="tab-orders" class="tab-pane">
-        <div style="display: flex; gap: 16px; margin-bottom: 20px;">
-          <input type="text" id="orderSearchInput" placeholder="Search by order # or customer name instantly..." oninput="window.renderOrders()" style="flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
+        <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+          <input type="text" id="orderSearchInput" placeholder="Search by order # or customer name instantly..." oninput="window.renderOrders()" style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
+          <select id="orderDeliveryFilter" onchange="window.onDeliveryFilterChange()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
+            <option value="All">All Orders</option>
+            <option value="Shipping">🚚 Shipping</option>
+            <option value="Pickup">🏪 Pickup</option>
+          </select>
           <select id="orderStatusFilter" onchange="window.renderOrders()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="All">Filter: All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
           </select>
           <select id="orderSortSelect" onchange="window.renderOrders()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="desc">Sort: Newest First</option>
             <option value="asc">Sort: Oldest First</option>
           </select>
-
         </div>
 
         <div class="table-container">
@@ -659,6 +664,39 @@ import AdminModals from '../components/AdminModals.astro';
     return '<span class="status-badge status-instock">In Stock</span>';
   }
 
+  // Update status filter options based on delivery type
+  window.onDeliveryFilterChange = function() {
+    const deliveryFilter = document.getElementById('orderDeliveryFilter')?.value || 'All';
+    const statusFilter = document.getElementById('orderStatusFilter');
+    if (!statusFilter) return;
+    const current = statusFilter.value;
+    if (deliveryFilter === 'Pickup') {
+      statusFilter.innerHTML = `
+        <option value="All">Filter: All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Shipped">Ready to Pickup</option>
+        <option value="Delivered">Completed</option>
+      `;
+    } else if (deliveryFilter === 'Shipping') {
+      statusFilter.innerHTML = `
+        <option value="All">Filter: All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Shipped">Shipped</option>
+        <option value="Delivered">Delivered</option>
+      `;
+    } else {
+      statusFilter.innerHTML = `
+        <option value="All">Filter: All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Shipped">Shipped / Ready to Pickup</option>
+        <option value="Delivered">Delivered / Completed</option>
+      `;
+    }
+    // Restore previous selection if still valid
+    if ([...statusFilter.options].some(o => o.value === current)) statusFilter.value = current;
+    window.renderOrders();
+  };
+
   window._ordersCurrentPage = 0;
 
   window.ordersGoToPage = function(newPage) {
@@ -676,12 +714,17 @@ import AdminModals from '../components/AdminModals.astro';
     
     const searchQuery = document.getElementById('orderSearchInput') ? document.getElementById('orderSearchInput').value.toLowerCase().trim() : '';
     const statusFilter = document.getElementById('orderStatusFilter') ? document.getElementById('orderStatusFilter').value : 'All';
+    const deliveryFilter = document.getElementById('orderDeliveryFilter') ? document.getElementById('orderDeliveryFilter').value : 'All';
 
     let processedOrders = ords.map((order, index) => ({ ...order, originalIndex: index })).filter(order => {
         const paddedId = String(order.id).startsWith('#') ? String(order.id).slice(1) : String(order.id);
         const matchesSearch = paddedId.includes(searchQuery) || (order.customer && order.customer.toLowerCase().includes(searchQuery)) || (`${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.toLowerCase().includes(searchQuery));
         const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
-        return matchesSearch && matchesStatus;
+        const isPickup = order.deliveryMethod === 'Pickup';
+        const matchesDelivery = deliveryFilter === 'All'
+          || (deliveryFilter === 'Pickup' && isPickup)
+          || (deliveryFilter === 'Shipping' && !isPickup);
+        return matchesSearch && matchesStatus && matchesDelivery;
     });
 
     // Fixed sort: 'desc' = newest first (higher index = newer since API returns newest first)
@@ -700,6 +743,16 @@ import AdminModals from '../components/AdminModals.astro';
         const orderTotal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
         const formattedId = String(order.id).startsWith('#') ? String(order.id) : '#' + String(order.id);
         const customerFullName = order.customer || `${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.trim() || 'Guest';
+        const isPickup = order.deliveryMethod === 'Pickup';
+
+        // Build dynamic status options based on this order's delivery method
+        const statusOptions = isPickup
+          ? `<option value="Pending"   ${order.status === 'Pending'   ? 'selected' : ''}>Pending</option>
+             <option value="Shipped"   ${order.status === 'Shipped'   ? 'selected' : ''}>Ready to Pickup</option>
+             <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Completed</option>`
+          : `<option value="Pending"   ${order.status === 'Pending'   ? 'selected' : ''}>Pending</option>
+             <option value="Shipped"   ${order.status === 'Shipped'   ? 'selected' : ''}>Shipped</option>
+             <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>`;
 
         tr.innerHTML = `
           <td><strong>${formattedId}</strong></td>
@@ -709,9 +762,7 @@ import AdminModals from '../components/AdminModals.astro';
           <td>${window.getOrderBadge(order.status, order.deliveryMethod)}</td>
           <td>
             <select class="status-select" onchange="window.updateOrderStatus('${encodeURIComponent(String(order.id ?? ''))}', this.value)">
-              <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-              <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Ready to Pickup' : 'Shipped'}</option>
-              <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Completed' : 'Delivered'}</option>
+              ${statusOptions}
             </select>
           </td>
           <td>

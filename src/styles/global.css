@@ -1602,10 +1602,11 @@ section.active {
   }
   .quickview-modal {
     grid-template-columns: 1fr;
-    width: 80vw;
+    width: 90vw;
     max-width: 550px;
-    max-height: none;
-    overflow: hidden;
+    height: 80vh;
+    max-height: 80vh;
+    overflow-y: auto;
     border-radius: 8px;
   }
   .close-modal-btn {

@@ -2213,3 +2213,153 @@ section.active {
     gap: 1.5rem;
   }
 }
+
+/* ============================================================
+   Viewport Heights & Widths Optimization (Responsive Web Design)
+   ============================================================ */
+
+/* 1024px Laptop & Small Desktops */
+@media (min-width: 1024px) {
+  html {
+    font-size: 15px; /* Scale down slightly for smaller landscape viewports to prevent scrolling */
+  }
+  #home {
+    padding-top: 8.5rem; /* Ensure CTA is in the top 600px of height */
+    padding-bottom: 3.5rem;
+  }
+  .hero-inner {
+    max-width: 1000px;
+    gap: 3.5rem;
+  }
+  .hero-text h1 {
+    font-size: 3.4rem;
+  }
+  .bestseller-sticky-section {
+    max-width: 1000px;
+    gap: 3rem;
+  }
+  .products-grid, .home-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* 1280px Standard Laptops & monitors */
+@media (min-width: 1280px) {
+  html {
+    font-size: 16px; /* Return to standard base */
+  }
+  #home {
+    padding-top: 9.5rem;
+    padding-bottom: 5rem;
+  }
+  .hero-inner {
+    max-width: 1180px;
+    gap: 4.5rem;
+  }
+  .hero-text h1 {
+    font-size: 3.8rem;
+  }
+  .bestseller-sticky-section {
+    max-width: 1180px;
+    gap: 4rem;
+  }
+  .products-grid, .home-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+/* 1440px Large Laptops & High-Res Desktops */
+@media (min-width: 1440px) {
+  html {
+    font-size: 16.5px; /* Upscale font sizes for comfortable viewing */
+  }
+  #home {
+    padding-top: 10.5rem;
+    padding-bottom: 6rem;
+  }
+  .hero-inner {
+    max-width: 1360px;
+    gap: 6rem;
+  }
+  .hero-text h1 {
+    font-size: 4.4rem;
+  }
+  .bestseller-sticky-section {
+    max-width: 1360px;
+    gap: 5rem;
+  }
+  .products-grid, .home-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+  }
+  .cart-inner {
+    max-width: 1300px;
+    gap: 6rem;
+  }
+}
+
+/* 1920px Extra Large Screens & 4K displays */
+@media (min-width: 1920px) {
+  html {
+    font-size: 18px; /* Fluid upscale for extra large/4K monitors */
+  }
+  :root {
+    --home-px: 8rem;
+  }
+  #home {
+    padding-top: 12.5rem;
+    padding-bottom: 8rem;
+  }
+  .hero-inner {
+    max-width: 1720px;
+    gap: 8rem;
+  }
+  .hero-text h1 {
+    font-size: 5rem;
+  }
+  .bestseller-sticky-section {
+    max-width: 1720px;
+    gap: 7rem;
+  }
+  .products-grid, .home-products-grid {
+    grid-template-columns: repeat(4, 1fr); /* 4 columns look far better on wide screens */
+    gap: 3rem;
+  }
+  .scent-grid {
+    grid-template-columns: repeat(5, 1fr); /* 5 scents look excellent on ultra-wide screens */
+    gap: 2.5rem;
+  }
+  .cart-inner {
+    max-width: 1600px;
+    gap: 8rem;
+  }
+  .footer-inner {
+    max-width: 1600px;
+    gap: 5rem;
+  }
+}
+
+/* Height-based adjustments to test the Fold on short/medium laptop viewports */
+@media (max-height: 720px) and (min-width: 1024px) {
+  #home {
+    padding-top: 7rem;
+    padding-bottom: 2.5rem;
+  }
+  .hero-text h1 {
+    font-size: 3rem;
+    margin-bottom: 1.25rem;
+  }
+  .hero-text p {
+    margin-bottom: 1.75rem;
+    line-height: 1.6;
+  }
+  .hero-inner {
+    gap: 3rem;
+  }
+  .hero-image-frame {
+    width: 300px;
+    height: 380px;
+  }
+}

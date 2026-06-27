@@ -80,8 +80,27 @@
         <input type="text" id="cpCode" placeholder="e.g. SUMMER50" required style="text-transform: uppercase;">
       </div>
       <div class="form-group">
-        <label>Discount Value (%)</label>
+        <label>Discount Type</label>
+        <select id="cpType" required onchange="window.handleCouponTypeChange(this.value)" style="background: var(--bg-surface); color: var(--text-main); width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; cursor: pointer;">
+          <option value="percent">Percentage Off (%)</option>
+          <option value="fixed">Flat Rs Off (₹)</option>
+          <option value="freeship">Free Shipping</option>
+        </select>
+      </div>
+      <div class="form-group" id="cpDiscountGroup">
+        <label id="cpDiscountLabel">Discount Value (%)</label>
         <input type="number" id="cpDiscount" min="1" max="100" placeholder="e.g. 15" required>
+      </div>
+      <div class="form-group">
+        <label>Minimum Order Value (₹)</label>
+        <input type="number" id="cpMinOrderValue" min="0" value="0" placeholder="e.g. 500 (Optional)">
+      </div>
+      <div class="form-group">
+        <label>Scope / Visibility</label>
+        <select id="cpScope" required style="background: var(--bg-surface); color: var(--text-main); width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; cursor: pointer;">
+          <option value="public">Public (Visible to everyone)</option>
+          <option value="private">Private (Targeted / Hidden)</option>
+        </select>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="window.closeCouponModal()">Cancel</button>

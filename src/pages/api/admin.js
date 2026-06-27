@@ -563,7 +563,9 @@ export async function POST({ request }) {
         code: (data.coupon.code || '').toUpperCase().trim(),
         discount: data.coupon.discount,
         type: data.coupon.type,
-        status: data.coupon.status
+        status: data.coupon.status,
+        is_public: data.coupon.isPublic !== false,
+        min_order_value: parseFloat(data.coupon.minOrderValue) || 0
       });
       if (couponErr) return new Response(JSON.stringify({ success: false, error: couponErr.message }), { status: 500 });
       return new Response(JSON.stringify({ success: true }), { status: 200 });

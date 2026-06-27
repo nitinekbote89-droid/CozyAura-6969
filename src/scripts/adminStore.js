@@ -716,7 +716,13 @@ window.downloadInvoiceBill = function() {
 
 window.openCouponModal = function() {
     const form = document.getElementById('couponForm');
-    if (form) form.reset();
+    if (form) {
+        form.reset();
+        document.getElementById('cpType').value = 'percent';
+        document.getElementById('cpMinOrderValue').value = '0';
+        document.getElementById('cpScope').value = 'public';
+        window.handleCouponTypeChange('percent');
+    }
     const modal = document.getElementById('couponModal');
     if (modal) modal.classList.add('active');
 };
@@ -732,12 +738,49 @@ window.closeOrderModal = function() {
     window.currentViewingOrderId = null;
 };
 
+window.handleCouponTypeChange = function(type) {
+    const group = document.getElementById('cpDiscountGroup');
+    const label = document.getElementById('cpDiscountLabel');
+    const input = document.getElementById('cpDiscount');
+    
+    if (!group || !label || !input) return;
+
+    if (type === 'freeship') {
+        group.style.display = 'none';
+        input.removeAttribute('required');
+        input.value = '0';
+    } else {
+        group.style.display = 'block';
+        input.setAttribute('required', 'true');
+        
+        if (type === 'percent') {
+            label.textContent = "Discount Value (%)";
+            input.setAttribute('min', '1');
+            input.setAttribute('max', '100');
+            input.placeholder = "e.g. 15";
+            if (parseInt(input.value) > 100) input.value = '100';
+        } else {
+            label.textContent = "Discount Value (₹)";
+            input.setAttribute('min', '1');
+            input.removeAttribute('max');
+            input.placeholder = "e.g. 150";
+        }
+    }
+};
+
 window.handleCouponSubmit = async function(e) {
     e.preventDefault();
+    const type = document.getElementById('cpType').value;
+    const discountVal = type === 'freeship' ? 0 : parseInt(document.getElementById('cpDiscount').value) || 0;
+    const minOrderVal = parseFloat(document.getElementById('cpMinOrderValue').value) || 0;
+    const isPublicVal = document.getElementById('cpScope').value === 'public';
+
     const couponPayload = {
         code: document.getElementById('cpCode').value.trim().toUpperCase(),
-        type: 'percent',
-        discount: parseInt(document.getElementById('cpDiscount').value),
+        type: type,
+        discount: discountVal,
+        minOrderValue: minOrderVal,
+        isPublic: isPublicVal,
         status: 'Active'
     };
     try {

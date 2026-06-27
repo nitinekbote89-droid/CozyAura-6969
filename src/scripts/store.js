@@ -227,10 +227,22 @@ async function syncCatalogDataset() {
           if (sg) delete sg.dataset.ssr;
         }
         if (json.success && json.data) {
-            window.PROMOS = (json.data.coupons || []).map(c => ({ code: c.code, type: c.type, discount: c.discount }));
-            if (window.appliedPromoCode && !window.PROMOS.find(p => p.code === window.appliedPromoCode.code)) {
-              window.appliedPromoCode = null;
-              sessionStorage.removeItem('lumiere_applied_promo');
+            window.PROMOS = (json.data.coupons || []).map(c => ({
+              code: c.code,
+              type: c.type,
+              discount: c.discount,
+              min_order_value: parseFloat(c.min_order_value) || 0,
+              is_public: c.is_public !== false
+            }));
+            if (window.appliedPromoCode) {
+              const freshPromo = window.PROMOS.find(p => p.code === window.appliedPromoCode.code);
+              if (freshPromo) {
+                window.appliedPromoCode = freshPromo;
+                sessionStorage.setItem('lumiere_applied_promo', JSON.stringify(freshPromo));
+              } else {
+                window.appliedPromoCode = null;
+                sessionStorage.removeItem('lumiere_applied_promo');
+              }
             }
             window.PRODUCTS = json.data.inventory.map(item => {
                let vars = Object.entries(item.fragranceStocks || {}).map(([fName, qty]) => ({
@@ -849,8 +861,9 @@ window.renderPromos = function() {
   const container = document.getElementById('promoContainer');
   if (!container) return;
   let html = '<div style="font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--stone);margin-bottom:0.5rem;">Promo Code</div>';
-  if (window.PROMOS.length > 0) {
-    html += window.PROMOS.map(p =>
+  const publicPromos = window.PROMOS.filter(p => p.is_public !== false);
+  if (publicPromos.length > 0) {
+    html += publicPromos.map(p =>
       `<span class="promo-badge ${window.appliedPromoCode?.code === p.code ? 'active' : ''}" onclick="window.applyPromo('${p.code}')">${p.code}</span>`
     ).join('');
   } else {
@@ -887,6 +900,16 @@ window.removeCartItem = function(idx) {
 window.applyPromo = function(code) {
   const promo = window.PROMOS.find(p => p.code === code);
   if (!promo) return;
+  
+  if (window.appliedPromoCode?.code !== code) {
+    const subtotal = window.cart.reduce((sum, item) => sum + ((item.variant?.price || item.product?.price || 0) * item.quantity), 0);
+    const minVal = parseFloat(promo.min_order_value) || 0;
+    if (minVal > 0 && subtotal < minVal) {
+      window.showToast(`This promo code requires a minimum purchase of ₹${minVal}.`, true);
+      return;
+    }
+  }
+
   window.appliedPromoCode = window.appliedPromoCode?.code === code ? null : promo;
   if (window.appliedPromoCode) {
     sessionStorage.setItem('lumiere_applied_promo', JSON.stringify(window.appliedPromoCode));
@@ -1018,7 +1041,33 @@ window.updateCart = function() {
 
 window.calculatePrices = function() {
   const subtotal = window.cart.reduce((sum, item) => sum + ((item.variant?.price || item.product?.price || 0) * item.quantity), 0);
-  let discount = window.appliedPromoCode ? (window.appliedPromoCode.type === 'percent' ? Math.round(subtotal * (window.appliedPromoCode.discount / 100)) : window.appliedPromoCode.discount) : 0;
+  
+  // Auto-remove applied promo if cart falls below minimum order value
+  if (window.appliedPromoCode) {
+    const minVal = parseFloat(window.appliedPromoCode.min_order_value) || 0;
+    if (minVal > 0 && subtotal < minVal) {
+      const removedCodeName = window.appliedPromoCode.code;
+      window.appliedPromoCode = null;
+      sessionStorage.removeItem('lumiere_applied_promo');
+      setTimeout(() => {
+        window.showToast(`Promo code ${removedCodeName} removed: minimum purchase of ₹${minVal} required.`, true);
+        if (typeof window.renderCheckoutAppliedPromo === 'function') {
+          window.renderCheckoutAppliedPromo();
+        }
+      }, 0);
+    }
+  }
+
+  let discount = 0;
+  const isFreeShipCoupon = window.appliedPromoCode?.type === 'freeship';
+
+  if (window.appliedPromoCode) {
+    if (window.appliedPromoCode.type === 'percent') {
+      discount = Math.round(subtotal * (window.appliedPromoCode.discount / 100));
+    } else if (window.appliedPromoCode.type === 'fixed') {
+      discount = Math.min(subtotal, window.appliedPromoCode.discount);
+    }
+  }
   
   // Conditionally add shipping fee based on step or selected address
   const guestState = document.getElementById('state')?.value || '';
@@ -1026,25 +1075,29 @@ window.calculatePrices = function() {
   const hasAddress = window.checkoutStep === 'payment' || !!window.selectedAddressId || !!guestState || !!guestPincode;
   const shipState = window.shippingInfo?.state || guestState || '';
   const shipPincode = window.shippingInfo?.pincode || guestPincode || '';
-  const shipping = (subtotal > 0 && hasAddress && window.deliveryMethod !== 'Pickup') ? window.getShippingCharge(shipState, shipPincode) : 0;
+  const shipping = (subtotal > 0 && hasAddress && window.deliveryMethod !== 'Pickup' && !isFreeShipCoupon) ? window.getShippingCharge(shipState, shipPincode) : 0;
   let total = Math.max(0, subtotal - discount + shipping);
 
   if (document.getElementById('summaryTotal')) {
-    document.getElementById('summaryShipping').textContent = window.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : `₹${shipping}`;
+    document.getElementById('summaryShipping').textContent = window.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : (isFreeShipCoupon ? 'Free (Promo)' : `₹${shipping}`);
     document.getElementById('summarySubtotal').textContent = `₹${subtotal}`;
     document.getElementById('summaryTotal').textContent = `₹${total}`;
     const summaryShippingLine = document.getElementById('summaryShipping').parentElement;
     if (summaryShippingLine) {
-      summaryShippingLine.style.display = (shipping > 0 || window.deliveryMethod === 'Pickup') ? 'flex' : 'none';
+      summaryShippingLine.style.display = (shipping > 0 || window.deliveryMethod === 'Pickup' || isFreeShipCoupon) ? 'flex' : 'none';
     }
     const checkoutSummaryTotalEl = document.getElementById('checkoutSummaryTotal');
     if (checkoutSummaryTotalEl) {
       checkoutSummaryTotalEl.textContent = `₹${total}`;
     }
     const promoLine = document.getElementById('summaryPromoLine');
-    if (window.appliedPromoCode && discount > 0) {
+    if (window.appliedPromoCode) {
       promoLine.style.display = 'flex';
-      document.getElementById('summaryPromo').textContent = `-₹${discount} (${window.appliedPromoCode.code})`;
+      if (isFreeShipCoupon) {
+        document.getElementById('summaryPromo').textContent = `Free Shipping (${window.appliedPromoCode.code})`;
+      } else {
+        document.getElementById('summaryPromo').textContent = `-₹${discount} (${window.appliedPromoCode.code})`;
+      }
     } else {
       promoLine.style.display = 'none';
     }
@@ -1053,7 +1106,7 @@ window.calculatePrices = function() {
   // Update shipping method price
   const shippingMethodPriceEl = document.getElementById('shippingMethodPrice');
   if (shippingMethodPriceEl) {
-    shippingMethodPriceEl.textContent = window.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : (shipping > 0 ? `₹${shipping}` : 'Free');
+    shippingMethodPriceEl.textContent = window.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : (isFreeShipCoupon ? 'Free' : (shipping > 0 ? `₹${shipping}` : 'Free'));
   }
   const shippingMethodNameEl = document.getElementById('shippingMethodName');
   if (shippingMethodNameEl) {
@@ -1072,6 +1125,8 @@ window.calculatePrices = function() {
     if (shippingEl) {
       if (window.deliveryMethod === 'Pickup') {
         shippingEl.textContent = 'Free (Self Pickup)';
+      } else if (isFreeShipCoupon) {
+        shippingEl.textContent = 'Free (Promo)';
       } else if (!hasAddress) {
         shippingEl.textContent = 'Enter shipping address';
       } else {
@@ -1082,9 +1137,13 @@ window.calculatePrices = function() {
     const discountRow = document.getElementById('checkoutSidebarDiscountRow');
     const discountEl = document.getElementById('checkoutSidebarDiscount');
     if (discountRow && discountEl) {
-      if (window.appliedPromoCode && discount > 0) {
+      if (window.appliedPromoCode) {
         discountRow.style.display = 'flex';
-        discountEl.textContent = `-₹${discount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        if (isFreeShipCoupon) {
+          discountEl.textContent = `Free Shipping (${window.appliedPromoCode.code})`;
+        } else {
+          discountEl.textContent = `-₹${discount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
       } else {
         discountRow.style.display = 'none';
       }
@@ -1662,6 +1721,12 @@ window.applyCheckoutDiscount = function() {
   if (!code) return;
   const promo = window.PROMOS.find(p => p.code.toUpperCase() === code);
   if (promo) {
+    const subtotal = window.cart.reduce((sum, item) => sum + ((item.variant?.price || item.product?.price || 0) * item.quantity), 0);
+    const minVal = parseFloat(promo.min_order_value) || 0;
+    if (minVal > 0 && subtotal < minVal) {
+      window.showToast(`This promo code requires a minimum purchase of ₹${minVal}.`, true);
+      return;
+    }
     window.appliedPromoCode = promo;
     sessionStorage.setItem('lumiere_applied_promo', JSON.stringify(window.appliedPromoCode));
     window.updateCart();

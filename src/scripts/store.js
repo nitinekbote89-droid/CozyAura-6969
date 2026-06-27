@@ -1181,6 +1181,14 @@ window.calculatePrices = function() {
 window.setDeliveryMethod = function(method) {
   window.deliveryMethod = method;
   
+  if (method === 'Pickup' && window.appliedPromoCode?.type === 'freeship') {
+    window.appliedPromoCode = null;
+    sessionStorage.removeItem('lumiere_applied_promo');
+    window.showToast("Free shipping coupon removed as Self Pickup is selected.");
+    if (typeof window.renderCartAppliedPromo === 'function') window.renderCartAppliedPromo();
+    if (typeof window.renderCheckoutAppliedPromo === 'function') window.renderCheckoutAppliedPromo();
+  }
+  
   const shipBtn = document.getElementById('deliveryMethodShippingBtn');
   const pickupBtn = document.getElementById('deliveryMethodPickupBtn');
   const pickupCard = document.getElementById('pickupInfoCard');
@@ -1741,6 +1749,10 @@ window.applyCheckoutDiscount = function() {
   if (!code) return;
   const promo = window.PROMOS.find(p => p.code.toUpperCase() === code);
   if (promo) {
+    if (promo.type === 'freeship' && window.deliveryMethod === 'Pickup') {
+      window.showToast("Free shipping coupons cannot be applied to self-pickup orders.", true);
+      return;
+    }
     const subtotal = window.cart.reduce((sum, item) => sum + ((item.variant?.price || item.product?.price || 0) * item.quantity), 0);
     const minVal = parseFloat(promo.min_order_value) || 0;
     if (minVal > 0 && subtotal < minVal) {
@@ -1790,6 +1802,10 @@ window.applyCartDiscount = function() {
   if (!code) return;
   const promo = window.PROMOS.find(p => p.code.toUpperCase() === code);
   if (promo) {
+    if (promo.type === 'freeship' && window.deliveryMethod === 'Pickup') {
+      window.showToast("Free shipping coupons cannot be applied to self-pickup orders.", true);
+      return;
+    }
     const subtotal = window.cart.reduce((sum, item) => sum + ((item.variant?.price || item.product?.price || 0) * item.quantity), 0);
     const minVal = parseFloat(promo.min_order_value) || 0;
     if (minVal > 0 && subtotal < minVal) {

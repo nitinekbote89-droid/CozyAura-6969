@@ -102,6 +102,9 @@ async function calculateCartTotalOnServer(items, couponCode, state, pincode, del
       } else if (coupon.type === 'fixed') {
         discount = coupon.discount;
       } else if (coupon.type === 'freeship') {
+        if (deliveryMethod === 'Pickup') {
+          throw new Error("Free shipping coupons cannot be applied to self-pickup orders.");
+        }
         discount = 0;
         finalShipping = 0;
       }

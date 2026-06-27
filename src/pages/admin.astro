@@ -149,8 +149,8 @@ import AdminModals from '../components/AdminModals.astro';
           <input type="text" id="orderSearchInput" placeholder="Search by order # or customer name instantly..." oninput="window.renderOrders()" style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
           <select id="orderDeliveryFilter" onchange="window.onDeliveryFilterChange()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="All">All Orders</option>
-            <option value="Shipping">🚚 Shipping</option>
-            <option value="Pickup">🏪 Pickup</option>
+            <option value="Shipping">Shipping</option>
+            <option value="Pickup">Pickup</option>
           </select>
           <select id="orderStatusFilter" onchange="window.renderOrders()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="All">Filter: All Statuses</option>

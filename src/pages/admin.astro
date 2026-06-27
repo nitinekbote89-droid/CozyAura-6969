@@ -348,7 +348,7 @@ import AdminModals from '../components/AdminModals.astro';
       window.renderDashboard(); window.renderInventory(); window.renderOrders(); window.renderCoupons(); window.renderGlobalFragrancesManagement(); if (typeof window.renderCustomersList === 'function') window.renderCustomersList();
   });
   window.addEventListener('storage', (e) => {
-      if (['lumiere_inventory', 'lumiere_orders', 'lumiere_coupons', 'lumiere_fragrances', 'lumiere_users', 'lumiere_user_addresses', 'lumiere_wishlist'].includes(e.key)) {
+      if (['lumiere_admin_inventory', 'lumiere_admin_orders', 'lumiere_admin_coupons', 'lumiere_admin_fragrances', 'lumiere_admin_users', 'lumiere_admin_user_addresses', 'lumiere_admin_wishlist'].includes(e.key)) {
           window.renderDashboard(); window.renderInventory(); window.renderOrders(); window.renderCoupons(); window.renderGlobalFragrancesManagement(); if (typeof window.renderCustomersList === 'function') window.renderCustomersList();
       }
   });
@@ -422,8 +422,8 @@ import AdminModals from '../components/AdminModals.astro';
 
   // --- RENDER FUNCTIONS ---
   window.renderDashboard = function() {
-    const inv = JSON.parse(localStorage.getItem('lumiere_inventory') || '[]');
-    const ords = JSON.parse(localStorage.getItem('lumiere_orders') || '[]');
+    const inv = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
+    const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
     
     const statProducts = document.getElementById('statProducts');
     const statLowStock = document.getElementById('statLowStock');
@@ -570,7 +570,7 @@ import AdminModals from '../components/AdminModals.astro';
   }
 
   window.renderInventory = function() {
-    const inv = JSON.parse(localStorage.getItem('lumiere_inventory') || '[]'); 
+    const inv = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]'); 
     const tbody = document.getElementById('inventoryBody'); 
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -654,7 +654,7 @@ import AdminModals from '../components/AdminModals.astro';
   }
 
   window.renderOrders = function() {
-    const ords = JSON.parse(localStorage.getItem('lumiere_orders') || '[]');
+    const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
     const tbody = document.getElementById('ordersBody'); 
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -721,7 +721,7 @@ import AdminModals from '../components/AdminModals.astro';
   }
 
   window.renderCoupons = function() {
-    const coupons = JSON.parse(localStorage.getItem('lumiere_coupons') || '[]'); 
+    const coupons = JSON.parse(localStorage.getItem('lumiere_admin_coupons') || '[]'); 
     const tbody = document.getElementById('couponsBody'); 
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -761,7 +761,7 @@ import AdminModals from '../components/AdminModals.astro';
 
   window.renderGlobalFragrancesManagement = function() {
       const container = document.getElementById('globalFragrancesContainer');
-      const fragrances = JSON.parse(localStorage.getItem('lumiere_fragrances') || '[]');
+      const fragrances = JSON.parse(localStorage.getItem('lumiere_admin_fragrances') || '[]');
       container.innerHTML = '';
       if(fragrances.length === 0){
           container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">No catalog entries found.</p>';

@@ -3394,7 +3394,7 @@ window.addEventListener('focus', () => {
 });
 
 window.addEventListener('storage', (e) => {
-  if (e.key === 'lumiere_inventory') {
+  if (e.key === 'lumiere_admin_inventory') {
     if (typeof syncCatalogDataset === 'function') {
       syncCatalogDataset();
     }

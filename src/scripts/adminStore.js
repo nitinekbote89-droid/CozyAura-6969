@@ -965,6 +965,13 @@ window.addEventListener('DOMContentLoaded', () => {
         if (loginOverlay) loginOverlay.style.display = 'none';
         window.syncCloudInventory();
     }
+    
+    // Periodically sync cloud data every 10 seconds if authenticated
+    setInterval(() => {
+        if (sessionStorage.getItem('lumiere_admin_logged_in') === 'true') {
+            window.syncCloudInventory();
+        }
+    }, 10000);
 });
 
 window.currentStorefrontImages = null;
@@ -1300,7 +1307,7 @@ window.showCustomerDetails = function(email) {
     wishlistHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No items in wishlist.</p>';
   } else {
     wishlistHtml = `
-      <div style="display:flex; flex-direction:column; gap:10px; max-height:220px; overflow-y:auto; padding-right:4px;">
+      <div style="display:flex; flex-direction:column; gap:10px; padding-right:4px;">
         ${userWishlist.map(w => {
           const product = inventory.find(p => String(p.id) === String(w.product_id));
           const prodName = product ? product.name : w.product_id;
@@ -1328,7 +1335,7 @@ window.showCustomerDetails = function(email) {
     ordersHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No order history.</p>';
   } else {
     ordersHtml = `
-      <div class="table-container" style="border:1px solid var(--border); border-radius:6px; overflow-y:auto; max-height:280px;">
+      <div class="table-container" style="border:1px solid var(--border); border-radius:6px;">
         <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
           <thead>
             <tr style="background:var(--bg-main); border-bottom:1px solid var(--border);">

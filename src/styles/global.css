@@ -1604,6 +1604,17 @@ section.active {
     grid-template-columns: 1fr;
     max-width: 550px;
   }
+  .close-modal-btn {
+    top: 1rem !important;
+    right: 1rem !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    color: var(--black) !important;
+    z-index: 999 !important;
+  }
   .modal-gallery-pane {
     border-right: none;
     border-bottom: 1px solid rgba(196,181,160,0.2);

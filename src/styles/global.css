@@ -1973,6 +1973,7 @@ section.active {
   }
   .order-tracking-card {
     flex-direction: column !important;
+    align-items: flex-start !important;
     gap: 0.8rem !important;
     padding: 1rem !important;
   }
@@ -2532,9 +2533,12 @@ section.active {
   }
 }
 
-/* Hide inline order details on mobile & tablet viewports */
+/* Hide inline order details on mobile & tablet viewports and prevent close button overlap */
 @media (max-width: 1023px) {
   .orders-detail-view {
     display: none !important;
+  }
+  #orderDetailModalContent .order-detail-header {
+    padding-right: 2.8rem;
   }
 }

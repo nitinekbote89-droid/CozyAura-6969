@@ -2650,3 +2650,13 @@ section.active {
   line-height: 1;
   border: 1px solid var(--cream);
 }
+
+/* Contact Page Socials Sizing & Visibility */
+#contact .footer-social a {
+  color: var(--stone);
+  border-color: rgba(196, 181, 160, 0.4);
+}
+#contact .footer-social a:hover {
+  color: var(--gold-dark);
+  border-color: var(--gold-dark);
+}

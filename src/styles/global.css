@@ -1623,12 +1623,28 @@ section.active {
   .modal-gallery-pane {
     border-right: none;
     border-bottom: 1px solid rgba(196,181,160,0.2);
+    padding: 1rem !important;
+  }
+  .modal-main-img-wrap {
+    max-width: 150px !important;
+    margin: 0 auto;
   }
   .modal-info-pane {
-    padding: 2rem 1.5rem;
+    padding: 1.2rem !important;
   }
   .modal-title {
-    font-size: 1.8rem;
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .modal-desc {
+    font-size: 0.8rem !important;
+    margin-bottom: 0.6rem !important;
+  }
+  .modal-specs {
+    display: none !important;
+  }
+  .modal-variant-wrapper {
+    margin-bottom: 0.8rem !important;
   }
   .instagram-scroll-container {
     display: none;
@@ -1783,16 +1799,6 @@ section.active {
   }
   .product-card .price {
     font-size: 1.05rem;
-  }
-  .modal-main-img-wrap {
-    max-width: 220px;
-    margin: 0 auto;
-  }
-  .modal-info-pane {
-    padding: 1.5rem 1.2rem 1.2rem;
-  }
-  .modal-title {
-    font-size: 1.5rem;
   }
   .modal-price {
     font-size: 1.4rem;

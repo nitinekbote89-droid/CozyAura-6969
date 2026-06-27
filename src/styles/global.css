@@ -1776,6 +1776,10 @@ section.active {
     padding: 0;
     align-items: flex-end;
   }
+  .modal-main-img-wrap {
+    max-width: 220px;
+    margin: 0 auto;
+  }
   .modal-info-pane {
     padding: 1.5rem 1.2rem 1.2rem;
   }

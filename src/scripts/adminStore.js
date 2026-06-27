@@ -784,24 +784,41 @@ window.handleCouponSubmit = async function(e) {
         status: 'Active'
     };
     try {
-        await fetch(ADMINISTRATIVE_API_ROUTE, {
+        const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "save_coupon", coupon: couponPayload, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
-        window.closeCouponModal(); window.syncCloudInventory();
-    } catch(e){ console.error("Failed to save coupon:", e); }
+        const json = await res.json();
+        if (json.success) {
+            window.closeCouponModal();
+            window.syncCloudInventory();
+        } else {
+            alert("Failed to save coupon: " + (json.error || "Unknown error"));
+        }
+    } catch(e){
+        console.error("Failed to save coupon:", e);
+        alert("Failed to save coupon due to network error.");
+    }
 };
 
 window.deleteCoupon = async function(code) {
     const decodedCode = decodeURIComponent(code);
     if (!confirm("Permanently disable this promotional voucher?")) return;
     try {
-        await fetch(ADMINISTRATIVE_API_ROUTE, {
+        const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "delete_coupon", code: decodedCode, adminSecret: sessionStorage.getItem('lumiere_admin_secret') })
         });
-        window.syncCloudInventory();
-    } catch(e){ console.error("Failed to delete coupon:", e); }
+        const json = await res.json();
+        if (json.success) {
+            window.syncCloudInventory();
+        } else {
+            alert("Failed to delete coupon: " + (json.error || "Unknown error"));
+        }
+    } catch(e){
+        console.error("Failed to delete coupon:", e);
+        alert("Failed to delete coupon due to network error.");
+    }
 };
 
 window.addGlobalFragrance = async function() {

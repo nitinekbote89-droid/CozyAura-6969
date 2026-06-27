@@ -229,6 +229,12 @@ export async function GET({ request }) {
       return await executeCloudinaryCleanup();
     }
 
+    // Pagination: 50 orders per page
+    const PAGE_SIZE = 50;
+    const page = Math.max(0, parseInt(url.searchParams.get('page') || '0', 10));
+    const pageStart = page * PAGE_SIZE;
+    const pageEnd = pageStart + PAGE_SIZE - 1;
+
     let dbProducts = [];
     let hasSalesView = false;
     try {
@@ -246,10 +252,10 @@ export async function GET({ request }) {
       dbProducts = data || [];
     }
 
+    // Fetch paginated orders (with total count) and all other data in parallel
     const [
       { data: product_variants },
-      { data: orders },
-      { data: order_items },
+      { data: orders, count: totalOrderCount },
       { data: coupons },
       { data: settings },
       { data: storefront_images_setting },
@@ -258,8 +264,7 @@ export async function GET({ request }) {
       { data: wishlist }
     ] = await Promise.all([
       supabase.from('product_variants').select('*'),
-      supabase.from('orders').select('*').order('date', { ascending: false }),
-      supabase.from('order_items').select('*'),
+      supabase.from('orders').select('*', { count: 'exact' }).order('date', { ascending: false }).range(pageStart, pageEnd),
       supabase.from('coupons').select('*'),
       supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
       supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
@@ -267,6 +272,14 @@ export async function GET({ request }) {
       supabase.from('user_addresses').select('*'),
       supabase.from('wishlist').select('*')
     ]);
+
+    // Only fetch order_items for the current page's orders (not all 5000)
+    const currentPageOrderIds = (orders || []).map(o => o.id);
+    const { data: order_items } = currentPageOrderIds.length > 0
+      ? await supabase.from('order_items').select('*').in('order_id', currentPageOrderIds)
+      : { data: [] };
+
+    const totalPages = Math.ceil((totalOrderCount || 0) / PAGE_SIZE);
 
     let salesMap = {};
     if (!hasSalesView && order_items) {
@@ -359,7 +372,13 @@ export async function GET({ request }) {
         storefrontImages: storefront_images_setting ? storefront_images_setting.value : null,
         users: users || [],
         userAddresses: user_addresses || [],
-        wishlist: wishlist || []
+        wishlist: wishlist || [],
+        pagination: {
+          page,
+          pageSize: PAGE_SIZE,
+          totalOrders: totalOrderCount || 0,
+          totalPages
+        }
       }
     }), { status: 200 });
   } catch (err) {

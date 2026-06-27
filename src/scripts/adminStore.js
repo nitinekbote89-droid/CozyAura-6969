@@ -26,7 +26,7 @@ window.attemptLogin = async function() {
     } catch(e) { alert('Secure back-office system link unavailable.'); }
 };
 
-window.syncCloudInventory = async function() {
+window.syncCloudInventory = async function(page = 0) {
     const pwd = sessionStorage.getItem('lumiere_admin_secret');
     const syncIndicator = document.getElementById('syncIndicator');
     if (syncIndicator) {
@@ -34,13 +34,14 @@ window.syncCloudInventory = async function() {
     }
     const startTime = Date.now();
     try {
-        const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?t=${Date.now()}`, {
+        const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?t=${Date.now()}&page=${page}`, {
             headers: { 'X-Admin-Secret': pwd }
         });
         const json = await res.json();
         if (json.success && json.data) {
             localStorage.setItem('lumiere_admin_inventory', JSON.stringify(json.data.inventory));
             localStorage.setItem('lumiere_admin_orders', JSON.stringify(json.data.orders));
+            localStorage.setItem('lumiere_admin_orders_pagination', JSON.stringify(json.data.pagination || { page: 0, pageSize: 50, totalOrders: 0, totalPages: 1 }));
             localStorage.setItem('lumiere_admin_coupons', JSON.stringify(json.data.coupons));
             localStorage.setItem('lumiere_admin_fragrances', JSON.stringify(json.data.fragrances));
             localStorage.setItem('lumiere_admin_storefront_images', JSON.stringify(json.data.storefrontImages || {}));

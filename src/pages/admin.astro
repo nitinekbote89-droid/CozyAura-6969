@@ -175,6 +175,12 @@ import AdminModals from '../components/AdminModals.astro';
             <tbody id="ordersBody"></tbody>
           </table>
         </div>
+        <!-- Pagination Controls -->
+        <div id="ordersPagination" style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; padding: 12px 4px;">
+          <button id="ordersPrevBtn" onclick="window.ordersGoToPage(window._ordersCurrentPage - 1)" style="padding:8px 20px; border:1px solid var(--border); border-radius:6px; background:var(--bg-surface); color:var(--text-main); cursor:pointer; font-family:inherit; font-size:0.9rem;" disabled>← Prev</button>
+          <span id="ordersPaginationInfo" style="color:var(--text-muted); font-size:0.88rem;"></span>
+          <button id="ordersNextBtn" onclick="window.ordersGoToPage(window._ordersCurrentPage + 1)" style="padding:8px 20px; border:1px solid var(--border); border-radius:6px; background:var(--bg-surface); color:var(--text-main); cursor:pointer; font-family:inherit; font-size:0.9rem;">Next →</button>
+        </div>
       </div>
 
       <!-- Coupons Pane -->
@@ -653,8 +659,17 @@ import AdminModals from '../components/AdminModals.astro';
     return '<span class="status-badge status-instock">In Stock</span>';
   }
 
+  window._ordersCurrentPage = 0;
+
+  window.ordersGoToPage = function(newPage) {
+    window.syncCloudInventory(newPage);
+  };
+
   window.renderOrders = function() {
     const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+    const pagination = JSON.parse(localStorage.getItem('lumiere_admin_orders_pagination') || '{"page":0,"pageSize":50,"totalOrders":0,"totalPages":1}');
+    window._ordersCurrentPage = pagination.page || 0;
+
     const tbody = document.getElementById('ordersBody'); 
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -666,47 +681,61 @@ import AdminModals from '../components/AdminModals.astro';
         const paddedId = String(order.id).startsWith('#') ? String(order.id).slice(1) : String(order.id);
         const matchesSearch = paddedId.includes(searchQuery) || (order.customer && order.customer.toLowerCase().includes(searchQuery)) || (`${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.toLowerCase().includes(searchQuery));
         const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
-        
         return matchesSearch && matchesStatus;
     });
 
+    // Fixed sort: 'desc' = newest first (higher index = newer since API returns newest first)
     const sortVal = document.getElementById('orderSortSelect') ? document.getElementById('orderSortSelect').value : 'desc';
     if (sortVal === 'asc') {
-      processedOrders.sort((a, b) => b.originalIndex - a.originalIndex);
+      processedOrders.sort((a, b) => b.originalIndex - a.originalIndex); // oldest first
     } else {
-      processedOrders.sort((a, b) => a.originalIndex - b.originalIndex);
+      processedOrders.sort((a, b) => a.originalIndex - b.originalIndex); // newest first (default, API already sorted)
     }
 
     if (processedOrders.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 24px;">No matching order records found.</td></tr>`;
-        return;
+    } else {
+      processedOrders.forEach(order => {
+        const tr = document.createElement('tr');
+        const orderTotal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
+        const formattedId = String(order.id).startsWith('#') ? String(order.id) : '#' + String(order.id);
+        const customerFullName = order.customer || `${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.trim() || 'Guest';
+
+        tr.innerHTML = `
+          <td><strong>${formattedId}</strong></td>
+          <td style="font-weight:500; text-transform:capitalize;">${esc(customerFullName)}</td>
+          <td>${order.date ? fmtDate(order.date) : '—'}</td>
+          <td>₹${orderTotal.toLocaleString('en-IN')}</td>
+          <td>${window.getOrderBadge(order.status, order.deliveryMethod)}</td>
+          <td>
+            <select class="status-select" onchange="window.updateOrderStatus('${encodeURIComponent(String(order.id ?? ''))}', this.value)">
+              <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+              <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Ready to Pickup' : 'Shipped'}</option>
+              <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Completed' : 'Delivered'}</option>
+            </select>
+          </td>
+          <td>
+            <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(order.id ?? ''))}')" style="padding: 6px 12px; font-size:0.8rem;">Receipt</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
-    processedOrders.forEach(order => {
-      const tr = document.createElement('tr');
-      const orderTotal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
-      const formattedId = String(order.id).startsWith('#') ? String(order.id) : '#' + String(order.id);
-      const customerFullName = order.customer || `${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.trim() || 'Guest';
+    // Update pagination controls
+    const prevBtn = document.getElementById('ordersPrevBtn');
+    const nextBtn = document.getElementById('ordersNextBtn');
+    const pageInfo = document.getElementById('ordersPaginationInfo');
+    const currentPage = pagination.page || 0;
+    const totalPages = pagination.totalPages || 1;
+    const totalOrders = pagination.totalOrders || 0;
+    const pageSize = pagination.pageSize || 50;
+    const pageStart = currentPage * pageSize + 1;
+    const pageEnd = Math.min((currentPage + 1) * pageSize, totalOrders);
 
-      tr.innerHTML = `
-        <td><strong>${formattedId}</strong></td>
-        <td style="font-weight:500; text-transform:capitalize;">${esc(customerFullName)}</td>
-        <td>${order.date ? fmtDate(order.date) : '—'}</td>
-        <td>₹${orderTotal.toLocaleString('en-IN')}</td>
-        <td>${window.getOrderBadge(order.status, order.deliveryMethod)}</td>
-        <td>
-          <select class="status-select" onchange="window.updateOrderStatus('${encodeURIComponent(String(order.id ?? ''))}', this.value)">
-            <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-            <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Ready to Pickup' : 'Shipped'}</option>
-            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Completed' : 'Delivered'}</option>
-          </select>
-        </td>
-        <td>
-          <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(order.id ?? ''))}')" style="padding: 6px 12px; font-size:0.8rem;">Receipt</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
+    if (pageInfo) pageInfo.textContent = totalOrders > 0 ? `Showing ${pageStart}–${pageEnd} of ${totalOrders} orders` : 'No orders yet';
+    if (prevBtn) prevBtn.disabled = currentPage <= 0;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1;
   }
 
   window.getOrderBadge = function(status, deliveryMethod) {

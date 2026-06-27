@@ -728,12 +728,12 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="orders-sidebar">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid rgba(196,181,160,0.15); padding-bottom:0.6rem;">
           <h3 class="order-history-title" style="margin:0; border:none; padding:0;">Order History</h3>
-          <select id="orderTimeFilter" onchange="window.filterMyOrders()" style="font-family:'Jost',sans-serif; font-size:0.75rem; color:var(--stone); border:1px solid var(--sand); background:white; padding:0.3rem 0.5rem; border-radius:4px; outline:none; cursor:pointer;">
-            <option value="all">All Orders</option>
-            <option value="3months">Last 3 Months</option>
+          <select id="orderTimeFilter" onchange="window.filterMyOrders()" style="font-family:'Jost',sans-serif; font-size:0.75rem; color:var(--stone); border:1px solid rgba(122,109,94,0.3); background:var(--cream); padding:0.35rem 0.6rem; border-radius:4px; outline:none; cursor:pointer; font-weight:400; transition:border-color 0.2s;">
+            <option value="3months" selected>Last 3 Months</option>
             <option value="6months">Last 6 Months</option>
             <option value="2026">Year 2026</option>
             <option value="2027">Year 2027</option>
+            <option value="all">All Orders</option>
           </select>
         </div>
         <div id="myOrdersListContainer">

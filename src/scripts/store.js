@@ -2800,7 +2800,7 @@ window.fetchMyOrders = async function() {
       window._selectedOrderId = json.data[0].id;
       
       const filterSelect = document.getElementById('orderTimeFilter');
-      if (filterSelect) filterSelect.value = 'all';
+      if (filterSelect) filterSelect.value = '3months';
       
       window.filterMyOrders();
       window.showOrderDetail(json.data[0].id, true);

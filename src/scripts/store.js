@@ -2709,7 +2709,13 @@ window.syncUserProfile = async function(email, callback) {
     return res.json();
   }).then(json => {
     if (json && json.success && json.user) {
-      localStorage.setItem('lumiere_user_addresses', JSON.stringify(json.user.addresses || []));
+      const cleanAddresses = (json.user.addresses || []).filter(a => 
+        a.label !== 'Pickup' && 
+        !String(a.address || '').includes('Self Pickup') && 
+        !String(a.address || '').includes('Lumière Studio')
+      );
+      json.user.addresses = cleanAddresses;
+      localStorage.setItem('lumiere_user_addresses', JSON.stringify(cleanAddresses));
       window.fetchWishlist();
       if (callback) callback(json.user);
     }

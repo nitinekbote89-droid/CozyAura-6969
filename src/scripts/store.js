@@ -3737,6 +3737,6 @@ window.addWishlistItemToCart = function(productId, variantName) {
   }
 
   localStorage.setItem('lumiere_cart', JSON.stringify(window.cart));
-  window.updateCartCount();
+  window.updateCart();
   window.showToast("Added to cart!");
 };

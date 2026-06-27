@@ -93,7 +93,7 @@ th { font-weight: 500; color: var(--text-muted); font-size: 0.85rem; text-transf
 .status-processing { background: #DBEAFE; color: var(--info); }
 .status-shipped { background: #EDE9FE; color: var(--purple); }
 .status-delivered { background: #D1FAE5; color: var(--success); }
-.status-select { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-family: inherit; font-size: 0.8rem; width: 165px; }
+.status-select { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-family: inherit; font-size: 0.8rem; width: 135px; }
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; }

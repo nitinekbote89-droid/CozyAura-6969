@@ -2824,10 +2824,6 @@ window.filterMyOrders = function() {
     const cutoff = new Date();
     cutoff.setMonth(cutoff.getMonth() - 6);
     filtered = filtered.filter(o => new Date(o.date) >= cutoff);
-  } else if (filterVal === '2026') {
-    filtered = filtered.filter(o => new Date(o.date).getFullYear() === 2026);
-  } else if (filterVal === '2027') {
-    filtered = filtered.filter(o => new Date(o.date).getFullYear() === 2027);
   }
   
   window.renderFilteredOrdersList(filtered);

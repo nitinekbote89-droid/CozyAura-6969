@@ -2363,3 +2363,145 @@ section.active {
     height: 380px;
   }
 }
+
+/* ============================================================
+   Mobile & Tablet Viewport Optimizations (RWD)
+   ============================================================ */
+
+/* 1. Mobile Safety Zone & Older Devices (min-width: 320px / max-width: 359px) */
+@media (max-width: 359px) {
+  :root {
+    --home-px: 1rem;
+  }
+  nav {
+    padding: 0.6rem 0.8rem;
+  }
+  .nav-logo {
+    font-size: 1.15rem;
+  }
+  .hero-text h1 {
+    font-size: 1.85rem;
+  }
+  .hero-image-frame {
+    max-width: 220px;
+    height: 270px;
+  }
+  .btn-primary {
+    padding: 0.8rem 1.8rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* 2. Large Phones / "Max" Phone models (min-width: 390px) */
+@media (min-width: 390px) and (max-width: 480px) {
+  .hero-image-frame {
+    max-width: 300px;
+    height: 360px;
+  }
+  .hero-text h1 {
+    font-size: 2.3rem;
+  }
+}
+
+/* 3. Mobile Landscape & Large Phones (min-width: 481px) and (max-width: 767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+  #home {
+    padding-top: 6.5rem;
+  }
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .hero-image-frame {
+    max-width: 320px;
+    height: 390px;
+    margin: 0 auto;
+  }
+  .hero-text h1 {
+    font-size: 2.8rem;
+    text-align: center;
+  }
+  .hero-text p {
+    text-align: center;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-btns {
+    justify-content: center;
+  }
+  .home-products-grid, .values-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.8rem;
+  }
+}
+
+/* 4. Tablet Portrait - Gold Standard iPad (min-width: 768px) and (max-width: 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --home-px: 2.5rem;
+  }
+  #home {
+    padding-top: 8rem;
+  }
+  .hero-inner {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 3rem;
+    text-align: left;
+  }
+  .hero-text {
+    order: 1;
+  }
+  .hero-visual {
+    order: 2;
+  }
+  .hero-image-frame {
+    width: 280px;
+    height: 360px;
+    margin: 0;
+  }
+  .hero-text h1 {
+    font-size: 3rem;
+    text-align: left;
+  }
+  .hero-text p {
+    text-align: left;
+    margin-left: 0;
+  }
+  .hero-btns {
+    justify-content: flex-start;
+  }
+  .home-products-grid, .values-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+  .footer-inner {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 3rem;
+  }
+}
+
+/* 5. Safe Height Zone for Portrait Phones (keeps CTA above the fold on tall/short screens) */
+@media (max-height: 740px) and (max-width: 480px) {
+  #home {
+    padding-top: 5rem;
+    padding-bottom: 2rem;
+  }
+  .hero-text h1 {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  .hero-text p {
+    font-size: 0.82rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+  }
+  .hero-inner {
+    gap: 1rem;
+  }
+  .hero-image-frame {
+    max-width: 200px;
+    height: 250px;
+    margin: 0 auto;
+  }
+}

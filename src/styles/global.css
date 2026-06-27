@@ -2576,7 +2576,7 @@ section.active {
   display: none;
   justify-content: space-around;
   align-items: center;
-  z-index: 1000;
+  z-index: 900;
 }
 
 .bottom-nav-item {

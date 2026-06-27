@@ -44,6 +44,9 @@ window.syncCloudInventory = async function() {
             localStorage.setItem('lumiere_coupons', JSON.stringify(json.data.coupons));
             localStorage.setItem('lumiere_fragrances', JSON.stringify(json.data.fragrances));
             localStorage.setItem('lumiere_storefront_images', JSON.stringify(json.data.storefrontImages || {}));
+            localStorage.setItem('lumiere_users', JSON.stringify(json.data.users || []));
+            localStorage.setItem('lumiere_user_addresses', JSON.stringify(json.data.userAddresses || []));
+            localStorage.setItem('lumiere_wishlist', JSON.stringify(json.data.wishlist || []));
             
             const activeTab = localStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
             window.switchTab(activeTab);
@@ -1088,4 +1091,244 @@ window.saveStorefrontImages = async function() {
             btn.textContent = originalText;
         }
     }
+};
+
+const esc = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const fmtDate = d => { try { const dt = new Date(d); return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString(); } catch(e) { return '—'; } };
+
+window._selectedCustomerEmail = null;
+
+window.getCompiledCustomers = function() {
+  const users = JSON.parse(localStorage.getItem('lumiere_users') || '[]');
+  const addresses = JSON.parse(localStorage.getItem('lumiere_user_addresses') || '[]');
+  const orders = JSON.parse(localStorage.getItem('lumiere_orders') || '[]');
+  const wishlist = JSON.parse(localStorage.getItem('lumiere_wishlist') || '[]');
+
+  // Collect all unique emails
+  const emailSet = new Set();
+  users.forEach(u => { if (u.email) emailSet.add(u.email.toLowerCase().trim()); });
+  addresses.forEach(a => { if (a.user_email) emailSet.add(a.user_email.toLowerCase().trim()); });
+  orders.forEach(o => { if (o.shippingInfo?.email) emailSet.add(o.shippingInfo.email.toLowerCase().trim()); });
+  wishlist.forEach(w => { if (w.user_email) emailSet.add(w.user_email.toLowerCase().trim()); });
+
+  const customers = Array.from(emailSet).map(email => {
+    // Try to find name and phone
+    let fname = '';
+    let lname = '';
+    let phone = '';
+
+    // Check user_addresses
+    const userAddrs = addresses.filter(a => a.user_email?.toLowerCase().trim() === email);
+    const defaultAddr = userAddrs.find(a => a.is_default) || userAddrs[0];
+    if (defaultAddr) {
+      fname = defaultAddr.fname || '';
+      lname = defaultAddr.lname || '';
+      phone = defaultAddr.phone || '';
+    }
+
+    // Check orders (overwriting if empty or getting latest)
+    const userOrders = orders.filter(o => o.shippingInfo?.email?.toLowerCase().trim() === email);
+    if (userOrders.length > 0) {
+      // Find the latest order by date
+      const latestOrder = userOrders.reduce((latest, current) => {
+        return new Date(current.date) > new Date(latest.date) ? current : latest;
+      }, userOrders[0]);
+
+      if (latestOrder.shippingInfo) {
+        if (!fname) fname = latestOrder.shippingInfo.fname || '';
+        if (!lname) lname = latestOrder.shippingInfo.lname || '';
+        if (!phone) phone = latestOrder.shippingInfo.phone || '';
+      }
+    }
+
+    return {
+      email,
+      fname: fname.trim(),
+      lname: lname.trim(),
+      phone: phone.trim(),
+      ordersCount: userOrders.length,
+      wishlistCount: wishlist.filter(w => w.user_email?.toLowerCase().trim() === email).length
+    };
+  });
+
+  // Sort customers alphabetically by name, or by email if name is empty
+  customers.sort((a, b) => {
+    const nameA = `${a.fname} ${a.lname}`.trim().toLowerCase();
+    const nameB = `${b.fname} ${b.lname}`.trim().toLowerCase();
+    if (nameA && nameB) return nameA.localeCompare(nameB);
+    if (nameA) return -1;
+    if (nameB) return 1;
+    return a.email.localeCompare(b.email);
+  });
+
+  return customers;
+};
+
+window.renderCustomersList = function() {
+  const container = document.getElementById('customersListContainer');
+  if (!container) return;
+
+  const customers = window.getCompiledCustomers();
+  const searchInput = document.getElementById('customerSearchInput');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  // Filter customers by search query
+  const filtered = customers.filter(c => {
+    const fullName = `${c.fname} ${c.lname}`.toLowerCase();
+    return c.email.includes(query) || fullName.includes(query) || c.phone.includes(query);
+  });
+
+  container.innerHTML = '';
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding: 20px 0;">No customers found.</p>';
+    return;
+  }
+
+  filtered.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'customer-list-card';
+    card.style.cssText = "padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-main); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px;";
+    
+    // Highlight if selected
+    if (window._selectedCustomerEmail === c.email) {
+      card.style.borderColor = "var(--brand)";
+      card.style.background = "rgba(184,151,90,0.08)";
+    }
+
+    card.onclick = () => {
+      window._selectedCustomerEmail = c.email;
+      window.renderCustomersList(); // re-render to update active styling
+      window.showCustomerDetails(c.email);
+    };
+
+    const displayName = `${c.fname} ${c.lname}`.trim() || 'Guest Customer';
+    const displayPhone = c.phone ? `<span style="font-size:0.8rem; color:var(--text-muted);">📞 ${esc(c.phone)}</span>` : '';
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:0.95rem; text-transform:capitalize; color:var(--text-main);">${esc(displayName)}</strong>
+        <span style="font-size:0.75rem; background:var(--bg-surface); padding:2px 6px; border-radius:4px; border:1px solid var(--border); color:var(--text-muted);">${c.ordersCount} orders</span>
+      </div>
+      <div style="font-size:0.85rem; color:var(--text-muted); word-break:break-all;">${esc(c.email)}</div>
+      ${displayPhone}
+    `;
+    container.appendChild(card);
+  });
+};
+
+window.showCustomerDetails = function(email) {
+  const detailPane = document.getElementById('customerDetailPane');
+  const emptyPane = document.getElementById('customerDetailEmpty');
+  if (!detailPane || !emptyPane) return;
+
+  const customers = window.getCompiledCustomers();
+  const customer = customers.find(c => c.email === email);
+  if (!customer) return;
+
+  emptyPane.style.display = 'none';
+  detailPane.style.display = 'block';
+
+  // Get customer's orders
+  const orders = JSON.parse(localStorage.getItem('lumiere_orders') || '[]');
+  const userOrders = orders.filter(o => o.shippingInfo?.email?.toLowerCase().trim() === email);
+
+  // Get customer's wishlist items
+  const wishlist = JSON.parse(localStorage.getItem('lumiere_wishlist') || '[]');
+  const userWishlist = wishlist.filter(w => w.user_email?.toLowerCase().trim() === email);
+
+  // Get products inventory to resolve wishlist details
+  const inventory = JSON.parse(localStorage.getItem('lumiere_inventory') || '[]');
+
+  // Render profile header
+  const displayName = `${customer.fname} ${customer.lname}`.trim() || 'Guest Customer';
+  const phoneSection = customer.phone ? `<p style="margin:4px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Phone:</strong> ${esc(customer.phone)}</p>` : '';
+  
+  let headerHtml = `
+    <div style="border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:20px;">
+      <h3 style="margin:0; font-size:1.4rem; text-transform:capitalize; font-family:'Cormorant Garamond',serif; color:var(--gold-dark);">${esc(displayName)}</h3>
+      <p style="margin:6px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Email:</strong> ${esc(customer.email)}</p>
+      ${phoneSection}
+    </div>
+  `;
+
+  // Render Wishlist Section
+  let wishlistHtml = '';
+  if (userWishlist.length === 0) {
+    wishlistHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No items in wishlist.</p>';
+  } else {
+    wishlistHtml = `
+      <div style="display:flex; flex-direction:column; gap:10px; max-height:220px; overflow-y:auto; padding-right:4px;">
+        ${userWishlist.map(w => {
+          const product = inventory.find(p => String(p.id) === String(w.product_id));
+          const prodName = product ? product.name : w.product_id;
+          const coverImg = (product && product.coverImage) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23E5E7EB'/%3E%3C/svg%3E";
+          const variantName = w.variant_name;
+          const price = product ? `₹${product.price}` : '—';
+          return `
+            <div style="display:flex; align-items:center; gap:12px; padding:10px; border:1px solid var(--border); border-radius:6px; background:var(--bg-main);">
+              <img src="${coverImg}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
+              <div style="flex:1;">
+                <div style="font-weight:500; font-size:0.9rem; text-transform:capitalize; color:var(--text-main);">${esc(prodName)}</div>
+                <div style="font-size:0.78rem; color:var(--text-muted); text-transform:capitalize;">Variant: ${esc(variantName)}</div>
+              </div>
+              <div style="font-weight:600; font-size:0.9rem; color:var(--gold-dark);">${price}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // Render Order History Section
+  let ordersHtml = '';
+  if (userOrders.length === 0) {
+    ordersHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No order history.</p>';
+  } else {
+    ordersHtml = `
+      <div class="table-container" style="border:1px solid var(--border); border-radius:6px; overflow-y:auto; max-height:280px;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+          <thead>
+            <tr style="background:var(--bg-main); border-bottom:1px solid var(--border);">
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Order ID</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Date</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Status</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Total</th>
+              <th style="padding:10px 12px; text-align:center; font-size:0.75rem;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${userOrders.map(o => {
+              const formattedId = String(o.id).startsWith('#') ? o.id : '#' + o.id;
+              const totalVal = parseInt(String(o.total || '').replace(/[^\d]/g, '')) || 0;
+              return `
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:10px 12px; font-weight:500;">${formattedId}</td>
+                  <td style="padding:10px 12px;">${o.date ? fmtDate(o.date) : '—'}</td>
+                  <td style="padding:10px 12px;">${window.getOrderBadge(o.status)}</td>
+                  <td style="padding:10px 12px; font-weight:500;">₹${totalVal.toLocaleString('en-IN')}</td>
+                  <td style="padding:10px 12px; text-align:center;">
+                    <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(o.id ?? ''))}')" style="padding:4px 8px; font-size:0.75rem;">Receipt</button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  detailPane.innerHTML = `
+    ${headerHtml}
+    
+    <div style="margin-bottom:28px;">
+      <h4 style="margin:0 0 12px 0; font-size:1.05rem; font-weight:500; letter-spacing:0.01em;">Wishlist Products (${userWishlist.length})</h4>
+      ${wishlistHtml}
+    </div>
+
+    <div>
+      <h4 style="margin:0 0 12px 0; font-size:1.05rem; font-weight:500; letter-spacing:0.01em;">Order History (${userOrders.length})</h4>
+      ${ordersHtml}
+    </div>
+  `;
 };

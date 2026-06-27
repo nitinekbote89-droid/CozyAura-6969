@@ -252,14 +252,20 @@ export async function GET({ request }) {
       { data: order_items },
       { data: coupons },
       { data: settings },
-      { data: storefront_images_setting }
+      { data: storefront_images_setting },
+      { data: users },
+      { data: user_addresses },
+      { data: wishlist }
     ] = await Promise.all([
       supabase.from('product_variants').select('*'),
       supabase.from('orders').select('*').order('date', { ascending: false }),
       supabase.from('order_items').select('*'),
       supabase.from('coupons').select('*'),
       supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
-      supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single()
+      supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
+      supabase.from('users').select('*'),
+      supabase.from('user_addresses').select('*'),
+      supabase.from('wishlist').select('*')
     ]);
 
     let salesMap = {};
@@ -350,7 +356,10 @@ export async function GET({ request }) {
         orders: compositeOrders,
         coupons,
         fragrances: settings ? settings.value : [],
-        storefrontImages: storefront_images_setting ? storefront_images_setting.value : null
+        storefrontImages: storefront_images_setting ? storefront_images_setting.value : null,
+        users: users || [],
+        userAddresses: user_addresses || [],
+        wishlist: wishlist || []
       }
     }), { status: 200 });
   } catch (err) {

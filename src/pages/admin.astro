@@ -43,6 +43,7 @@ import AdminModals from '../components/AdminModals.astro';
       <li><a id="nav-coupons" class="nav-item" onclick="window.switchTab('coupons', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>Coupons</a></li>
       <li><a id="nav-fragrances" class="nav-item" onclick="window.switchTab('fragrances', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>Manage Fragrances</a></li>
       <li><a id="nav-content" class="nav-item" onclick="window.switchTab('content', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>Displayed Content</a></li>
+      <li><a id="nav-customers" class="nav-item" onclick="window.switchTab('customers', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>Customers</a></li>
     </ul>
   </aside>
 
@@ -228,6 +229,29 @@ import AdminModals from '../components/AdminModals.astro';
           </div>
         </div>
       </div>
+
+      <!-- Customers Pane -->
+      <div id="tab-customers" class="tab-pane">
+        <div style="display: flex; gap: 24px; min-height: 500px; align-items: stretch;">
+          <!-- Customers List -->
+          <div style="flex: 1; max-width: 400px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+            <h3 style="font-weight: 500; margin: 0; font-size: 1.1rem; letter-spacing: 0.02em;">Customer Registry</h3>
+            <input type="text" id="customerSearchInput" placeholder="Search by name, email, or phone..." oninput="window.renderCustomersList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
+            <div id="customersListContainer" style="flex: 1; overflow-y: auto; max-height: 600px; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
+              <!-- Loaded dynamically -->
+            </div>
+          </div>
+
+          <!-- Customer Detail Panel -->
+          <div id="customerDetailPane" style="flex: 2; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: none;">
+            <!-- Loaded dynamically -->
+          </div>
+          <div id="customerDetailEmpty" style="flex: 2; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.95rem; text-align: center; gap: 12px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); opacity: 0.6;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            Select a customer from the directory list to review their purchase history and active wishlist.
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -319,11 +343,11 @@ import AdminModals from '../components/AdminModals.astro';
 
   // CROSS-TAB SYNC
   window.addEventListener('focus', () => {
-      window.renderDashboard(); window.renderInventory(); window.renderOrders(); window.renderCoupons(); window.renderGlobalFragrancesManagement();
+      window.renderDashboard(); window.renderInventory(); window.renderOrders(); window.renderCoupons(); window.renderGlobalFragrancesManagement(); if (typeof window.renderCustomersList === 'function') window.renderCustomersList();
   });
   window.addEventListener('storage', (e) => {
-      if (['lumiere_inventory', 'lumiere_orders', 'lumiere_coupons', 'lumiere_fragrances'].includes(e.key)) {
-          window.renderDashboard(); window.renderInventory(); window.renderOrders(); window.renderCoupons(); window.renderGlobalFragrancesManagement();
+      if (['lumiere_inventory', 'lumiere_orders', 'lumiere_coupons', 'lumiere_fragrances', 'lumiere_users', 'lumiere_user_addresses', 'lumiere_wishlist'].includes(e.key)) {
+          window.renderDashboard(); window.renderInventory(); window.renderOrders(); window.renderCoupons(); window.renderGlobalFragrancesManagement(); if (typeof window.renderCustomersList === 'function') window.renderCustomersList();
       }
   });
 
@@ -376,6 +400,11 @@ import AdminModals from '../components/AdminModals.astro';
       if (pageTitle) pageTitle.textContent = "Manage Displayed Content";
       if (typeof window.renderStorefrontImages === 'function') {
         window.renderStorefrontImages();
+      }
+    } else if (tabId === 'customers') {
+      if (pageTitle) pageTitle.textContent = "Customer Directory";
+      if (typeof window.renderCustomersList === 'function') {
+        window.renderCustomersList();
       }
     }
   }

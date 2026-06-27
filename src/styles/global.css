@@ -392,7 +392,7 @@ section.active {
 /* PRODUCT QUICK VIEW MODAL */
 .modal-overlay { position: fixed; inset: 0; background: rgba(26, 21, 18, 0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 1000; padding: 2rem; }
 .modal-overlay.active { opacity: 1; pointer-events: auto; }
-.quickview-modal { background: var(--warm-white); width: 100%; max-width: 900px; display: grid; grid-template-columns: 1.1fr 1fr; border-radius: 2px; overflow: hidden; position: relative; transform: translateY(15px); transition: transform 0.3s ease; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+.quickview-modal { background: var(--warm-white); width: 100%; max-width: 900px; display: grid; grid-template-columns: 1.1fr 1fr; border-radius: 2px; overflow: hidden; position: relative; transform: translateY(15px); transition: transform 0.3s ease; box-shadow: 0 20px 50px rgba(0,0,0,0.1); max-height: 90dvh; }
 .modal-overlay.active .quickview-modal { transform: translateY(0); }
 .close-modal-btn { position: absolute; top: 1.5rem; right: 1.5rem; background: transparent; border: none; cursor: pointer; color: var(--stone); z-index: 10; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
 .close-modal-btn:hover { color: var(--black); }
@@ -401,7 +401,7 @@ section.active {
 .modal-main-img-wrap { width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 6px; }
 .modal-main-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
-.modal-info-pane { padding: 3.5rem 3rem 3rem; display: flex; flex-direction: column; justify-content: center; }
+.modal-info-pane { padding: 3.5rem 3rem 3rem; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: auto; max-height: 90dvh; }
 .modal-category { font-size: 0.72rem; color: var(--stone); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5rem; }
 .modal-title { font-size: 2.5rem; font-weight: 300; color: var(--black); line-height: 1.1; margin-bottom: 1rem; text-transform: capitalize; }
 .modal-desc { font-size: 0.9rem; color: var(--stone); line-height: 1.7; margin-bottom: 1.5rem; }
@@ -1641,7 +1641,7 @@ section.active {
     padding: 1rem !important;
   }
   .modal-main-img-wrap {
-    max-width: 220px !important;
+    max-width: 360px !important;
     margin: 0 auto;
   }
   .modal-info-pane {
@@ -1686,6 +1686,9 @@ section.active {
 
 /* ── MOBILE (320px – 480px) ── */
 @media (max-width: 480px) {
+  .modal-main-img-wrap {
+    max-width: 260px !important;
+  }
   :root {
     --home-px: 1.2rem;
     --ig-track-padding: 1.5rem;

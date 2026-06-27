@@ -26,7 +26,10 @@ window.attemptLogin = async function() {
     } catch(e) { alert('Secure back-office system link unavailable.'); }
 };
 
-window.syncCloudInventory = async function(page = 0) {
+window.syncCloudInventory = async function(page = null) {
+    if (page === null) {
+        page = window._ordersCurrentPage || 0;
+    }
     const pwd = sessionStorage.getItem('lumiere_admin_secret');
     const syncIndicator = document.getElementById('syncIndicator');
     if (syncIndicator) {

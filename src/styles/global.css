@@ -2531,3 +2531,10 @@ section.active {
     margin: 0 auto;
   }
 }
+
+/* Hide inline order details on mobile & tablet viewports */
+@media (max-width: 1023px) {
+  .orders-detail-view {
+    display: none !important;
+  }
+}

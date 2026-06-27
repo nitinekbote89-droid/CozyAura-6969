@@ -2866,7 +2866,7 @@ function getTrackingDetails(courierVal, trackingVal) {
   return { courier, tracking };
 }
 
-window.showOrderDetail = function(id) {
+window.showOrderDetail = function(id, isAuto) {
   var orders = window._ordersData || [];
   var order = orders.find(function(o) { return o.id === id; });
   if (!order) return;
@@ -2877,11 +2877,7 @@ window.showOrderDetail = function(id) {
     var cardId = card.querySelector('.my-order-card-id').textContent.trim();
     card.classList.toggle('active', cardId === id);
   });
-  document.getElementById('orderDetailEmpty').style.display = 'none';
-  var detail = document.getElementById('orderDetailContent');
-  detail.style.display = 'block';
-  var detailContainer = document.getElementById('myOrderDetailContainer');
-  if (detailContainer) detailContainer.scrollTop = 0;
+
   var items = order.itemsString ? order.itemsString.split(', ') : [];
   
   var itemsBreakdown = order.itemsBreakdown || [];
@@ -2985,7 +2981,7 @@ window.showOrderDetail = function(id) {
   var step2Icon = isPickup ? window.__svg.package : window.__svg.truck;
   var step3Icon = isPickup ? window.__svg.check_circle : window.__svg.home;
 
-  detail.innerHTML =
+  var contentHtml =
     '<div class="order-detail-header"><h3 class="order-detail-title" style="margin:0;line-height:1;">Order ID: ' + order.id + '</h3><span class="status-pill ' + order.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span></div>' +
     '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle">' + step1Icon + '</div><span class="tracker-label">' + step1Label + '</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle">' + step2Icon + '</div><span class="tracker-label">' + step2Label + '</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle">' + step3Icon + '</div><span class="tracker-label">' + step3Label + '</span></div></div></div>' +
     (details.tracking ? 
@@ -3005,11 +3001,31 @@ window.showOrderDetail = function(id) {
           '</div>' +
         '</div>' +
       '</div>') : '') +
-    '<div class="orders-grid-info">' +
+    '<div class="orders-grid-info" style="margin-bottom:0;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;border-bottom:1px dashed rgba(196,181,160,0.2);padding-bottom:0.5rem;"><span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--stone);font-weight:500;">Order Invoice</span><span style="font-size:0.8rem;color:var(--stone);font-weight:400;">' + new Date(order.date).toLocaleDateString() + '</span></div>' +
       itemsHtml +
       breakdownHtml +
+      (window.innerWidth < 1024 ? '<button class="btn-primary" onclick="window.closeOrderDetailModal()" style="width:100%; margin-top:1.5rem; padding: 1rem; font-size:0.75rem; letter-spacing:0.18em; text-transform:uppercase; border-radius:2px; cursor:pointer;">Close Details</button>' : '') +
     '</div>';
+
+  if (window.innerWidth < 1024) {
+    if (!isAuto) {
+      document.getElementById('orderDetailModalContent').innerHTML = contentHtml;
+      document.getElementById('orderDetailModal').classList.add('active');
+    }
+  } else {
+    document.getElementById('orderDetailEmpty').style.display = 'none';
+    var detail = document.getElementById('orderDetailContent');
+    detail.style.display = 'block';
+    detail.innerHTML = contentHtml;
+    var detailContainer = document.getElementById('myOrderDetailContainer');
+    if (detailContainer) detailContainer.scrollTop = 0;
+  }
+};
+
+window.closeOrderDetailModal = function() {
+  var modal = document.getElementById('orderDetailModal');
+  if (modal) modal.classList.remove('active');
 };
 
 window.trackPackage = async function(e) {

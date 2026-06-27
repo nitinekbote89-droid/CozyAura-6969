@@ -1617,9 +1617,10 @@ section.active {
   }
   .quickview-modal {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
     width: 90vw;
     max-width: 550px;
-    height: auto;
+    height: 80dvh;
     max-height: 90dvh;
     overflow-y: auto;
     border-radius: 8px;
@@ -1647,6 +1648,8 @@ section.active {
   }
   .modal-info-pane {
     padding: 1.2rem !important;
+    overflow-y: visible !important;
+    max-height: none !important;
   }
   .modal-title {
     font-size: 1.5rem !important;

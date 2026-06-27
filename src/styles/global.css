@@ -967,7 +967,7 @@ section.active {
 /* Orders Page Styles */
 #ordersPage, #addressesPage { padding: 7.5rem 4rem 3rem; max-width: 1300px; margin: 0 auto; }
 .orders-layout { display: grid; grid-template-columns: 340px 1fr; gap: 4rem; margin-top: 1rem; align-items: start; }
-.orders-sidebar { background: rgba(247, 243, 237, 0.55); padding: 1.85rem; border-radius: 8px; border: 1px solid rgba(196,181,160,0.25); max-height: 800px; overflow-y: auto; box-shadow: 0 10px 30px rgba(42,36,32,0.02); }
+.orders-sidebar { background: rgba(247, 243, 237, 0.55); padding: 1.85rem; border-radius: 8px; border: 1px solid rgba(196,181,160,0.25); max-height: calc(100vh - 16rem); overflow-y: auto; box-shadow: 0 10px 30px rgba(42,36,32,0.02); }
 .order-history-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--stone); margin-bottom: 1.5rem; font-weight: 500; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(196,181,160,0.25); }
 .my-order-card { background: var(--cream); border: 1px solid rgba(196,181,160,0.2); padding: 1.25rem 1.15rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); border-radius: 6px; }
 .my-order-card:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 10px 25px rgba(184, 151, 90, 0.05); }
@@ -1160,7 +1160,7 @@ section.active {
   #siteFooter { padding: 3rem 2rem 1.5rem; }
   #ordersPage { padding: 7rem 2rem 4rem; }
   .orders-layout { grid-template-columns: 1fr; gap: 2rem; }
-  .orders-sidebar { max-height: 800px; position: static; }
+  .orders-sidebar { max-height: calc(100vh - 18rem); position: static; }
   .orders-detail-view { max-height: none; padding: 2.5rem 2rem; }
 }
 @media (max-width: 600px) {

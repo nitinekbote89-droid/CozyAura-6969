@@ -684,12 +684,12 @@ import AdminModals from '../components/AdminModals.astro';
         <td style="font-weight:500; text-transform:capitalize;">${esc(customerFullName)}</td>
         <td>${order.date ? fmtDate(order.date) : '—'}</td>
         <td>₹${orderTotal.toLocaleString('en-IN')}</td>
-        <td>${window.getOrderBadge(order.status)}</td>
+        <td>${window.getOrderBadge(order.status, order.deliveryMethod)}</td>
         <td>
           <select class="status-select" onchange="window.updateOrderStatus('${encodeURIComponent(String(order.id ?? ''))}', this.value)">
             <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-            <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Ready to Pickup</option>
-            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Completed</option>
+            <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Ready to Pickup' : 'Shipped'}</option>
+            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Completed' : 'Delivered'}</option>
           </select>
         </td>
         <td>
@@ -700,11 +700,14 @@ import AdminModals from '../components/AdminModals.astro';
     });
   }
 
-  window.getOrderBadge = function(status) {
+  window.getOrderBadge = function(status, deliveryMethod) {
     const c = status.toLowerCase();
     let display = status;
-    if (status === 'Shipped') display = 'Ready to Pickup';
-    else if (status === 'Delivered') display = 'Completed';
+    if (status === 'Shipped') {
+      display = deliveryMethod === 'Pickup' ? 'Ready to Pickup' : 'Shipped';
+    } else if (status === 'Delivered') {
+      display = deliveryMethod === 'Pickup' ? 'Completed' : 'Delivered';
+    }
     return `<span class="status-badge status-${c}">${display}</span>`;
   }
 

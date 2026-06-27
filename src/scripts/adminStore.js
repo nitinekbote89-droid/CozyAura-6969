@@ -845,7 +845,7 @@ window.viewOrderDetails = function(orderId) {
     document.getElementById('orderModalPhone').textContent = order.shippingInfo?.phone ? `📞 ${order.shippingInfo.phone}` : '';
     document.getElementById('orderModalDate').textContent = order.date ? new Date(order.date).toLocaleDateString() : '—';
     document.getElementById('orderModalPayment').textContent = order.paymentMethod || 'COD / Pay on Delivery';
-    document.getElementById('orderModalStatus').innerHTML = window.getOrderBadge(order.status);
+    document.getElementById('orderModalStatus').innerHTML = window.getOrderBadge(order.status, order.deliveryMethod);
 
     const isPickup = order.deliveryMethod === 'Pickup';
     const trackingFields = document.getElementById('modalTrackingFields');
@@ -1347,7 +1347,7 @@ window.showCustomerDetails = function(email) {
                 <tr style="border-bottom:1px solid var(--border);">
                   <td style="padding:10px 12px; font-weight:500;">${formattedId}</td>
                   <td style="padding:10px 12px;">${o.date ? fmtDate(o.date) : '—'}</td>
-                  <td style="padding:10px 12px;">${window.getOrderBadge(o.status)}</td>
+                  <td style="padding:10px 12px;">${window.getOrderBadge(o.status, o.deliveryMethod)}</td>
                   <td style="padding:10px 12px; font-weight:500;">₹${totalVal.toLocaleString('en-IN')}</td>
                   <td style="padding:10px 12px; text-align:center;">
                     <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(o.id ?? ''))}')" style="padding:4px 8px; font-size:0.75rem;">Receipt</button>

@@ -399,8 +399,8 @@ BEGIN
     ON CONFLICT (email) DO NOTHING;
 
 
-    -- 5. Ensure address exists if not provided
-    IF v_addr_id IS NULL THEN
+    -- 5. Ensure address exists if not provided (except for pickup orders)
+    IF v_addr_id IS NULL AND p_address_label != 'Pickup' THEN
         INSERT INTO user_addresses (user_email, label, fname, lname, address, city, state, pincode, phone, is_default)
         VALUES (p_email, p_address_label, split_part(p_name, ' ', 1), split_part(p_name, ' ', 2), p_shipping_address, p_city, p_state, p_pincode, COALESCE(p_phone, ''), true)
         RETURNING id INTO v_addr_id;

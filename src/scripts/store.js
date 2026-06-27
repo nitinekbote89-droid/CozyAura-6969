@@ -1619,6 +1619,7 @@ window.proceedToPayment = async function() {
       phone: document.getElementById('phone').value
     };
     window.selectedAddressId = null;
+    window.selectedAddressLabel = 'Pickup';
   } else if (loggedInEmail) {
     const rawAddrs = localStorage.getItem('lumiere_user_addresses');
     const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];

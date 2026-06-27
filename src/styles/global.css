@@ -1641,7 +1641,8 @@ section.active {
     padding: 1rem !important;
   }
   .modal-main-img-wrap {
-    max-width: 360px !important;
+    width: 55% !important;
+    max-width: 100% !important;
     margin: 0 auto;
   }
   .modal-info-pane {
@@ -1686,9 +1687,6 @@ section.active {
 
 /* ── MOBILE (320px – 480px) ── */
 @media (max-width: 480px) {
-  .modal-main-img-wrap {
-    max-width: 260px !important;
-  }
   :root {
     --home-px: 1.2rem;
     --ig-track-padding: 1.5rem;

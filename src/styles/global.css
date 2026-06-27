@@ -1156,6 +1156,9 @@ section.active {
   .page-wrapper {
     padding-bottom: 60px !important;
   }
+  nav, nav.scrolled {
+    padding: 0.9rem var(--home-px) !important;
+  }
   :root {
     --home-px: 2rem;
   }

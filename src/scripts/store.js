@@ -2795,35 +2795,71 @@ window.fetchMyOrders = async function() {
     var res = await fetch(CORE_STORE_PROXY_ROUTE, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "track_order", query: email, siteToken: "LUMIERE_STORE_2026" }) });
     var json = await res.json();
     if (json.success && json.data.length > 0) {
-      const sortVal = (document.getElementById('ordersSortSelect')?.value) || 'desc';
-      const processedOrders = [...json.data];
-      if (sortVal === 'asc') {
-        processedOrders.sort((a, b) => new Date(a.date) - new Date(b.date));
-      } else {
-        processedOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-      }
-      list.innerHTML = processedOrders.map(function(o) {
-        var displayStatus = o.status;
-        if (o.deliveryMethod === 'Pickup') {
-          if (o.status === 'Shipped') displayStatus = 'Ready to Pick';
-          else if (o.status === 'Delivered') displayStatus = 'Completed';
-        }
-        return '<div class="my-order-card' + (o.id === (window._selectedOrderId || json.data[0].id) ? ' active' : '') + '" onclick="window.showOrderDetail(\'' + o.id + '\')">' +
-          '<div class="my-order-card-header">' +
-            '<span class="my-order-card-id">' + o.id + '</span>' +
-            '<span class="my-order-card-date">' + new Date(o.date).toLocaleDateString() + '</span>' +
-          '</div>' +
-          '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem;">' +
-            '<div class="my-order-card-total" style="margin:0;">' + o.total + '</div>' +
-            '<span class="status-pill ' + o.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span>' +
-          '</div>' +
-        '</div>';
-      }).join('');
+      json.data.sort((a, b) => new Date(b.date) - new Date(a.date));
       window._ordersData = json.data;
       window._selectedOrderId = json.data[0].id;
-      window.showOrderDetail(json.data[0].id);
+      
+      const filterSelect = document.getElementById('orderTimeFilter');
+      if (filterSelect) filterSelect.value = 'all';
+      
+      window.filterMyOrders();
+      window.showOrderDetail(json.data[0].id, true);
+    } else {
+      list.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 2rem 0;">No order history found.</p>';
     }
-  } catch(e) {}
+  } catch(e) {
+    list.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 2rem 0;">Failed to load order history.</p>';
+  }
+};
+
+window.filterMyOrders = function() {
+  const filterVal = document.getElementById('orderTimeFilter')?.value || 'all';
+  let filtered = [...(window._ordersData || [])];
+  
+  if (filterVal === '3months') {
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 3);
+    filtered = filtered.filter(o => new Date(o.date) >= cutoff);
+  } else if (filterVal === '6months') {
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - 6);
+    filtered = filtered.filter(o => new Date(o.date) >= cutoff);
+  } else if (filterVal === '2026') {
+    filtered = filtered.filter(o => new Date(o.date).getFullYear() === 2026);
+  } else if (filterVal === '2027') {
+    filtered = filtered.filter(o => new Date(o.date).getFullYear() === 2027);
+  }
+  
+  window.renderFilteredOrdersList(filtered);
+};
+
+window.renderFilteredOrdersList = function(orders) {
+  var list = document.getElementById('myOrdersListContainer');
+  if (!list) return;
+  
+  if (orders.length === 0) {
+    list.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 2rem 0;">No orders found in this period.</p>';
+    return;
+  }
+  
+  list.innerHTML = orders.map(function(o) {
+    var displayStatus = o.status;
+    if (o.deliveryMethod === 'Pickup') {
+      if (o.status === 'Shipped') displayStatus = 'Ready to Pick';
+      else if (o.status === 'Delivered') displayStatus = 'Completed';
+    }
+    const isActive = String(o.id) === String(window._selectedOrderId);
+    return '<div class="my-order-card' + (isActive ? ' active' : '') + '" onclick="window.showOrderDetail(\'' + o.id + '\')">' +
+      '<div class="my-order-card-header">' +
+        '<span class="my-order-card-id">' + o.id + '</span>' +
+        '<span class="my-order-card-date">' + new Date(o.date).toLocaleDateString() + '</span>' +
+      '</div>' +
+      '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.6rem;">' +
+        '<div class="my-order-card-total" style="margin:0;">' + o.total + '</div>' +
+        '<span class="status-pill ' + o.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 };
 
 window.copyToClipboard = function(text, event) {

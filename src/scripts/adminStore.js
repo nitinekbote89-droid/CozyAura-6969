@@ -52,6 +52,10 @@ window.syncCloudInventory = async function(page = null) {
             localStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses || []));
             localStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist || []));
             
+            if (typeof window.updateCustomerCounts === 'function') {
+                window.updateCustomerCounts();
+            }
+            
             const activeTab = localStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
             window.switchTab(activeTab);
         }
@@ -1240,6 +1244,15 @@ window.renderCustomersList = function() {
   if (!container) return;
 
   const customers = window.getCompiledCustomers();
+  
+  // Sync all customer counts in the DOM
+  const registryCountEl = document.getElementById('customerRegistryCount');
+  if (registryCountEl) registryCountEl.textContent = customers.length;
+  const sidebarCountEl = document.getElementById('sidebarCustomerCount');
+  if (sidebarCountEl) sidebarCountEl.textContent = customers.length;
+  const dashCountEl = document.getElementById('statCustomers');
+  if (dashCountEl) dashCountEl.textContent = customers.length;
+
   const searchInput = document.getElementById('customerSearchInput');
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 

@@ -1796,9 +1796,16 @@ section.active {
     font-size: 1.4rem;
   }
   .modal-footer-action {
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 1rem;
-    align-items: stretch;
+  }
+  #modalActionContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-shrink: 0;
   }
   .modal-action-btn, .notify-btn, .btn-primary {
     padding: 0.85rem 1.5rem;

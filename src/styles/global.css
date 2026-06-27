@@ -1604,7 +1604,7 @@ section.active {
     grid-template-columns: 1fr;
     width: 90vw;
     max-width: 550px;
-    height: 90vh;
+    height: auto;
     max-height: 90vh;
     overflow: hidden;
     border-radius: 8px;
@@ -1626,7 +1626,7 @@ section.active {
     padding: 1rem !important;
   }
   .modal-main-img-wrap {
-    max-width: 150px !important;
+    max-width: 220px !important;
     margin: 0 auto;
   }
   .modal-info-pane {

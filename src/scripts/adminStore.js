@@ -1294,10 +1294,16 @@ window.showCustomerDetails = function(email) {
   const phoneSection = customer.phone ? `<p style="margin:4px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Phone:</strong> ${esc(customer.phone)}</p>` : '';
   
   let headerHtml = `
-    <div style="border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:20px;">
-      <h3 style="margin:0; font-size:1.4rem; text-transform:capitalize; font-family:'Cormorant Garamond',serif; color:var(--gold-dark);">${esc(displayName)}</h3>
-      <p style="margin:6px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Email:</strong> ${esc(customer.email)}</p>
-      ${phoneSection}
+    <div style="border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <h3 style="margin:0; font-size:1.4rem; text-transform:capitalize; font-family:'Cormorant Garamond',serif; color:var(--gold-dark);">${esc(displayName)}</h3>
+        <p style="margin:6px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Email:</strong> ${esc(customer.email)}</p>
+        ${phoneSection}
+      </div>
+      <button class="btn btn-secondary" onclick="window.deleteCustomerProfile('${encodeURIComponent(customer.email)}')" style="border-color:var(--danger); color:var(--danger); display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:0.8rem; height:fit-content; border-radius:6px; font-family:inherit; cursor:pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Delete Profile
+      </button>
     </div>
   `;
 
@@ -1381,4 +1387,37 @@ window.showCustomerDetails = function(email) {
       ${ordersHtml}
     </div>
   `;
+};
+
+window.deleteCustomerProfile = async function(encodedEmail) {
+  const email = decodeURIComponent(encodedEmail);
+  if (!confirm(`Are you sure you want to delete customer "${email}"? This will permanently delete their profile, saved addresses, wishlist, and all associated order history.`)) {
+    return;
+  }
+  
+  try {
+    const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "delete_customer",
+        email: email,
+        adminSecret: sessionStorage.getItem('lumiere_admin_secret')
+      })
+    });
+    const json = await res.json();
+    if (json.success) {
+      // Hide detail pane
+      const detailPane = document.getElementById('customerDetailPane');
+      const detailEmpty = document.getElementById('customerDetailEmpty');
+      if (detailPane) detailPane.style.display = 'none';
+      if (detailEmpty) detailEmpty.style.display = 'flex';
+      
+      window.syncCloudInventory();
+    } else {
+      alert(`Failed to delete customer: ${json.error}`);
+    }
+  } catch (e) {
+    console.error("Failed to delete customer:", e);
+  }
 };

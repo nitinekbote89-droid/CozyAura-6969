@@ -577,6 +577,14 @@ export async function POST({ request }) {
       return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
 
+    if (action === 'delete_customer') {
+      const { email } = data;
+      if (!email) return new Response(JSON.stringify({ success: false, error: 'Email is required' }), { status: 400 });
+      const { error: deleteErr } = await supabase.from('users').delete().eq('email', email);
+      if (deleteErr) return new Response(JSON.stringify({ success: false, error: deleteErr.message }), { status: 500 });
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
     if (action === 'save_global_fragrances') {
       const { error: fragErr } = await supabase.from('settings').upsert({ key: 'GLOBAL_FRAGRANCES', value: data.fragrances });
       if (fragErr) return new Response(JSON.stringify({ success: false, error: fragErr.message }), { status: 500 });

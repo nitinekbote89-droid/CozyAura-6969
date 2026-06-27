@@ -1256,10 +1256,21 @@ window.renderCustomersList = function() {
   const searchInput = document.getElementById('customerSearchInput');
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-  // Filter customers by search query
-  const filtered = customers.filter(c => {
+  // Add sequential indices to customers
+  const customersWithIndex = customers.map((c, idx) => ({
+    ...c,
+    sequenceNumber: idx + 1
+  }));
+
+  // Filter customers by search query (including sequence number search like #5 or 5)
+  const filtered = customersWithIndex.filter(c => {
     const fullName = `${c.fname} ${c.lname}`.toLowerCase();
-    return c.email.includes(query) || fullName.includes(query) || c.phone.includes(query);
+    const seqStr = `#${c.sequenceNumber}`;
+    return c.email.includes(query) || 
+           fullName.includes(query) || 
+           c.phone.includes(query) || 
+           seqStr.includes(query) || 
+           String(c.sequenceNumber) === query;
   });
 
   container.innerHTML = '';
@@ -1290,7 +1301,7 @@ window.renderCustomersList = function() {
 
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size:0.95rem; text-transform:capitalize; color:var(--text-main);">${esc(displayName)}</strong>
+        <strong style="font-size:0.95rem; text-transform:capitalize; color:var(--text-main);"><span style="color: var(--brand); font-weight: 600; margin-right: 4px;">#${c.sequenceNumber}</span> ${esc(displayName)}</strong>
         <span style="font-size:0.75rem; background:var(--bg-surface); padding:2px 6px; border-radius:4px; border:1px solid var(--border); color:var(--text-muted);">${c.ordersCount} orders</span>
       </div>
       <div style="font-size:0.85rem; color:var(--text-muted); word-break:break-all;">${esc(c.email)}</div>

@@ -688,8 +688,8 @@ import AdminModals from '../components/AdminModals.astro';
         <td>
           <select class="status-select" onchange="window.updateOrderStatus('${encodeURIComponent(String(order.id ?? ''))}', this.value)">
             <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-            <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Ready for Pickup' : 'Shipped'}</option>
-            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>${order.deliveryMethod === 'Pickup' ? 'Picked Up / Completed' : 'Delivered'}</option>
+            <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Ready to Pickup</option>
+            <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Completed</option>
           </select>
         </td>
         <td>
@@ -701,7 +701,11 @@ import AdminModals from '../components/AdminModals.astro';
   }
 
   window.getOrderBadge = function(status) {
-    const c = status.toLowerCase(); return `<span class="status-badge status-${c}">${status}</span>`;
+    const c = status.toLowerCase();
+    let display = status;
+    if (status === 'Shipped') display = 'Ready to Pickup';
+    else if (status === 'Delivered') display = 'Completed';
+    return `<span class="status-badge status-${c}">${display}</span>`;
   }
 
   window.renderCoupons = function() {

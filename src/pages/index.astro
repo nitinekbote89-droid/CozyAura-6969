@@ -391,6 +391,13 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="checkout-summary" style="position: sticky; top: 7rem;">
         <h3>Summary</h3>
         <div id="promoContainer"></div>
+        <!-- Manual Discount Input Box -->
+        <div class="checkout-discount-box cart-discount-box" style="padding-bottom: 0; border-bottom: none; margin-bottom: 1.5rem; margin-top: 0.5rem; display: flex;">
+          <input type="text" id="cartDiscountInput" placeholder="Discount code" style="text-transform: uppercase;" />
+          <button onclick="window.applyCartDiscount()" id="cartDiscountApplyBtn">Apply</button>
+        </div>
+        <!-- Applied Promo Badge / info if any -->
+        <div id="cartAppliedPromoContainer"></div>
         <div class="summary-line"><span>Subtotal</span><span id="summarySubtotal">₹0</span></div>
         <div class="summary-line"><span>Shipping Freight</span><span id="summaryShipping">₹0</span></div>
         <div class="summary-line" id="summaryPromoLine" style="display:none;"><span>Promo</span><span id="summaryPromo">—</span></div>

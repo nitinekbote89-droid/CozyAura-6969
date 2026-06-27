@@ -1035,8 +1035,9 @@ window.updateCart = function() {
   }
   if (document.getElementById('payment')?.classList.contains('active') || document.getElementById('payment')?.style.display !== 'none') {
     window.renderCheckoutSidebarItems();
-    window.renderCheckoutAppliedPromo();
   }
+  if (typeof window.renderCartAppliedPromo === 'function') window.renderCartAppliedPromo();
+  if (typeof window.renderCheckoutAppliedPromo === 'function') window.renderCheckoutAppliedPromo();
 };
 
 window.calculatePrices = function() {
@@ -1762,6 +1763,53 @@ window.removeCheckoutPromo = function() {
   window.renderCheckoutAppliedPromo();
   const inputEl = document.getElementById('checkoutDiscountInput');
   if (inputEl) inputEl.value = '';
+};
+
+window.applyCartDiscount = function() {
+  const inputEl = document.getElementById('cartDiscountInput');
+  const code = inputEl?.value.trim().toUpperCase();
+  if (!code) return;
+  const promo = window.PROMOS.find(p => p.code.toUpperCase() === code);
+  if (promo) {
+    const subtotal = window.cart.reduce((sum, item) => sum + ((item.variant?.price || item.product?.price || 0) * item.quantity), 0);
+    const minVal = parseFloat(promo.min_order_value) || 0;
+    if (minVal > 0 && subtotal < minVal) {
+      window.showToast(`This promo code requires a minimum purchase of ₹${minVal}.`, true);
+      return;
+    }
+    window.appliedPromoCode = promo;
+    sessionStorage.setItem('lumiere_applied_promo', JSON.stringify(window.appliedPromoCode));
+    window.updateCart();
+  } else {
+    window.showToast("Invalid discount code", true);
+  }
+};
+
+window.renderCartAppliedPromo = function() {
+  const container = document.getElementById('cartAppliedPromoContainer');
+  const box = document.querySelector('.cart-discount-box');
+  if (!container) return;
+  if (window.appliedPromoCode) {
+    if (box) box.style.display = 'none';
+    container.innerHTML = `
+      <div class="applied-promo-tag" style="margin-bottom:1.5rem; display:flex; align-items:center;">
+        ${window.__svg.sell}
+        <span>${window.appliedPromoCode.code}</span>
+        <button onclick="window.removeCartPromo()" style="background:none;border:none;cursor:pointer;color:var(--stone);font-size:1.1rem;line-height:1;margin-left:0.3rem;padding:0;font-weight:bold;">&times;</button>
+      </div>
+    `;
+  } else {
+    if (box) box.style.display = 'flex';
+    container.innerHTML = '';
+    const inputEl = document.getElementById('cartDiscountInput');
+    if (inputEl) inputEl.value = '';
+  }
+};
+
+window.removeCartPromo = function() {
+  window.appliedPromoCode = null;
+  sessionStorage.removeItem('lumiere_applied_promo');
+  window.updateCart();
 };
 
 window.renderCheckoutSidebarItems = function() {

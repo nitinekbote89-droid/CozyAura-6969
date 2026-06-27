@@ -3,6 +3,21 @@ const CORE_STORE_PROXY_ROUTE = "/api/store";
 window.STORE_PICKUP_ADDRESS = "Lumière Studio, Koregaon Park, Pune, Maharashtra - 411001";
 window.deliveryMethod = "Shipping";
 
+window.showLoadingOverlay = function(text, subtext) {
+  const overlay = document.getElementById('processingOverlay');
+  if (!overlay) return;
+  const textEl = overlay.querySelector('.processing-text');
+  const subtextEl = overlay.querySelector('.processing-subtext');
+  if (textEl) textEl.textContent = text || 'Loading...';
+  if (subtextEl) subtextEl.textContent = subtext || 'Please wait a moment.';
+  overlay.classList.add('active');
+};
+
+window.hideLoadingOverlay = function() {
+  const overlay = document.getElementById('processingOverlay');
+  if (overlay) overlay.classList.remove('active');
+};
+
 window.__svg = {
   close: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
   error: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
@@ -1530,6 +1545,7 @@ window.addEventListener('scroll', () => {
 // Contact form handler
 document.getElementById('contactForm')?.addEventListener('submit', async function(e) {
   e.preventDefault();
+  window.showLoadingOverlay("Sending message...", "Please wait a moment.");
   try {
     const res = await fetch('/api/store', {
       method: 'POST',
@@ -1552,6 +1568,8 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
     }
   } catch(e) {
     alert('Could not send message. Please try again.');
+  } finally {
+    window.hideLoadingOverlay();
   }
 });
 
@@ -2077,6 +2095,7 @@ window.showLogin = function() {
 };
 
 window.loginWithGoogle = async function() {
+  window.showLoadingOverlay("Redirecting to Google...", "Please wait.");
   const supabase = await getSupabase();
   const oauthState = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
   sessionStorage.setItem('lumiere_oauth_state', oauthState);
@@ -2089,6 +2108,7 @@ window.loginWithGoogle = async function() {
   });
   if (error) {
     sessionStorage.removeItem('lumiere_oauth_state');
+    window.hideLoadingOverlay();
     const errEl = document.getElementById('loginError');
     if (errEl) {
       errEl.textContent = 'Google sign-in failed: ' + error.message;
@@ -2098,6 +2118,8 @@ window.loginWithGoogle = async function() {
     }
   } else if (data?.url) {
     window.location.href = data.url;
+  } else {
+    window.hideLoadingOverlay();
   }
 };
 
@@ -2387,6 +2409,7 @@ window.deleteAddressCard = function(id, event) {
       const email = localStorage.getItem('lumiere_user_email');
       if (!email) return;
 
+      window.showLoadingOverlay("Deleting address...");
       fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
         method: "POST",
         body: JSON.stringify({
@@ -2403,11 +2426,16 @@ window.deleteAddressCard = function(id, event) {
                 window.selectedAddressId = null;
               }
               window.prefillCheckoutForm();
+              window.hideLoadingOverlay();
             });
           } else {
             window.showToast(json.error || "Failed to delete address.", true);
+            window.hideLoadingOverlay();
           }
-        }).catch(e => console.error(e));
+        }).catch(e => {
+          console.error(e);
+          window.hideLoadingOverlay();
+        });
     }
   });
 };
@@ -2435,6 +2463,7 @@ window.saveAddressForm = function() {
     siteToken: "LUMIERE_STORE_2026"
   };
 
+  window.showLoadingOverlay(window.editingAddressId ? "Updating address..." : "Saving new address...");
   fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
     method: "POST",
     body: JSON.stringify(payload)
@@ -2446,11 +2475,16 @@ window.saveAddressForm = function() {
             window.selectedAddressId = json.address.id;
           }
           window.prefillCheckoutForm();
+          window.hideLoadingOverlay();
         });
       } else {
         window.showToast(json.error || "Failed to save address.", true);
+        window.hideLoadingOverlay();
       }
-    }).catch(e => console.error(e));
+    }).catch(e => {
+      console.error(e);
+      window.hideLoadingOverlay();
+    });
 };
 
 window.renderAddressesPage = function() {
@@ -2606,6 +2640,7 @@ window.deleteAddressesPageCard = function(id) {
       const email = localStorage.getItem('lumiere_user_email');
       if (!email) return;
 
+      window.showLoadingOverlay("Deleting address...");
       fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
         method: "POST",
         body: JSON.stringify({
@@ -2623,11 +2658,16 @@ window.deleteAddressesPageCard = function(id) {
               }
               window.displayAddressesPageList();
               window.showToast("Address deleted successfully.");
+              window.hideLoadingOverlay();
             });
           } else {
             window.showToast(json.error || "Failed to delete address.", true);
+            window.hideLoadingOverlay();
           }
-        }).catch(e => console.error(e));
+        }).catch(e => {
+          console.error(e);
+          window.hideLoadingOverlay();
+        });
     }
   });
 };
@@ -2655,6 +2695,7 @@ window.saveAddressesPageForm = function() {
     siteToken: "LUMIERE_STORE_2026"
   };
 
+  window.showLoadingOverlay(window.editingAddressesPageId ? "Updating address..." : "Saving new address...");
   fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
     method: "POST",
     body: JSON.stringify(payload)
@@ -2668,11 +2709,16 @@ window.saveAddressesPageForm = function() {
           window.displayAddressesPageList();
           window.hideAddressesPageForm();
           window.showToast(window.editingAddressesPageId ? "Address updated successfully." : "Address added successfully.");
+          window.hideLoadingOverlay();
         });
       } else {
         window.showToast(json.error || "Failed to save address.", true);
+        window.hideLoadingOverlay();
       }
-    }).catch(e => console.error(e));
+    }).catch(e => {
+      console.error(e);
+      window.hideLoadingOverlay();
+    });
 };
 
 window.syncUserProfile = async function(email, callback) {

@@ -1604,9 +1604,9 @@ section.active {
     grid-template-columns: 1fr;
     width: 90vw;
     max-width: 550px;
-    height: 80vh;
-    max-height: 80vh;
-    overflow-y: auto;
+    height: 90vh;
+    max-height: 90vh;
+    overflow: hidden;
     border-radius: 8px;
   }
   .close-modal-btn {

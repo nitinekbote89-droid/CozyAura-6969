@@ -220,25 +220,6 @@ window.showToast = function(message, isError = false) {
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'appToastNotification';
-    toast.style.position = 'fixed';
-    toast.style.bottom = '2rem';
-    toast.style.left = '2rem';
-    toast.style.zIndex = '10000';
-    toast.style.background = 'var(--charcoal)';
-    toast.style.color = 'var(--cream)';
-    toast.style.padding = '1rem 1.5rem';
-    toast.style.fontSize = '0.78rem';
-    toast.style.fontFamily = "'Jost', sans-serif";
-    toast.style.letterSpacing = '0.05em';
-    toast.style.borderRadius = '2px';
-    toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(15px)';
-    toast.style.transition = 'all 0.3s ease';
-    toast.style.pointerEvents = 'none';
-    toast.style.display = 'flex';
-    toast.style.alignItems = 'center';
-    toast.style.gap = '0.6rem';
     document.body.appendChild(toast);
   }
   const icon = isError 
@@ -248,11 +229,9 @@ window.showToast = function(message, isError = false) {
   toast.style.borderLeft = isError ? '3px solid var(--danger)' : '3px solid var(--gold)';
   if (window._toastTimeout) clearTimeout(window._toastTimeout);
   toast.offsetHeight; // Force reflow
-  toast.style.opacity = '1';
-  toast.style.transform = 'translateY(0)';
+  toast.classList.add('show');
   window._toastTimeout = setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(15px)';
+    toast.classList.remove('show');
   }, 4000);
 };
 

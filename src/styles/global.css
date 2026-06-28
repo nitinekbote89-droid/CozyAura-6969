@@ -942,6 +942,32 @@ section.active {
 .cart-toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 200; background: var(--charcoal); color: var(--cream); padding: 1rem 1.5rem; font-size: 0.8rem; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
 .cart-toast.show { opacity: 1; transform: translateY(0); }
 
+#appToastNotification {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 10000;
+  background: var(--charcoal);
+  color: var(--cream);
+  padding: 1rem 1.5rem;
+  font-size: 0.78rem;
+  font-family: 'Jost', sans-serif;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  opacity: 0;
+  transform: translateY(15px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+#appToastNotification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 
 /* Live Card Visualizer */
 .card-visualizer-wrap { perspective: 1000px; width: 100%; max-width: 320px; margin: 0 auto 2rem; }
@@ -2887,5 +2913,19 @@ section.active {
     border-radius: 8px !important;
     font-size: 0.78rem !important;
     margin: 0 !important;
+  }
+
+  /* Position toast alerts at the top on mobile/tablets */
+  #appToastNotification {
+    bottom: auto !important;
+    top: 76px !important;
+    left: 16px !important;
+    right: 16px !important;
+    transform: translateY(-15px) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  }
+  #appToastNotification.show {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
   }
 }

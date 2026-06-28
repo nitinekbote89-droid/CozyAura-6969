@@ -3424,6 +3424,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   supabase.auth.onAuthStateChange(async (event, session) => {
     const user = session?.user || null;
     authStore.setCurrentUser(user);
+    window.renderAccountAvatar();
 
     if (user) {
       // Sync profile & load orders/wishlist

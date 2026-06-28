@@ -2664,3 +2664,35 @@ section.active {
   color: var(--gold-dark);
   border-color: var(--gold-dark);
 }
+
+/* Responsive positioning for Checkout Timer Banner on mobile/tablets */
+@media (max-width: 768px) {
+  #checkoutTimerBanner {
+    top: 56px !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: 1px solid #FFE299 !important;
+    border-bottom: 1px solid #FFE299 !important;
+    box-shadow: 0 4px 10px rgba(42,36,32,0.05) !important;
+    z-index: 95 !important;
+    justify-content: center !important;
+    animation: timerSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+}
+
+@keyframes timerSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

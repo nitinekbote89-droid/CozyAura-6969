@@ -3088,7 +3088,7 @@ section.active {
   /* Position toast alerts at the top on mobile/tablets */
   #appToastNotification {
     bottom: auto !important;
-    top: 76px !important;
+    top: 96px !important;
     left: 16px !important;
     right: 16px !important;
     transform: translateY(-15px) !important;

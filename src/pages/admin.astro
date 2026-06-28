@@ -151,14 +151,14 @@ import AdminModals from '../components/AdminModals.astro';
           <input type="text" id="orderSearchInput" placeholder="Search by order # or customer name instantly..." oninput="window.renderOrders()" style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
           <select id="orderDeliveryFilter" onchange="window.onDeliveryFilterChange()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="All">All Orders</option>
-            <option value="Shipping">Shipping</option>
-            <option value="Pickup">Pickup</option>
+            <option value="Shipping">Home Delivery</option>
+            <option value="Pickup">Self Pickup</option>
           </select>
           <select id="orderStatusFilter" onchange="window.renderOrders()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="All">Filter: All Statuses</option>
             <option value="Pending">Pending</option>
-            <option value="Shipped">Shipped</option>
-            <option value="Delivered">Delivered</option>
+            <option value="Shipped">Shipped / Ready to Pickup</option>
+            <option value="Delivered">Delivered / Completed</option>
           </select>
           <select id="orderSortSelect" onchange="window.renderOrders()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="desc">Sort: Newest First</option>
@@ -320,6 +320,12 @@ import AdminModals from '../components/AdminModals.astro';
           // Update counts immediately from cached data
           if (typeof window.updateCustomerCounts === 'function') {
               window.updateCustomerCounts();
+          }
+          if (typeof window.updateFeedbackCounts === 'function') {
+              window.updateFeedbackCounts();
+          }
+          if (typeof window.onDeliveryFilterChange === 'function') {
+              window.onDeliveryFilterChange();
           }
 
           window.syncCloudInventory();

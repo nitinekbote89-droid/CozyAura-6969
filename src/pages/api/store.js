@@ -932,11 +932,23 @@ export async function POST({ request }) {
         return new Response(JSON.stringify({ success: false, error: "Invalid rating." }), { status: 400 });
       }
 
+      // Fetch order to link user_email and customer_name
+      const { data: orderRow } = await supabase
+        .from('orders')
+        .select('shipping_email, shipping_fname, shipping_lname')
+        .eq('id', orderId)
+        .maybeSingle();
+
+      const userEmail = orderRow ? orderRow.shipping_email : '';
+      const customerName = orderRow ? `${orderRow.shipping_fname || ''} ${orderRow.shipping_lname || ''}`.trim() : '';
+
       // Insert/update feedback record in feedbacks database table
       const { data, error } = await supabase
         .from('feedbacks')
         .upsert([{ 
-          order_id: orderId, 
+          order_id: orderId,
+          user_email: userEmail,
+          customer_name: customerName,
           rating: rating, 
           comment: comment 
         }]);

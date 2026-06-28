@@ -2945,3 +2945,47 @@ section.active {
     transform: translateY(0) !important;
   }
 }
+
+/* Floating WhatsApp Button (Only active when the Contact section is visible) */
+.whatsapp-float-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  background-color: #25D366;
+  color: #FFFFFF;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.3);
+  z-index: 9999;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.whatsapp-float-btn:hover {
+  transform: scale(1.1);
+  background-color: #20ba5a;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+}
+
+.whatsapp-float-btn svg {
+  width: 30px;
+  height: 30px;
+  fill: currentColor;
+}
+
+@media (max-width: 768px) {
+  .whatsapp-float-btn {
+    bottom: 90px; /* Positioned above the mobile bottom nav bar */
+    right: 20px;
+    width: 52px;
+    height: 52px;
+  }
+  .whatsapp-float-btn svg {
+    width: 26px;
+    height: 26px;
+  }
+}

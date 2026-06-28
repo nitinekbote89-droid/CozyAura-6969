@@ -920,6 +920,34 @@ export async function POST({ request }) {
       return new Response(JSON.stringify({ success: true, data: trackingPayload }), { status: 200 });
     }
 
+    if (body.action === 'submit_feedback') {
+      const orderId = (body.orderId || '').trim();
+      const rating = parseInt(body.rating) || 0;
+      const comment = (body.comment || '').trim();
+
+      if (!orderId) {
+        return new Response(JSON.stringify({ success: false, error: "Missing Order ID." }), { status: 400 });
+      }
+      if (rating < 1 || rating > 5) {
+        return new Response(JSON.stringify({ success: false, error: "Invalid rating." }), { status: 400 });
+      }
+
+      // Insert/update feedback record in feedbacks database table
+      const { data, error } = await supabase
+        .from('feedbacks')
+        .upsert([{ 
+          order_id: orderId, 
+          rating: rating, 
+          comment: comment 
+        }]);
+
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
     return new Response(JSON.stringify({ success: false, error: "Action route exception." }), { status: 400 });
 
   } catch (err) {

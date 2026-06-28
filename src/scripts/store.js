@@ -3088,6 +3088,7 @@ window.showOrderDetail = function(id, isAuto) {
   if (order.status === 'Delivered') {
     var storedFeedbackKey = 'lumiere_order_feedback_' + order.id;
     var submittedRating = localStorage.getItem(storedFeedbackKey);
+    var submittedComment = localStorage.getItem('lumiere_order_feedback_comment_' + order.id) || '';
     
     if (submittedRating) {
       feedbackHtml = 
@@ -3098,7 +3099,8 @@ window.showOrderDetail = function(id, isAuto) {
               return '<span style="color:' + (num <= parseInt(submittedRating) ? 'var(--gold-dark)' : 'var(--taupe)') + ';">★</span>';
             }).join('') + 
           '</div>' +
-          '<div style="font-size:0.8rem; color:var(--stone); font-style:italic;">Thank you for your 5-star rating!</div>' +
+          (submittedComment ? '<p style="font-size:0.85rem; color:var(--charcoal); margin-top:0.6rem; line-height:1.5; font-style:italic; padding:0 0.5rem; word-break:break-word;">"' + submittedComment + '"</p>' : '') +
+          '<div style="font-size:0.8rem; color:var(--stone); margin-top:0.6rem;">Thank you for your feedback!</div>' +
         '</div>';
     } else {
       feedbackHtml = 
@@ -3106,10 +3108,14 @@ window.showOrderDetail = function(id, isAuto) {
           '<div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.4rem; font-weight:500;">How was your experience?</div>' +
           '<div class="star-rating-container" style="margin-bottom:0.4rem;">' +
             [5,4,3,2,1].map(function(num) {
-              return '<span class="star-rating-item" onclick="window.submitOrderFeedback(\'' + order.id + '\', ' + num + ')">★</span>';
+              return '<span class="star-rating-item" data-val="' + num + '" onclick="window.selectFeedbackStars(\'' + order.id + '\', ' + num + ')">★</span>';
             }).join('') +
           '</div>' +
           '<div style="font-size:0.8rem; color:var(--stone);">Tap a star to leave a review</div>' +
+          '<div id="feedbackFormContent_' + order.id + '" style="display:none; flex-direction:column; gap:0.75rem; margin-top:0.75rem;">' +
+            '<textarea id="feedbackComment_' + order.id + '" placeholder="Write your review... (max 200 words)" style="width: 100%; height: 80px; padding: 0.6rem; border: 1px solid var(--sand); border-radius: 4px; font-family: inherit; font-size: 0.82rem; resize: none; box-sizing: border-box; background: white; outline: none;"></textarea>' +
+            '<button class="btn-primary" onclick="window.submitFeedbackToDatabase(\'' + order.id + '\')" style="width: 100%; padding: 0.75rem; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 4px; cursor: pointer; border: none;">Submit Feedback</button>' +
+          '</div>' +
         '</div>';
     }
   }
@@ -3946,13 +3952,78 @@ window.toggleShopFilters = function(event) {
   }
 };
 
-window.submitOrderFeedback = function(orderId, rating) {
-  const key = 'lumiere_order_feedback_' + orderId;
-  localStorage.setItem(key, rating);
-  window.showToast("Thank you for your rating!");
+window.selectFeedbackStars = function(orderId, rating) {
+  window.activeFeedbackRatings = window.activeFeedbackRatings || {};
+  window.activeFeedbackRatings[orderId] = rating;
   
-  // Re-render order details to show submitted feedback state
-  window.showOrderDetail(orderId);
+  const card = document.getElementById('feedbackCard_' + orderId);
+  if (card) {
+    const stars = card.querySelectorAll('.star-rating-item');
+    stars.forEach(function(star) {
+      const val = parseInt(star.getAttribute('data-val'));
+      if (val <= rating) {
+        star.style.color = 'var(--gold-dark)';
+      } else {
+        star.style.color = 'var(--taupe)';
+      }
+    });
+  }
+  
+  const form = document.getElementById('feedbackFormContent_' + orderId);
+  if (form) {
+    form.style.display = 'flex';
+  }
+};
+
+window.submitFeedbackToDatabase = async function(orderId) {
+  window.activeFeedbackRatings = window.activeFeedbackRatings || {};
+  const rating = window.activeFeedbackRatings[orderId];
+  if (!rating) {
+    window.showToast("Please select a star rating first.", true);
+    return;
+  }
+  
+  const commentField = document.getElementById('feedbackComment_' + orderId);
+  const comment = commentField ? commentField.value.trim() : '';
+  
+  // Validate word count (max 200 words)
+  const words = comment.split(/\s+/).filter(Boolean);
+  if (words.length > 200) {
+    window.showToast("Feedback comment must not exceed 200 words.", true);
+    return;
+  }
+  
+  window.showLoadingOverlay("Submitting feedback...");
+  try {
+    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: 'submit_feedback',
+        orderId: orderId,
+        rating: rating,
+        comment: comment,
+        siteToken: "LUMIERE_STORE_2026"
+      })
+    });
+    const json = await res.json();
+    if (json.success) {
+      localStorage.setItem('lumiere_order_feedback_' + orderId, rating);
+      if (comment) {
+        localStorage.setItem('lumiere_order_feedback_comment_' + orderId, comment);
+      }
+      window.showToast("Thank you for your feedback!");
+      window.hideLoadingOverlay();
+      window.showOrderDetail(orderId);
+    } else {
+      window.showToast(json.error || "Failed to submit feedback.", true);
+      window.hideLoadingOverlay();
+    }
+  } catch (err) {
+    console.error(err);
+    window.showToast("Network error. Please try again.", true);
+    window.hideLoadingOverlay();
+  }
 };
 
 (function() {

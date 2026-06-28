@@ -2897,14 +2897,14 @@ section.active {
   }
 
   /* Hide mobile footer/buttons when adding/editing a new address form */
-  #payment:has(#checkoutForm[style*="display: block"]) .mobile-checkout-footer,
-  #payment:has(#checkoutForm[style*="display: block"]) .proceed-btn,
-  #payment:has(#checkoutForm[style*="display: block"]) .pay-now-btn {
+  #payment.adding-address .mobile-checkout-footer,
+  #payment.adding-address .proceed-btn,
+  #payment.adding-address .pay-now-btn {
     display: none !important;
   }
 
   /* Refined form actions for inline addresses save */
-  #payment #addressFormActions {
+  #payment #addressFormActions:not([style*="display: none"]) {
     display: flex !important;
     gap: 8px !important;
   }

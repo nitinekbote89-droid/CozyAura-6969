@@ -1329,6 +1329,7 @@ window.setDeliveryMethod = function(method) {
     window.prefillCheckoutForm();
   }
   
+  window.updateAddingAddressClass();
   window.calculatePrices();
 };
 
@@ -2300,6 +2301,7 @@ window.prefillCheckoutForm = async function() {
       emailField.disabled = false;
     }
   }
+  window.updateAddingAddressClass();
   window.calculatePrices();
 };
 
@@ -2364,6 +2366,20 @@ window.selectAddressCard = function(id) {
   window.calculatePrices();
 };
 
+window.updateAddingAddressClass = function() {
+  const paymentSec = document.getElementById('payment');
+  if (!paymentSec) return;
+  const form = document.getElementById('checkoutForm');
+  const isVisible = form && form.style.display === 'block';
+  const isShipping = window.deliveryMethod === 'Shipping';
+  
+  if (isVisible && isShipping) {
+    paymentSec.classList.add('adding-address');
+  } else {
+    paymentSec.classList.remove('adding-address');
+  }
+};
+
 window.showNewAddressForm = function(isFirst = false) {
   const rawAddrs = localStorage.getItem('lumiere_user_addresses');
   const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
@@ -2403,6 +2419,7 @@ window.showNewAddressForm = function(isFirst = false) {
   if (savedSec) savedSec.style.display = 'none';
   const form = document.getElementById('checkoutForm');
   if (form) form.style.display = 'block';
+  window.updateAddingAddressClass();
 };
 
 window.editAddressCard = function(id, event) {
@@ -2431,6 +2448,7 @@ window.editAddressCard = function(id, event) {
   if (savedSec) savedSec.style.display = 'none';
   const form = document.getElementById('checkoutForm');
   if (form) form.style.display = 'block';
+  window.updateAddingAddressClass();
 };
 
 window.cancelAddressForm = function() {
@@ -2446,6 +2464,7 @@ window.cancelAddressForm = function() {
   if (savedSec) savedSec.style.display = 'block';
   const form = document.getElementById('checkoutForm');
   if (form) form.style.display = 'none';
+  window.updateAddingAddressClass();
 };
 
 window.setAddressLabel = function(label) {

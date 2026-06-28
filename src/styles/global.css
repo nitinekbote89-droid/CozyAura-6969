@@ -2808,13 +2808,27 @@ section.active {
   #payment #savedAddressesSection .address-card,
   #paymentScreenContainer .checkout-summary-card,
   #paymentScreenContainer .checkout-section {
-    background: #FFFFFF !important;
+    background: var(--cream) !important; /* Vanilla color */
     border-radius: 12px !important;
     border: 1px solid rgba(0, 0, 0, 0.04) !important;
     box-shadow: 0 2px 8px rgba(42,36,32,0.03) !important;
     padding: 1.25rem !important;
     margin-bottom: 12px !important;
     box-sizing: border-box !important;
+  }
+
+  /* Solid white backgrounds for input fields and select elements on vanilla cards */
+  #payment input[type="text"],
+  #payment input[type="email"],
+  #payment input[type="tel"],
+  #payment select,
+  #payment textarea {
+    background: #FFFFFF !important;
+    border: 1px solid var(--sand) !important;
+    border-radius: 4px !important;
+    padding: 0.8rem 1rem !important;
+    font-family: inherit !important;
+    font-size: 0.85rem !important;
   }
 
   /* Compact spacing inside card summaries */

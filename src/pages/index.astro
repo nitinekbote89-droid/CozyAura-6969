@@ -182,6 +182,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     window._pageQueue.push([pageId, updateHistory]);
     window.showPage = _orig;
   };
+  window.handleBottomNavClick = window.handleBottomNavClick || function handleBottomNavClick(pageId, element) {
+    window.showPage(pageId);
+  };
   </script>
   <div class="page-wrapper">
   <nav>

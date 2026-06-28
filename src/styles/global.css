@@ -2737,3 +2737,155 @@ section.active {
     transform: translateY(0);
   }
 }
+
+/* Swiggy-Style Mobile Checkout Styling */
+.mobile-checkout-footer {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  #payment {
+    background-color: #F6F5F8 !important;
+    padding-top: 56px !important;
+  }
+
+  #payment .checkout-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding-bottom: 96px !important;
+  }
+
+  /* Swiggy order reordering: Items and Coupons at the top */
+  #payment .checkout-sidebar-content {
+    order: 1 !important;
+    padding: 12px 16px 4px !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  #payment .checkout-main-content {
+    order: 2 !important;
+    padding: 4px 16px 16px !important;
+    background: transparent !important;
+    border: none !important;
+  }
+
+  /* Rounded Card Styling for Mobile Sections */
+  #payment .checkout-sidebar-inner,
+  #payment #deliveryFormContainer > div:first-child,
+  #payment #pickupInfoCard,
+  #payment #checkoutForm,
+  #payment #savedAddressesSection .address-card,
+  #paymentScreenContainer .checkout-summary-card,
+  #paymentScreenContainer .checkout-section {
+    background: #FFFFFF !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 2px 8px rgba(42,36,32,0.03) !important;
+    padding: 1.25rem !important;
+    margin-bottom: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Compact spacing inside card summaries */
+  #payment .checkout-sidebar-inner h3 {
+    margin: 0 0 1rem 0 !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  /* Swiggy-Style Sticky Bottom Payment Bar */
+  .mobile-checkout-footer {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 80px !important;
+    background: #FFFFFF !important;
+    border-top: 1px solid var(--sand) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
+    z-index: 999 !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .mobile-footer-total {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .mobile-total-label {
+    font-size: 0.7rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: var(--stone) !important;
+    font-weight: 500 !important;
+    margin-bottom: 2px !important;
+  }
+
+  .mobile-total-val {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    color: var(--black) !important;
+    font-family: 'Jost', sans-serif !important;
+  }
+
+  /* Position active buttons over the sticky bar */
+  #payment .proceed-btn,
+  #payment .pay-now-btn {
+    position: fixed !important;
+    bottom: 15px !important;
+    right: 16px !important;
+    width: 180px !important;
+    height: 50px !important;
+    margin: 0 !important;
+    z-index: 1000 !important;
+    background: #097939 !important; /* Conversion-optimized green */
+    color: #FFFFFF !important;
+    border-radius: 8px !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    box-shadow: 0 4px 12px rgba(9, 121, 57, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  #payment .proceed-btn:active,
+  #payment .pay-now-btn:active {
+    transform: scale(0.97) !important;
+    background: #07612d !important;
+  }
+
+  /* Hide mobile footer/buttons when adding/editing a new address form */
+  #payment:has(#checkoutForm[style*="display: block"]) .mobile-checkout-footer,
+  #payment:has(#checkoutForm[style*="display: block"]) .proceed-btn,
+  #payment:has(#checkoutForm[style*="display: block"]) .pay-now-btn {
+    display: none !important;
+  }
+
+  /* Refined form actions for inline addresses save */
+  #payment #addressFormActions {
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  #payment #addressFormActions button {
+    border-radius: 8px !important;
+    font-size: 0.78rem !important;
+    margin: 0 !important;
+  }
+}

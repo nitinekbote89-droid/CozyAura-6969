@@ -1209,7 +1209,12 @@ window.calculatePrices = function() {
       }
     }
 
-    document.getElementById('checkoutSidebarTotal').textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const formattedTotal = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    document.getElementById('checkoutSidebarTotal').textContent = formattedTotal;
+    const mobTotalEl = document.getElementById('mobileFooterTotalVal');
+    if (mobTotalEl) {
+      mobTotalEl.textContent = formattedTotal;
+    }
     
     // Calculate taxes (5% GST included in total)
     const taxAmount = total > 0 ? Math.round((total * 5 / 105) * 100) / 100 : 0;

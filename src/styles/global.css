@@ -1510,6 +1510,8 @@ section.active {
     margin-bottom: 3rem;
   }
   .bestseller-right {
+    display: flex !important;
+    flex-direction: column-reverse !important;
     padding-bottom: 2rem;
   }
   .bestseller-card {

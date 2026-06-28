@@ -1491,8 +1491,8 @@ window.renderFeedbacks = function() {
   tbody.innerHTML = feedbacks.map(function(f) {
     const esc = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     
-    // stars string
-    const starsHtml = '<span style="color:var(--gold-dark);">' + '★'.repeat(f.rating) + '</span>' + '<span style="color:var(--text-muted); opacity:0.35;">' + '★'.repeat(5 - f.rating) + '</span>';
+    // stars string in gold/yellow
+    const starsHtml = '<span style="color:#FFC107; font-size:1.1rem; letter-spacing:1px;">' + '★'.repeat(f.rating) + '</span>' + '<span style="color:var(--text-muted); opacity:0.25; font-size:1.1rem; letter-spacing:1px;">' + '★'.repeat(5 - f.rating) + '</span>';
     const hasComment = !!(f.comment || '').trim();
     
     return '<tr style="cursor:pointer;" onclick="window.openFeedbackModal(\'' + f.order_id + '\')">' +
@@ -1514,10 +1514,16 @@ window.openFeedbackModal = function(orderId) {
   const f = feedbacks.find(item => item.order_id === orderId);
   if (!f) return;
   
+  // Resolve purchase items summary from orders list in local storage
+  const orders = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+  const matchedOrder = orders.find(o => String(o.id) === String(orderId));
+  const itemsSummary = matchedOrder ? (matchedOrder.itemsSummary || '(No details found)') : '(No details found)';
+  
   document.getElementById('feedbackModalCustomerName').textContent = f.customer_name || 'Anonymous';
   document.getElementById('feedbackModalCustomerEmail').textContent = f.user_email || '—';
   document.getElementById('feedbackModalOrderId').textContent = f.order_id;
   document.getElementById('feedbackModalRating').textContent = '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating);
+  document.getElementById('feedbackModalPurchasedItems').textContent = itemsSummary;
   document.getElementById('feedbackModalComment').textContent = f.comment || '(No written review comments provided by the customer.)';
   
   const modal = document.getElementById('feedbackDetailModal');

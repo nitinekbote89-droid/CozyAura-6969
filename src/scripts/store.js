@@ -3905,6 +3905,19 @@ window.handleBottomNavClick = function(pageId, element) {
   window.showPage(pageId);
 };
 
+window.openWhatsApp = function(event) {
+  if (event) event.preventDefault();
+  const phone = '917517318391';
+  const text = encodeURIComponent('Hi Lumière Soya Candles! I have a question.');
+  
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const url = isMobile 
+    ? `https://api.whatsapp.com/send?phone=${phone}&text=${text}`
+    : `https://web.whatsapp.com/send?phone=${phone}&text=${text}`;
+  
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
+
 (function() {
   var q = window._pageQueue;
   if (q) {

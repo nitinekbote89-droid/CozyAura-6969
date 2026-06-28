@@ -1101,12 +1101,16 @@ window.calculatePrices = function() {
   let total = Math.max(0, subtotal - discount + shipping);
 
   if (document.getElementById('summaryTotal')) {
-    document.getElementById('summaryShipping').textContent = window.deliveryMethod === 'Pickup' ? 'Free (Self Pickup)' : (isFreeShipCoupon ? 'Free (Promo)' : `₹${shipping}`);
+    document.getElementById('summaryShipping').textContent = window.deliveryMethod === 'Pickup' 
+      ? 'Free (Self Pickup)' 
+      : (isFreeShipCoupon 
+          ? 'Free (Promo)' 
+          : (hasAddress ? `₹${shipping}` : 'Calculated at checkout'));
     document.getElementById('summarySubtotal').textContent = `₹${subtotal}`;
     document.getElementById('summaryTotal').textContent = `₹${total}`;
     const summaryShippingLine = document.getElementById('summaryShipping').parentElement;
     if (summaryShippingLine) {
-      summaryShippingLine.style.display = (shipping > 0 || window.deliveryMethod === 'Pickup' || isFreeShipCoupon) ? 'flex' : 'none';
+      summaryShippingLine.style.display = 'flex';
     }
     const checkoutSummaryTotalEl = document.getElementById('checkoutSummaryTotal');
     if (checkoutSummaryTotalEl) {

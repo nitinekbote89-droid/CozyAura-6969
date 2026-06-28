@@ -738,7 +738,10 @@ export async function POST({ request }) {
       try { await ensureUserExists(email); } catch (e) {
         return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500 });
       }
-      const { count, error: countErr } = await supabase.from('user_addresses').select('*', { count: 'exact', head: true }).eq('user_email', email);
+      const { count, error: countErr } = await supabase.from('user_addresses')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_email', email)
+        .neq('label', 'Pickup');
       if (countErr) console.error("Error checking address count:", countErr);
       if ((count || 0) >= 5) {
         return new Response(JSON.stringify({ success: false, error: 'Maximum of 5 saved addresses reached.' }), { status: 400 });

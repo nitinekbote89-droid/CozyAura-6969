@@ -51,9 +51,13 @@ window.syncCloudInventory = async function(page = null) {
             localStorage.setItem('lumiere_admin_users', JSON.stringify(json.data.users || []));
             localStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses || []));
             localStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist || []));
+            localStorage.setItem('lumiere_admin_feedbacks', JSON.stringify(json.data.feedbacks || []));
             
             if (typeof window.updateCustomerCounts === 'function') {
                 window.updateCustomerCounts();
+            }
+            if (typeof window.updateFeedbackCounts === 'function') {
+                window.updateFeedbackCounts();
             }
             
             const activeTab = localStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
@@ -1465,4 +1469,62 @@ window.deleteCustomerProfile = async function(encodedEmail) {
   } catch (e) {
     console.error("Failed to delete customer:", e);
   }
+};
+
+window.updateFeedbackCounts = function() {
+  const feedbacks = JSON.parse(localStorage.getItem('lumiere_admin_feedbacks') || '[]');
+  const sidebarCountEl = document.getElementById('sidebarFeedbackCount');
+  if (sidebarCountEl) sidebarCountEl.textContent = feedbacks.length;
+};
+
+window.renderFeedbacks = function() {
+  const tbody = document.getElementById('feedbackTableBody');
+  if (!tbody) return;
+  
+  const feedbacks = JSON.parse(localStorage.getItem('lumiere_admin_feedbacks') || '[]');
+  
+  if (feedbacks.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted);">No customer feedback submissions recorded in database.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = feedbacks.map(function(f) {
+    const esc = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    
+    // stars string
+    const starsHtml = '<span style="color:var(--gold-dark);">' + '★'.repeat(f.rating) + '</span>' + '<span style="color:var(--text-muted); opacity:0.35;">' + '★'.repeat(5 - f.rating) + '</span>';
+    const hasComment = !!(f.comment || '').trim();
+    
+    return '<tr style="cursor:pointer;" onclick="window.openFeedbackModal(\'' + f.order_id + '\')">' +
+      '<td style="font-weight:500;">' + esc(f.customer_name || 'Anonymous') + '</td>' +
+      '<td>' + esc(f.user_email || '—') + '</td>' +
+      '<td style="font-family:monospace; font-weight:600;">' + esc(f.order_id) + '</td>' +
+      '<td>' + starsHtml + '</td>' +
+      '<td style="text-align:center;">' +
+        '<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;" onclick="event.stopPropagation(); window.openFeedbackModal(\'' + f.order_id + '\')">' + 
+          (hasComment ? 'Read' : 'View') + 
+        '</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+};
+
+window.openFeedbackModal = function(orderId) {
+  const feedbacks = JSON.parse(localStorage.getItem('lumiere_admin_feedbacks') || '[]');
+  const f = feedbacks.find(item => item.order_id === orderId);
+  if (!f) return;
+  
+  document.getElementById('feedbackModalCustomerName').textContent = f.customer_name || 'Anonymous';
+  document.getElementById('feedbackModalCustomerEmail').textContent = f.user_email || '—';
+  document.getElementById('feedbackModalOrderId').textContent = f.order_id;
+  document.getElementById('feedbackModalRating').textContent = '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating);
+  document.getElementById('feedbackModalComment').textContent = f.comment || '(No written review comments provided by the customer.)';
+  
+  const modal = document.getElementById('feedbackDetailModal');
+  if (modal) modal.classList.add('active');
+};
+
+window.closeFeedbackModal = function() {
+  const modal = document.getElementById('feedbackDetailModal');
+  if (modal) modal.classList.remove('active');
 };

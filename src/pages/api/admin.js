@@ -261,7 +261,8 @@ export async function GET({ request }) {
       { data: storefront_images_setting },
       { data: users },
       { data: user_addresses },
-      { data: wishlist }
+      { data: wishlist },
+      { data: feedbacks }
     ] = await Promise.all([
       supabase.from('product_variants').select('*'),
       supabase.from('orders').select('*', { count: 'exact' }).order('date', { ascending: false }).range(pageStart, pageEnd),
@@ -270,7 +271,8 @@ export async function GET({ request }) {
       supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
       supabase.from('users').select('*'),
       supabase.from('user_addresses').select('*'),
-      supabase.from('wishlist').select('*')
+      supabase.from('wishlist').select('*'),
+      supabase.from('feedbacks').select('*').order('created_at', { ascending: false })
     ]);
 
     // Only fetch order_items for the current page's orders (not all 5000)
@@ -373,6 +375,7 @@ export async function GET({ request }) {
         users: users || [],
         userAddresses: user_addresses || [],
         wishlist: wishlist || [],
+        feedbacks: feedbacks || [],
         pagination: {
           page,
           pageSize: PAGE_SIZE,

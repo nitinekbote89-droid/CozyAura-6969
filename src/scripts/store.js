@@ -2234,15 +2234,6 @@ window.prefillCheckoutForm = async function() {
 
   if (loggedInEmail) {
     if (autofillBtn) autofillBtn.style.display = 'none';
-    if (window.deliveryMethod === 'Pickup') {
-      if (guestBtn) guestBtn.style.display = 'block';
-      if (actionsWrap) actionsWrap.style.display = 'none';
-      if (metaFields) metaFields.style.display = 'none';
-    } else {
-      if (guestBtn) guestBtn.style.display = 'none';
-      if (actionsWrap) actionsWrap.style.display = 'flex';
-      if (metaFields) metaFields.style.display = 'block';
-    }
 
     const emailField = document.getElementById('email');
     if (emailField) {
@@ -2250,30 +2241,67 @@ window.prefillCheckoutForm = async function() {
       emailField.disabled = true;
     }
 
-    const rawAddrs = localStorage.getItem('lumiere_user_addresses');
-    const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
-
-    if (addresses.length > 0) {
-      if (savedSec) savedSec.style.display = 'block';
-      if (form) form.style.display = 'none';
-      window.renderSavedAddresses();
-      const selectedAddr = addresses.find(a => String(a.id) === String(window.selectedAddressId));
-      if (selectedAddr) {
-        window.shippingInfo = {
-          fname: selectedAddr.fname,
-          lname: selectedAddr.lname,
-          email: loggedInEmail,
-          address: selectedAddr.address,
-          city: selectedAddr.city,
-          state: selectedAddr.state,
-          pincode: selectedAddr.pincode,
-          phone: selectedAddr.phone
-        };
-      }
-    } else {
+    if (window.deliveryMethod === 'Pickup') {
       if (savedSec) savedSec.style.display = 'none';
       if (form) form.style.display = 'block';
-      window.showNewAddressForm(true);
+      if (guestBtn) guestBtn.style.display = 'block';
+      if (actionsWrap) actionsWrap.style.display = 'none';
+      if (metaFields) metaFields.style.display = 'none';
+
+      // Prefill contact details from default address if available, or metadata
+      const rawAddrs = localStorage.getItem('lumiere_user_addresses');
+      const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
+      const defaultAddr = addresses.find(a => a.is_default) || addresses[0];
+
+      const fnameField = document.getElementById('fname');
+      const lnameField = document.getElementById('lname');
+      const phoneField = document.getElementById('phone');
+
+      if (defaultAddr) {
+        if (fnameField && !fnameField.value) fnameField.value = defaultAddr.fname || '';
+        if (lnameField && !lnameField.value) lnameField.value = defaultAddr.lname || '';
+        if (phoneField && !phoneField.value) phoneField.value = defaultAddr.phone || '';
+      } else {
+        const user = authStore.getCurrentUser();
+        const rawName = user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+        if (rawName) {
+          const nameParts = rawName.trim().split(/\s+/);
+          if (fnameField && !fnameField.value) fnameField.value = nameParts[0] || '';
+          if (lnameField && !lnameField.value) lnameField.value = nameParts.slice(1).join(' ') || '';
+        } else if (user?.email && fnameField && !fnameField.value) {
+          fnameField.value = user.email.split('@')[0] || '';
+        }
+      }
+    } else {
+      if (guestBtn) guestBtn.style.display = 'none';
+      if (actionsWrap) actionsWrap.style.display = 'flex';
+      if (metaFields) metaFields.style.display = 'block';
+
+      const rawAddrs = localStorage.getItem('lumiere_user_addresses');
+      const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
+
+      if (addresses.length > 0) {
+        if (savedSec) savedSec.style.display = 'block';
+        if (form) form.style.display = 'none';
+        window.renderSavedAddresses();
+        const selectedAddr = addresses.find(a => String(a.id) === String(window.selectedAddressId));
+        if (selectedAddr) {
+          window.shippingInfo = {
+            fname: selectedAddr.fname,
+            lname: selectedAddr.lname,
+            email: loggedInEmail,
+            address: selectedAddr.address,
+            city: selectedAddr.city,
+            state: selectedAddr.state,
+            pincode: selectedAddr.pincode,
+            phone: selectedAddr.phone
+          };
+        }
+      } else {
+        if (savedSec) savedSec.style.display = 'none';
+        if (form) form.style.display = 'block';
+        window.showNewAddressForm(true);
+      }
     }
   } else {
     if (autofillBtn) autofillBtn.style.display = 'flex';
@@ -2282,7 +2310,7 @@ window.prefillCheckoutForm = async function() {
     if (guestBtn) guestBtn.style.display = 'block';
     if (actionsWrap) actionsWrap.style.display = 'none';
     if (metaFields) metaFields.style.display = 'none';
-    
+
     const emailField = document.getElementById('email');
     if (emailField) {
       emailField.disabled = false;

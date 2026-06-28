@@ -2873,14 +2873,14 @@ section.active {
     height: 50px !important;
     margin: 0 !important;
     z-index: 1000 !important;
-    background: #097939 !important; /* Conversion-optimized green */
+    background: var(--black) !important; /* Premium black branding */
     color: #FFFFFF !important;
     border-radius: 8px !important;
     font-size: 0.82rem !important;
     font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.06em !important;
-    box-shadow: 0 4px 12px rgba(9, 121, 57, 0.2) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -2893,7 +2893,7 @@ section.active {
   #payment .proceed-btn:active,
   #payment .pay-now-btn:active {
     transform: scale(0.97) !important;
-    background: #07612d !important;
+    background: var(--charcoal) !important;
   }
 
   /* Hide mobile footer/buttons when adding/editing a new address form */

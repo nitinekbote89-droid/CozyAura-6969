@@ -2773,7 +2773,7 @@ section.active {
 
 @media (max-width: 768px) {
   #payment {
-    background-color: #F6F5F8 !important;
+    background-color: var(--cream) !important;
     padding-top: 56px !important;
   }
 

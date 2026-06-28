@@ -2979,13 +2979,14 @@ section.active {
 
 @media (max-width: 768px) {
   .whatsapp-float-btn {
-    bottom: 90px; /* Positioned above the mobile bottom nav bar */
-    right: 20px;
-    width: 52px;
-    height: 52px;
+    bottom: auto;
+    top: 80px; /* Positioned in the top right corner below the mobile header */
+    right: 16px;
+    width: 48px;
+    height: 48px;
   }
   .whatsapp-float-btn svg {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
   }
 }

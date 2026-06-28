@@ -281,7 +281,8 @@ image: item.fragranceImages?.[fName] ? `<img
                   description: item.description, specs: Array.isArray(item.specifications) ? item.specifications.join('\n') : item.specifications,
                   inStock: item.stock > 0, variants: vars,
                   totalSales: item.totalSales || 0,
-                  salesRank: item.salesRank || null
+                  salesRank: item.salesRank || null,
+                  weight: item.weight || 220
                };
             });
 

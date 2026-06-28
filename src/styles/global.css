@@ -2690,12 +2690,17 @@ section.active {
     border-radius: 0 !important;
     border-left: none !important;
     border-right: none !important;
-    border-top: 1px solid #FFE299 !important;
-    border-bottom: 1px solid #FFE299 !important;
+    border-top: 1px solid #FCA5A5 !important;
+    border-bottom: 1px solid #FCA5A5 !important;
+    background: #FFF2F2 !important;
+    color: #B91C1C !important;
     box-shadow: 0 4px 10px rgba(42,36,32,0.05) !important;
     z-index: 95 !important;
     justify-content: center !important;
     animation: timerSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+  #checkoutTimerBanner svg {
+    stroke: #B91C1C !important;
   }
 }
 

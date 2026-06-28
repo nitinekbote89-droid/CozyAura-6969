@@ -1294,7 +1294,7 @@ window.setDeliveryMethod = function(method) {
         if (!document.getElementById('lname').value) document.getElementById('lname').value = defaultAddr.lname || '';
         if (!document.getElementById('phone').value) document.getElementById('phone').value = defaultAddr.phone || '';
       } else {
-        const nameParts = (localStorage.getItem('lumiere_user_name') || '').split(' ');
+        const nameParts = (window.getLoggedInName() || '').split(' ');
         if (!document.getElementById('fname').value) document.getElementById('fname').value = nameParts[0] || '';
         if (!document.getElementById('lname').value) document.getElementById('lname').value = nameParts.slice(1).join(' ') || '';
       }
@@ -2370,17 +2370,15 @@ window.showNewAddressForm = function(isFirst = false) {
   document.getElementById('city').value = '';
   document.getElementById('state').value = '';
   
-  const fname = localStorage.getItem('lumiere_user_fname');
-  const lname = localStorage.getItem('lumiere_user_lname');
-  if (fname !== null || lname !== null) {
-    document.getElementById('fname').value = fname || '';
-    document.getElementById('lname').value = lname || '';
-  } else {
-    const loggedInName = localStorage.getItem('lumiere_user_name');
-    if (loggedInName) {
-      const nameParts = loggedInName.trim().split(/\s+/);
+  const user = authStore.getCurrentUser();
+  if (user) {
+    const rawName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+    if (rawName) {
+      const nameParts = rawName.trim().split(/\s+/);
       document.getElementById('fname').value = nameParts[0] || '';
       document.getElementById('lname').value = nameParts.slice(1).join(' ') || '';
+    } else if (user.email) {
+      document.getElementById('fname').value = user.email.split('@')[0] || '';
     }
   }
 
@@ -2605,17 +2603,15 @@ window.showNewAddressesPageForm = function() {
   document.getElementById('addr_city').value = '';
   document.getElementById('addr_state').value = '';
   
-  const fname = localStorage.getItem('lumiere_user_fname');
-  const lname = localStorage.getItem('lumiere_user_lname');
-  if (fname !== null || lname !== null) {
-    document.getElementById('addr_fname').value = fname || '';
-    document.getElementById('addr_lname').value = lname || '';
-  } else {
-    const loggedInName = localStorage.getItem('lumiere_user_name');
-    if (loggedInName) {
-      const nameParts = loggedInName.trim().split(/\s+/);
+  const user = authStore.getCurrentUser();
+  if (user) {
+    const rawName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+    if (rawName) {
+      const nameParts = rawName.trim().split(/\s+/);
       document.getElementById('addr_fname').value = nameParts[0] || '';
       document.getElementById('addr_lname').value = nameParts.slice(1).join(' ') || '';
+    } else if (user.email) {
+      document.getElementById('addr_fname').value = user.email.split('@')[0] || '';
     }
   }
 

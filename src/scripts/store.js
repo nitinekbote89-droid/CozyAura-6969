@@ -1934,7 +1934,7 @@ window.executeSecurePayment = async function() {
   }
 
   window._submittingOrder = true;
-  document.getElementById('processingOverlay').classList.add('active');
+  window.showLoadingOverlay("Processing your order...", "Please do not close the window or click back.");
   const prices = window.calculatePrices();
   const userEmail = window.getLoggedInEmail() || window.shippingInfo.email;
   const sessionToken = sessionStorage.getItem('lumiere_checkout_session') || 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
@@ -1977,7 +1977,7 @@ window.executeSecurePayment = async function() {
         body: JSON.stringify(payload)
       });
       const json = await res.json();
-      document.getElementById('processingOverlay').classList.remove('active');
+      window.hideLoadingOverlay();
       if (json.success) {
         window.stopCheckoutTimer();
         sessionStorage.removeItem('lumiere_checkout_session');
@@ -1992,7 +1992,7 @@ window.executeSecurePayment = async function() {
         window.showToast(json.error || "Order entry execution failed.", true);
       }
     } catch (e) {
-      document.getElementById('processingOverlay').classList.remove('active');
+      window.hideLoadingOverlay();
       window.showToast("Connection error while processing order.", true);
     }
     window._submittingOrder = false;
@@ -2025,7 +2025,7 @@ window.executeSecurePayment = async function() {
       const json = await res.json();
 
       if (!json.success) {
-        document.getElementById('processingOverlay').classList.remove('active');
+        window.hideLoadingOverlay();
         window.showToast(json.error || "Failed to initiate payment.", true);
         window._submittingOrder = false;
         return;
@@ -2039,7 +2039,7 @@ window.executeSecurePayment = async function() {
         description: "Order Checkout",
         order_id: json.razorpayOrderId,
         handler: async function (response) {
-          document.getElementById('processingOverlay').classList.add('active');
+          window.showLoadingOverlay("Processing your order...", "Please do not close the window or click back.");
           const payload = {
             action: "new_order",
             siteToken: "LUMIERE_STORE_2026",
@@ -2072,7 +2072,7 @@ window.executeSecurePayment = async function() {
               body: JSON.stringify(payload)
             });
             const orderJson = await orderRes.json();
-            document.getElementById('processingOverlay').classList.remove('active');
+            window.hideLoadingOverlay();
             if (orderJson.success) {
               window.stopCheckoutTimer();
               sessionStorage.removeItem('lumiere_checkout_session');
@@ -2087,7 +2087,7 @@ window.executeSecurePayment = async function() {
               window.showToast(orderJson.error || "Order execution failed.", true);
             }
           } catch (err) {
-            document.getElementById('processingOverlay').classList.remove('active');
+            window.hideLoadingOverlay();
             window.showToast("Connection error while processing order.", true);
           }
           window._submittingOrder = false;
@@ -2102,7 +2102,7 @@ window.executeSecurePayment = async function() {
         },
         modal: {
           ondismiss: function() {
-            document.getElementById('processingOverlay').classList.remove('active');
+            window.hideLoadingOverlay();
             window._submittingOrder = false;
           }
         }
@@ -2124,7 +2124,7 @@ window.executeSecurePayment = async function() {
       rzp.open();
 
     } catch (e) {
-      document.getElementById('processingOverlay').classList.remove('active');
+      window.hideLoadingOverlay();
       window.showToast("Failed to connect to gateway server.", true);
       window._submittingOrder = false;
     }

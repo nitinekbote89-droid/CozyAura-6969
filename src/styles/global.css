@@ -2679,6 +2679,16 @@ section.active {
   border-color: var(--gold-dark);
 }
 
+/* Checkout Timer Banner Style (Urgent red alert theme) */
+#checkoutTimerBanner {
+  background: #FFF2F2 !important;
+  border: 1px solid #FCA5A5 !important;
+  color: #B91C1C !important;
+}
+#checkoutTimerBanner svg {
+  stroke: #B91C1C !important;
+}
+
 /* Responsive positioning for Checkout Timer Banner on mobile/tablets */
 @media (max-width: 768px) {
   #checkoutTimerBanner {

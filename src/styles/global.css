@@ -557,7 +557,7 @@ section.active {
 @media (min-width: 961px) {
   #payment {
     height: 100vh;
-    padding: 5rem 2rem 1.5rem !important;
+    padding: clamp(4.5rem, 6vh, 5.5rem) clamp(1rem, 2.5vw, 2.5rem) clamp(1rem, 2vh, 2rem) !important;
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -577,7 +577,7 @@ section.active {
   .checkout-main-content {
     height: 100%;
     overflow-y: auto;
-    padding: 2.2rem 3.5rem;
+    padding: clamp(1rem, 3.5vh, 3rem) clamp(1.5rem, 4vw, 4rem);
     box-sizing: border-box;
     scrollbar-width: thin;
     scrollbar-color: var(--sand) transparent;
@@ -594,7 +594,7 @@ section.active {
   .checkout-sidebar-content {
     height: 100%;
     overflow-y: auto;
-    padding: 2.2rem 3.5rem;
+    padding: clamp(1rem, 3.5vh, 3rem) clamp(1.5rem, 4vw, 4rem);
     box-sizing: border-box;
     scrollbar-width: thin;
     scrollbar-color: var(--sand) transparent;

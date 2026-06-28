@@ -1,5 +1,37 @@
 const CORE_STORE_PROXY_ROUTE = "/api/store";
 
+// Centralized Auth Store with module-private variables
+let _currentUser = null;
+const _authListeners = new Set();
+
+const authStore = {
+  setCurrentUser(user) {
+    _currentUser = user;
+    _authListeners.forEach(callback => callback(_currentUser));
+  },
+  getCurrentUser() {
+    return _currentUser;
+  },
+  subscribe(callback) {
+    _authListeners.add(callback);
+    return () => _authListeners.delete(callback);
+  }
+};
+
+// Safe, read-only getters for window context binding (e.g. templates)
+window.getLoggedInEmail = () => authStore.getCurrentUser()?.email || null;
+window.getLoggedInName = () => {
+  const user = authStore.getCurrentUser();
+  return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || null;
+};
+window.isUserLoggedIn = () => !!authStore.getCurrentUser();
+
+// Clean up legacy insecure PII keys
+(function() {
+  const legacyKeys = ['lumiere_user_email', 'lumiere_user_name', 'lumiere_user_fname', 'lumiere_user_lname', 'lumiere_user_avatar'];
+  legacyKeys.forEach(key => localStorage.removeItem(key));
+})();
+
 window.STORE_PICKUP_ADDRESS = "Lumière Studio, Koregaon Park, Pune, Maharashtra - 411001";
 window.deliveryMethod = "Shipping";
 
@@ -373,14 +405,14 @@ window.updatePageMeta = function(pageId) {
 window.showPage = function(pageId, updateHistory = true) {
   // Require login for protected pages
   const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage'];
-  if (protectedPages.includes(pageId) && !localStorage.getItem('lumiere_user_email')) {
+  if (protectedPages.includes(pageId) && !window.isUserLoggedIn()) {
     localStorage.setItem('lumiere_login_redirect', pageId);
     window.showLogin();
     return;
   }
 
   // Payment page requires login — if not logged in, send to cart instead
-  if (pageId === 'payment' && !localStorage.getItem('lumiere_user_email')) {
+  if (pageId === 'payment' && !window.isUserLoggedIn()) {
     pageId = 'cartPage';
   }
 
@@ -718,7 +750,7 @@ window.notifyMe = function() {
 
   const pName = window.currentProduct.name;
   const vName = window.selectedVariant.name;
-  const loggedInEmail = localStorage.getItem('lumiere_user_email');
+  const loggedInEmail = window.getLoggedInEmail();
 
   if (errorEl) errorEl.style.display = 'none';
 
@@ -943,7 +975,8 @@ window.fallbackAvatar = function(img) {
 window.renderAccountAvatar = function() {
   const btn = document.getElementById('navAccountBtn');
   if (!btn) return;
-  const avatar = localStorage.getItem('lumiere_user_avatar');
+  const user = authStore.getCurrentUser();
+  const avatar = user?.user_metadata?.avatar_url || '';
   if (avatar) {
     btn.innerHTML = '<img src="' + avatar + '" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" onerror="window.fallbackAvatar(this)">';
   } else {
@@ -951,17 +984,17 @@ window.renderAccountAvatar = function() {
   }
   const header = document.getElementById('dropdownUserInfo');
   if (header) {
-    const name = localStorage.getItem('lumiere_user_name');
-    const email = localStorage.getItem('lumiere_user_email');
+    const email = user?.email || null;
+    const name = user?.user_metadata?.full_name || user?.user_metadata?.name || email?.split('@')[0] || 'User';
     if (email) {
-      header.innerHTML = `<div style="font-weight:500;color:var(--charcoal);">${name || 'User'}</div><div style="font-size:0.68rem;color:var(--stone);margin-top:0.25rem;text-transform:none;letter-spacing:normal;font-weight:300;">${email}</div>`;
+      header.innerHTML = `<div style="font-weight:500;color:var(--charcoal);">${name}</div><div style="font-size:0.68rem;color:var(--stone);margin-top:0.25rem;text-transform:none;letter-spacing:normal;font-weight:300;">${email}</div>`;
     } else {
       header.textContent = 'Guest';
     }
   }
   const logout = document.getElementById('dropdownLogout');
   if (logout) {
-    logout.textContent = localStorage.getItem('lumiere_user_email') ? 'Log Out' : 'Sign In';
+    logout.textContent = user ? 'Log Out' : 'Sign In';
   }
 }
 
@@ -994,7 +1027,7 @@ window.confirmLogout = function() {
 };
 
 window.handleAccountDropdownAction = function() {
-  if (localStorage.getItem('lumiere_user_email')) {
+  if (window.isUserLoggedIn()) {
     window.confirmLogout();
   } else {
     window.showLogin();
@@ -1007,7 +1040,7 @@ window.closeAccountMenu = function() {
 };
 
 window.toggleAccountMenu = function() {
-  if (!localStorage.getItem('lumiere_user_email')) {
+  if (!window.isUserLoggedIn()) {
     window.showLogin();
     return;
   }
@@ -1245,7 +1278,7 @@ window.setDeliveryMethod = function(method) {
     if (form) form.style.display = 'block';
     
     // Prefill form contact info if logged in
-    const loggedInEmail = localStorage.getItem('lumiere_user_email');
+    const loggedInEmail = window.getLoggedInEmail();
     if (loggedInEmail) {
       const emailField = document.getElementById('email');
       if (emailField) {
@@ -1610,7 +1643,7 @@ window.goToCheckout = async function() {
   }
 
   // Require Google login for checking out
-  const email = localStorage.getItem('lumiere_user_email');
+  const email = window.getLoggedInEmail();
   if (!email) {
     localStorage.setItem('lumiere_login_redirect', 'payment');
     window.showLogin();
@@ -1639,7 +1672,7 @@ window.goBackToShipping = function() {
 };
 
 window.proceedToPayment = async function() {
-  const loggedInEmail = localStorage.getItem('lumiere_user_email');
+  const loggedInEmail = window.getLoggedInEmail();
   if (window.deliveryMethod === 'Pickup') {
     const form = document.getElementById('checkoutForm');
     if (form && !form.reportValidity()) {
@@ -1903,7 +1936,7 @@ window.executeSecurePayment = async function() {
   window._submittingOrder = true;
   document.getElementById('processingOverlay').classList.add('active');
   const prices = window.calculatePrices();
-  const userEmail = localStorage.getItem('lumiere_user_email') || window.shippingInfo.email;
+  const userEmail = window.getLoggedInEmail() || window.shippingInfo.email;
   const sessionToken = sessionStorage.getItem('lumiere_checkout_session') || 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
   sessionStorage.setItem('lumiere_checkout_session', sessionToken);
 
@@ -2098,24 +2131,23 @@ window.executeSecurePayment = async function() {
   }
 };
 
+window.clearUserProfileState = function() {
+  window._ordersData = null;
+  var list = document.getElementById('myOrdersListContainer');
+  if (list) list.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 2rem 0;">No order history found.</p>';
+  var detail = document.getElementById('orderDetailContent');
+  if (detail) { detail.style.display = 'none'; }
+  var empty = document.getElementById('orderDetailEmpty');
+  if (empty) empty.style.display = 'block';
+  localStorage.removeItem('lumiere_user_phone');
+  localStorage.removeItem('lumiere_user_addresses');
+  window.renderAccountAvatar();
+};
+
 window.showLogin = function() {
-  if (localStorage.getItem('lumiere_user_email')) {
+  if (window.isUserLoggedIn()) {
     getSupabase().then(supabase => supabase.auth.signOut());
-    localStorage.removeItem('lumiere_user_email');
-    localStorage.removeItem('lumiere_user_name');
-    localStorage.removeItem('lumiere_user_fname');
-    localStorage.removeItem('lumiere_user_lname');
-    window._ordersData = null;
-    var list = document.getElementById('myOrdersListContainer');
-    if (list) list.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 2rem 0;">No order history found.</p>';
-    var detail = document.getElementById('orderDetailContent');
-    if (detail) { detail.style.display = 'none'; }
-    var empty = document.getElementById('orderDetailEmpty');
-    if (empty) empty.style.display = 'block';
-    localStorage.removeItem('lumiere_user_avatar');
-    localStorage.removeItem('lumiere_user_phone');
-    localStorage.removeItem('lumiere_user_addresses');
-    renderAccountAvatar();
+    window.clearUserProfileState();
     return;
   }
   window.loginWithGoogle();
@@ -2156,12 +2188,8 @@ window.checkoutGoogleLogin = function() {
 };
 
 window.prefillContactForm = function() {
-  const loggedInEmail = localStorage.getItem('lumiere_user_email');
-  const fname = localStorage.getItem('lumiere_user_fname');
-  const lname = localStorage.getItem('lumiere_user_lname');
-  const loggedInName = (fname !== null || lname !== null) 
-    ? `${fname || ''} ${lname || ''}`.trim() 
-    : localStorage.getItem('lumiere_user_name');
+  const loggedInEmail = window.getLoggedInEmail();
+  const loggedInName = window.getLoggedInName();
   const nameField = document.getElementById('contactName');
   const emailField = document.getElementById('contactEmail');
 
@@ -2181,7 +2209,7 @@ window.prefillContactForm = function() {
       if (!emailField._hasLoginHandler) {
         emailField._hasLoginHandler = true;
         const triggerLogin = function(e) {
-          if (!localStorage.getItem('lumiere_user_email')) {
+          if (!window.isUserLoggedIn()) {
             e.preventDefault();
             localStorage.setItem('lumiere_login_redirect', 'contact');
             window.showLogin();
@@ -2194,8 +2222,9 @@ window.prefillContactForm = function() {
 };
 
 window.prefillCheckoutForm = async function() {
-  const loggedInEmail = localStorage.getItem('lumiere_user_email');
-  const loggedInName = localStorage.getItem('lumiere_user_name');
+  const user = authStore.getCurrentUser();
+  const loggedInEmail = user?.email || null;
+  const loggedInName = user?.user_metadata?.full_name || user?.user_metadata?.name || null;
   const autofillBtn = document.getElementById('googleAutofillBtn');
   const savedSec = document.getElementById('savedAddressesSection');
   const form = document.getElementById('checkoutForm');
@@ -2311,7 +2340,7 @@ window.selectAddressCard = function(id) {
     window.shippingInfo = {
       fname: addr.fname,
       lname: addr.lname,
-      email: localStorage.getItem('lumiere_user_email') || '',
+      email: window.getLoggedInEmail() || '',
       address: addr.address,
       city: addr.city,
       state: addr.state,
@@ -2433,7 +2462,7 @@ window.deleteAddressCard = function(id, event) {
     text: 'Are you sure you want to delete this address?',
     confirmText: 'Delete',
     onConfirm: () => {
-      const email = localStorage.getItem('lumiere_user_email');
+      const email = window.getLoggedInEmail();
       if (!email) return;
 
       window.showLoadingOverlay("Deleting address...");
@@ -2471,7 +2500,7 @@ window.saveAddressForm = function() {
   const form = document.getElementById('checkoutForm');
   if (form && !form.reportValidity()) return;
 
-  const email = localStorage.getItem('lumiere_user_email');
+  const email = window.getLoggedInEmail();
   if (!email) return;
 
   const payload = {
@@ -2515,7 +2544,7 @@ window.saveAddressForm = function() {
 };
 
 window.renderAddressesPage = function() {
-  const email = localStorage.getItem('lumiere_user_email');
+  const email = window.getLoggedInEmail();
   if (!email) return;
 
   const grid = document.getElementById('addressesPageGrid');
@@ -2664,7 +2693,7 @@ window.deleteAddressesPageCard = function(id) {
     text: 'Are you sure you want to delete this address?',
     confirmText: 'Delete',
     onConfirm: () => {
-      const email = localStorage.getItem('lumiere_user_email');
+      const email = window.getLoggedInEmail();
       if (!email) return;
 
       window.showLoadingOverlay("Deleting address...");
@@ -2703,7 +2732,7 @@ window.saveAddressesPageForm = function() {
   const form = document.getElementById('addressesPageForm');
   if (form && !form.reportValidity()) return;
 
-  const email = localStorage.getItem('lumiere_user_email');
+  const email = window.getLoggedInEmail();
   if (!email) return;
 
   const payload = {
@@ -2796,7 +2825,7 @@ window.syncUserProfile = async function(email, callback) {
 };
 
 window.fetchMyOrders = async function() {
-  var email = localStorage.getItem('lumiere_user_email');
+  var email = window.getLoggedInEmail();
   if (!email) return;
   var list = document.getElementById('myOrdersListContainer');
   var detail = document.getElementById('orderDetailContent');
@@ -3358,99 +3387,23 @@ window.triggerCelebration = function() {
 };
 
 window.addEventListener('DOMContentLoaded', async () => {
+  // Show global boot loader by default immediately on DOMContentLoaded
+  const bootLoader = document.getElementById('globalBootLoader');
+  if (bootLoader) bootLoader.classList.add('active');
+
   const params = new URLSearchParams(window.location.search);
   const authError = params.get('auth_error');
   if (authError) {
     window.showToast('Sign in error: ' + decodeURIComponent(authError), true);
     window.history.replaceState({}, '', '/');
   }
-  const userEmail = params.get('user_email');
-  const userName = params.get('user_name');
-  const userAvatar = params.get('user_avatar');
 
-  // If there's no userEmail in the URL, they did not just complete a Google login flow.
-  // Clear any pending login redirect to prevent getting stuck in a redirect loop if they clicked "back" from Google.
-  if (!userEmail) {
-    localStorage.removeItem('lumiere_login_redirect');
-  }
-
-  const initialLoginRedirect = localStorage.getItem('lumiere_login_redirect');
-  if (initialLoginRedirect) {
-    localStorage.removeItem('lumiere_login_redirect');
-  }
-
-  if (userEmail) {
-    localStorage.setItem('lumiere_user_email', userEmail);
-    const fullName = (userName || userEmail.split('@')[0]).trim();
-    const parts = fullName.split(/\s+/);
-    const fName = parts[0] || '';
-    const lName = parts.slice(1).join(' ') || '';
-    localStorage.setItem('lumiere_user_fname', fName);
-    localStorage.setItem('lumiere_user_lname', lName);
-    localStorage.setItem('lumiere_user_name', fullName);
-    if (userAvatar) localStorage.setItem('lumiere_user_avatar', userAvatar);
-    if (window.syncUserProfile) {
-      window.syncUserProfile(userEmail, (userData) => {
-        const redirect = initialLoginRedirect;
-
-        if (redirect === 'payment') {
-          // After Google login for checkout: ensure they have an address first
-          const addresses = userData?.addresses || [];
-          if (addresses.length === 0) {
-            // No address saved — open the address form, then continue to checkout after save
-            window.showPage('payment');
-            window.prefillCheckoutForm();
-          } else {
-            window.goToCheckout();
-          }
-        } else if (redirect === 'addressesPage') {
-          window.showPage('addressesPage');
-          window.displayAddressesPageList();
-        } else if (redirect === 'ordersPage') {
-          window.showPage('ordersPage');
-        } else if (redirect === 'contact') {
-          window.showPage('contact');
-        } else {
-          const activePage = localStorage.getItem('lumiere_active_page');
-          if (activePage === 'payment') {
-            window.prefillCheckoutForm();
-          } else if (activePage === 'contact') {
-            window.prefillContactForm();
-          }
-        }
-      });
-    }
+  // Clear query params in history for cleaner URL
+  if (params.get('user_email')) {
     window.history.replaceState({}, '', '/');
-  } else if (localStorage.getItem('lumiere_user_email')) {
-    getSupabase().then(async (supabase) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        localStorage.removeItem('lumiere_user_email');
-        localStorage.removeItem('lumiere_user_fname');
-        localStorage.removeItem('lumiere_user_lname');
-        localStorage.removeItem('lumiere_user_name');
-        localStorage.removeItem('lumiere_user_avatar');
-        localStorage.removeItem('lumiere_user_addresses');
-        window.renderAccountAvatar();
-        return;
-      }
-      if (window.syncUserProfile) {
-        window.syncUserProfile(localStorage.getItem('lumiere_user_email'), () => {
-          const activePage = localStorage.getItem('lumiere_active_page');
-          if (activePage === 'payment') {
-            window.prefillCheckoutForm();
-          } else if (activePage === 'addressesPage') {
-            window.displayAddressesPageList();
-          } else if (activePage === 'contact') {
-            window.prefillContactForm();
-          }
-        });
-      }
-    });
   }
-  renderAccountAvatar();
-  window.fetchWishlist();
 
+  // Initialize cart
   const savedCart = localStorage.getItem('lumiere_cart');
   window.cart = [];
   if (savedCart) {
@@ -3463,41 +3416,88 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
   window.updateCart();
-  const savedPage = localStorage.getItem('lumiere_active_page');
-  const urlPage = params.get('page');
 
-  let targetPage = 'home';
-  if (initialLoginRedirect) {
-    targetPage = initialLoginRedirect;
-  } else if (urlPage && pages.includes(urlPage)) {
-    targetPage = urlPage;
-  } else if (savedPage && pages.includes(savedPage)) {
-    targetPage = savedPage;
-  }
+  // Load Supabase and start auth observer
+  const supabase = await getSupabase();
+  let isInitialAuthCheck = true;
 
-  // Require login for protected pages on initial load
-  const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage'];
-  if (protectedPages.includes(targetPage) && !localStorage.getItem('lumiere_user_email')) {
-    localStorage.setItem('lumiere_login_redirect', targetPage);
-    window.showLogin();
-    return;
-  }
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    const user = session?.user || null;
+    authStore.setCurrentUser(user);
 
-  // Payment page requires login — if not logged in and somehow landed here, go to cart
-  if (targetPage === 'payment' && !localStorage.getItem('lumiere_user_email')) {
-    targetPage = 'cartPage';
-  }
+    if (user) {
+      // Sync profile & load orders/wishlist
+      window.syncUserProfile(user.email, () => {
+        const activePage = localStorage.getItem('lumiere_active_page');
+        if (activePage === 'payment') {
+          window.prefillCheckoutForm();
+        } else if (activePage === 'addressesPage') {
+          window.displayAddressesPageList();
+        } else if (activePage === 'contact') {
+          window.prefillContactForm();
+        }
+      });
+      window.fetchMyOrders();
+    } else {
+      // Sign out event or unauthenticated state
+      window.clearUserProfileState();
+      
+      // Auto-slide back to home if user was on a protected page
+      const activePage = localStorage.getItem('lumiere_active_page');
+      const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage', 'payment'];
+      if (protectedPages.includes(activePage)) {
+        window.showPage('home');
+      }
+    }
 
-  // Set initial state so Back button works when going back to the first page loaded
-  const url = new URL(window.location.href);
-  url.searchParams.set('page', targetPage);
-  window.history.replaceState({ pageId: targetPage }, '', url.pathname + url.search);
+    // Handle initial app boot routing once session is resolved
+    if (isInitialAuthCheck) {
+      isInitialAuthCheck = false;
 
-  // Show page immediately to prevent flicker/redirect effect
-  window.showPage(targetPage, false);
+      const initialLoginRedirect = localStorage.getItem('lumiere_login_redirect');
+      if (initialLoginRedirect) {
+        localStorage.removeItem('lumiere_login_redirect');
+      }
 
-  await syncCatalogDataset();
-  if (localStorage.getItem('lumiere_user_email')) { window.fetchMyOrders(); }
+      const savedPage = localStorage.getItem('lumiere_active_page');
+      const urlPage = params.get('page');
+
+      let targetPage = 'home';
+      if (initialLoginRedirect) {
+        targetPage = initialLoginRedirect;
+      } else if (urlPage && pages.includes(urlPage)) {
+        targetPage = urlPage;
+      } else if (savedPage && pages.includes(savedPage)) {
+        targetPage = savedPage;
+      }
+
+      // Check access permission for target page
+      const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage'];
+      if (protectedPages.includes(targetPage) && !user) {
+        localStorage.setItem('lumiere_login_redirect', targetPage);
+        window.showLogin();
+        targetPage = 'home';
+      }
+
+      if (targetPage === 'payment' && !user) {
+        targetPage = 'cartPage';
+      }
+
+      // Initialize route and load catalog
+      const url = new URL(window.location.href);
+      url.searchParams.set('page', targetPage);
+      window.history.replaceState({ pageId: targetPage }, '', url.pathname + url.search);
+      window.showPage(targetPage, false);
+
+      await syncCatalogDataset();
+
+      // Fade out and remove boot loader
+      if (bootLoader) {
+        bootLoader.classList.remove('active');
+        setTimeout(() => bootLoader.remove(), 300);
+      }
+    }
+  });
 });
 
 window.addEventListener('popstate', (e) => {
@@ -3645,7 +3645,7 @@ window.isProductWishlisted = function(productId, variantName) {
 };
 
 window.toggleWishlistFromModal = async function() {
-  const email = localStorage.getItem('lumiere_user_email');
+  const email = window.getLoggedInEmail();
   if (!email) {
     localStorage.setItem('lumiere_login_redirect', 'wishlistPage');
     window.showLogin();
@@ -3718,7 +3718,7 @@ window.toggleWishlistFromModal = async function() {
 };
 
 window.fetchWishlist = async function() {
-  const email = localStorage.getItem('lumiere_user_email');
+  const email = window.getLoggedInEmail();
   if (!email) {
     window.wishlistCache = [];
     return;
@@ -3811,7 +3811,7 @@ window.renderWishlist = async function() {
 };
 
 window.removeFromWishlist = async function(productId, variantName) {
-  const email = localStorage.getItem('lumiere_user_email');
+  const email = window.getLoggedInEmail();
   if (!email) return;
 
   try {

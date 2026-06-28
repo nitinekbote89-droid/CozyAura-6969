@@ -3144,3 +3144,24 @@ section.active {
     height: 24px;
   }
 }
+
+/* Star Rating Feedback System */
+.star-rating-container {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.star-rating-item {
+  font-size: 1.8rem;
+  color: var(--taupe);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.star-rating-item:hover,
+.star-rating-item:hover ~ .star-rating-item {
+  color: var(--gold-dark);
+}

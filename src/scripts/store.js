@@ -3084,6 +3084,36 @@ window.showOrderDetail = function(id, isAuto) {
   var step2Icon = isPickup ? window.__svg.package : window.__svg.truck;
   var step3Icon = isPickup ? window.__svg.check_circle : window.__svg.home;
 
+  var feedbackHtml = '';
+  if (order.status === 'Delivered') {
+    var storedFeedbackKey = 'lumiere_order_feedback_' + order.id;
+    var submittedRating = localStorage.getItem(storedFeedbackKey);
+    
+    if (submittedRating) {
+      feedbackHtml = 
+        '<div class="order-feedback-card" style="margin-top:1.5rem; background:rgba(184,151,90,0.05); border:1px solid rgba(184,151,90,0.2); padding:1.2rem; border-radius:8px; text-align:center;">' +
+          '<div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.4rem; font-weight:500;">Your Feedback</div>' +
+          '<div style="font-size:1.4rem; color:var(--gold-dark); margin-bottom:0.25rem; display:flex; justify-content:center; gap:0.25rem;">' + 
+            [1,2,3,4,5].map(function(num) {
+              return '<span style="color:' + (num <= parseInt(submittedRating) ? 'var(--gold-dark)' : 'var(--taupe)') + ';">★</span>';
+            }).join('') + 
+          '</div>' +
+          '<div style="font-size:0.8rem; color:var(--stone); font-style:italic;">Thank you for your 5-star rating!</div>' +
+        '</div>';
+    } else {
+      feedbackHtml = 
+        '<div class="order-feedback-card" id="feedbackCard_' + order.id + '" style="margin-top:1.5rem; background:var(--cream); border:1px dashed var(--taupe); padding:1.2rem; border-radius:8px; text-align:center;">' +
+          '<div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.4rem; font-weight:500;">How was your experience?</div>' +
+          '<div class="star-rating-container" style="margin-bottom:0.4rem;">' +
+            [5,4,3,2,1].map(function(num) {
+              return '<span class="star-rating-item" onclick="window.submitOrderFeedback(\'' + order.id + '\', ' + num + ')">★</span>';
+            }).join('') +
+          '</div>' +
+          '<div style="font-size:0.8rem; color:var(--stone);">Tap a star to leave a review</div>' +
+        '</div>';
+    }
+  }
+
   var contentHtml =
     '<div class="order-detail-header"><h3 class="order-detail-title" style="margin:0;line-height:1;">Order ID: ' + order.id + '</h3><span class="status-pill ' + order.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span></div>' +
     '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle">' + step1Icon + '</div><span class="tracker-label">' + step1Label + '</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle">' + step2Icon + '</div><span class="tracker-label">' + step2Label + '</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle">' + step3Icon + '</div><span class="tracker-label">' + step3Label + '</span></div></div></div>' +
@@ -3108,6 +3138,7 @@ window.showOrderDetail = function(id, isAuto) {
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;border-bottom:1px dashed rgba(196,181,160,0.2);padding-bottom:0.5rem;"><span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--stone);font-weight:500;">Order Invoice</span><span style="font-size:0.8rem;color:var(--stone);font-weight:400;">' + new Date(order.date).toLocaleDateString() + '</span></div>' +
       itemsHtml +
       breakdownHtml +
+      feedbackHtml +
       (window.innerWidth < 1024 ? '<button class="btn-primary" onclick="window.closeOrderDetailModal()" style="width:100%; margin-top:1.5rem; padding: 1rem; font-size:0.75rem; letter-spacing:0.18em; text-transform:uppercase; border-radius:2px; cursor:pointer;">Close Details</button>' : '') +
     '</div>';
 
@@ -3913,6 +3944,15 @@ window.toggleShopFilters = function(event) {
     panel.classList.toggle('active');
     btn.classList.toggle('active');
   }
+};
+
+window.submitOrderFeedback = function(orderId, rating) {
+  const key = 'lumiere_order_feedback_' + orderId;
+  localStorage.setItem(key, rating);
+  window.showToast("Thank you for your rating!");
+  
+  // Re-render order details to show submitted feedback state
+  window.showOrderDetail(orderId);
 };
 
 (function() {

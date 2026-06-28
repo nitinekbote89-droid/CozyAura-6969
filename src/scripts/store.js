@@ -3904,6 +3904,17 @@ window.addWishlistItemToCart = function(productId, variantName) {
 window.handleBottomNavClick = function(pageId, element) {
   window.showPage(pageId);
 };
+
+window.toggleShopFilters = function(event) {
+  if (event) event.stopPropagation();
+  const panel = document.getElementById('shopFiltersPanel');
+  const btn = event.currentTarget;
+  if (panel) {
+    panel.classList.toggle('active');
+    btn.classList.toggle('active');
+  }
+};
+
 (function() {
   var q = window._pageQueue;
   if (q) {

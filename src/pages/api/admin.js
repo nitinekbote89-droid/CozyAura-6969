@@ -273,7 +273,7 @@ export async function GET({ request }) {
       const profilePromises = emailArr.map(async (email) => {
         const [{ data: addrs }, { data: orders }, { data: wishlist }] = await Promise.all([
           supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').eq('user_email', email).limit(5),
-          supabase.from('orders').select('id, total, status, date, delivery_method').eq('shipping_email', email).order('date', { ascending: false }).limit(20),
+          supabase.from('orders').select('id, total, status, date, delivery_method').eq('shipping_email', email).order('date', { ascending: false }).limit(200),
           supabase.from('wishlist').select('product_id').eq('user_email', email).limit(100)
         ]);
 
@@ -297,7 +297,7 @@ export async function GET({ request }) {
           phone: (phone || '').trim(),
           ordersCount: (orders || []).length,
           wishlistCount: (wishlist || []).length,
-          recentOrders: (orders || []).slice(0, 5).map(o => ({
+          recentOrders: (orders || []).map(o => ({
             id: o.id,
             total: o.total,
             status: o.status,

@@ -884,12 +884,10 @@ window.viewOrderDetails = function(orderId) {
 
     const isPickup = order.deliveryMethod === 'Pickup';
     const trackingSection = document.getElementById('modalTrackingSection');
-    const pickupFields = document.getElementById('modalPickupFields');
     const updateTrackingBtn = document.querySelector('#orderModal button[onclick="window.saveTrackingFromModal()"]');
     
     if (isPickup) {
         if (trackingSection) trackingSection.style.display = 'none';
-        if (pickupFields) pickupFields.style.display = 'block';
         if (updateTrackingBtn) {
             if (order.status === 'Shipped') {
                 updateTrackingBtn.textContent = 'Ready for Pickup (Click to Re-save)';
@@ -901,7 +899,6 @@ window.viewOrderDetails = function(orderId) {
         }
     } else {
         if (trackingSection) trackingSection.style.display = 'block';
-        if (pickupFields) pickupFields.style.display = 'none';
         if (updateTrackingBtn) updateTrackingBtn.textContent = 'Update Tracking & Ship Order';
     }
 

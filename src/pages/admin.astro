@@ -870,7 +870,7 @@ import AdminModals from '../components/AdminModals.astro';
           <td>₹${orderTotal.toLocaleString('en-IN')}</td>
           <td>${window.getOrderBadge(order.status, order.deliveryMethod)}</td>
           <td>
-            <select class="status-select" onchange="window.updateOrderStatus('${encodeURIComponent(String(order.id ?? ''))}', this.value)">
+            <select class="status-select" onmousedown="if(!confirm('Are you sure you want to change the status of this order?')) { event.preventDefault(); }" onchange="window.updateOrderStatus('${encodeURIComponent(String(order.id ?? ''))}', this.value)">
               ${statusOptions}
             </select>
           </td>

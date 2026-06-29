@@ -2266,7 +2266,7 @@ section.active {
     max-width: 100% !important;
   }
   .confirm-actions {
-    flex-direction: column;
+    flex-direction: column-reverse;
   }
   .confirm-btn {
     padding: 0.8rem;

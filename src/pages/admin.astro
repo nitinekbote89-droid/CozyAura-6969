@@ -148,7 +148,7 @@ import AdminModals from '../components/AdminModals.astro';
       <!-- Orders Pane -->
       <div id="tab-orders" class="tab-pane">
         <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; flex-shrink: 0;">
-          <input type="text" id="orderSearchInput" placeholder="Search by order # or customer name instantly..." oninput="window.renderOrders()" style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
+          <input type="text" id="orderSearchInput" placeholder="Search by order #, customer name, or email instantly..." oninput="window.renderOrders()" style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
           <select id="orderDeliveryFilter" onchange="window.onDeliveryFilterChange()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="All">All Orders</option>
             <option value="Shipping">Home Delivery</option>

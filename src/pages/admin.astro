@@ -815,7 +815,7 @@ import AdminModals from '../components/AdminModals.astro';
 
   window.renderOrders = function() {
     const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
-    const pagination = JSON.parse(localStorage.getItem('lumiere_admin_orders_pagination') || '{"page":0,"pageSize":50,"totalOrders":0,"totalPages":1}');
+    const pagination = JSON.parse(localStorage.getItem('lumiere_admin_orders_pagination') || '{"page":0,"pageSize":200,"totalOrders":0,"totalPages":1}');
     window._ordersCurrentPage = pagination.page || 0;
 
     const tbody = document.getElementById('ordersBody'); 

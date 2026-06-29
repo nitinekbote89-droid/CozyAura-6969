@@ -47,7 +47,7 @@ window.syncCloudInventory = async function(page = null) {
         if (json.success && json.data) {
             localStorage.setItem('lumiere_admin_inventory', JSON.stringify(json.data.inventory));
             localStorage.setItem('lumiere_admin_orders', JSON.stringify(json.data.orders));
-            localStorage.setItem('lumiere_admin_orders_pagination', JSON.stringify(json.data.pagination || { page: 0, pageSize: 50, totalOrders: 0, totalPages: 1 }));
+            localStorage.setItem('lumiere_admin_orders_pagination', JSON.stringify(json.data.pagination || { page: 0, pageSize: 200, totalOrders: 0, totalPages: 1 }));
             localStorage.setItem('lumiere_admin_coupons', JSON.stringify(json.data.coupons));
             localStorage.setItem('lumiere_admin_fragrances', JSON.stringify(json.data.fragrances));
             localStorage.setItem('lumiere_admin_storefront_images', JSON.stringify(json.data.storefrontImages || {}));

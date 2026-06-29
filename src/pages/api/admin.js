@@ -401,8 +401,8 @@ export async function GET({ request }) {
       return new Response(JSON.stringify({ success: true, customers }), { status: 200 });
     }
 
-    // Pagination: 50 orders per page
-    const PAGE_SIZE = 50;
+    // Pagination: 200 orders per page
+    const PAGE_SIZE = 200;
     const page = Math.max(0, parseInt(url.searchParams.get('page') || '0', 10));
     const pageStart = page * PAGE_SIZE;
     const pageEnd = pageStart + PAGE_SIZE - 1;

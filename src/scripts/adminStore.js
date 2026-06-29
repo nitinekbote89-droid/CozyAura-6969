@@ -883,15 +883,13 @@ window.viewOrderDetails = function(orderId) {
     document.getElementById('orderModalStatus').innerHTML = window.getOrderBadge(order.status, order.deliveryMethod);
 
     const isPickup = order.deliveryMethod === 'Pickup';
-    const trackingFields = document.getElementById('modalTrackingFields');
+    const trackingSection = document.getElementById('modalTrackingSection');
     const pickupFields = document.getElementById('modalPickupFields');
-    const trackingHeader = document.querySelector('#orderModal h4');
     const updateTrackingBtn = document.querySelector('#orderModal button[onclick="window.saveTrackingFromModal()"]');
     
     if (isPickup) {
-        if (trackingFields) trackingFields.style.display = 'none';
+        if (trackingSection) trackingSection.style.display = 'none';
         if (pickupFields) pickupFields.style.display = 'block';
-        if (trackingHeader) trackingHeader.textContent = 'Store Pickup Options';
         if (updateTrackingBtn) {
             if (order.status === 'Shipped') {
                 updateTrackingBtn.textContent = 'Ready for Pickup (Click to Re-save)';
@@ -902,9 +900,8 @@ window.viewOrderDetails = function(orderId) {
             }
         }
     } else {
-        if (trackingFields) trackingFields.style.display = 'grid';
+        if (trackingSection) trackingSection.style.display = 'block';
         if (pickupFields) pickupFields.style.display = 'none';
-        if (trackingHeader) trackingHeader.textContent = 'Courier & Tracking Information';
         if (updateTrackingBtn) updateTrackingBtn.textContent = 'Update Tracking & Ship Order';
     }
 

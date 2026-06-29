@@ -250,7 +250,7 @@ import AdminModals from '../components/AdminModals.astro';
         <div class="search-bar" style="margin-bottom: 20px;">
           <input type="text" id="customerSearchInput" placeholder="Search by name, email, or phone..." oninput="window.renderCustomersList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
         </div>
-        <div class="table-container" style="max-height: calc(100vh - 240px); overflow-y: auto;">
+        <div class="table-container" style="max-height: calc(100vh - 300px); overflow-y: auto;">
           <table>
             <thead>
               <tr>
@@ -268,6 +268,7 @@ import AdminModals from '../components/AdminModals.astro';
             </tbody>
           </table>
         </div>
+        <div id="customersPaginationContainer" style="margin-top: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;"></div>
       </div>
 
       <!-- Feedback Pane -->

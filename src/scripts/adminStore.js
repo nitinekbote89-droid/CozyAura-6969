@@ -1398,28 +1398,28 @@ window.renderCustomersList = function(resetPage) {
     `</tr>`;
   }).join('');
 
-  // Pagination controls & hint row
-  if (totalPages > 1 || !hasActiveSearch) {
-    const hintText = !hasActiveSearch ? `Showing <strong>${filtered.length}</strong> most recent customers &nbsp;·&nbsp; Search by name, email or phone to find anyone` : '';
-    const controlsHtml = totalPages > 1 ? 
-      `<div style="display:inline-flex; align-items:center; gap:12px; font-size:0.8rem; color:var(--text-muted);">
-        <button onclick="window._customersListPage=Math.max(0,window._customersListPage-1); window.renderCustomersList();" 
-          style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
-          ${currentPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
-        <span>Page ${currentPage + 1} of ${totalPages} &nbsp;(${filtered.length} total)</span>
-        <button onclick="window._customersListPage=Math.min(${totalPages-1},window._customersListPage+1); window.renderCustomersList();"
-          style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
-          ${currentPage >= totalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
-      </div>` : '';
+  // Pagination controls & hint wrapper
+  const paginationContainer = document.getElementById('customersPaginationContainer');
+  if (paginationContainer) {
+    paginationContainer.innerHTML = '';
+    if (totalPages > 1 || !hasActiveSearch) {
+      const hintText = !hasActiveSearch ? `Showing <strong>${filtered.length}</strong> most recent customers &nbsp;·&nbsp; Search by name, email or phone to find anyone` : '';
+      const controlsHtml = totalPages > 1 ? 
+        `<div style="display:inline-flex; align-items:center; gap:12px; font-size:0.85rem; color:var(--text-muted); margin-bottom: 4px;">
+          <button onclick="window._customersListPage=Math.max(0,window._customersListPage-1); window.renderCustomersList();" 
+            style="padding:6px 14px; border:1px solid var(--border); border-radius:6px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.85rem;"
+            ${currentPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
+          <span>Page ${currentPage + 1} of ${totalPages} &nbsp;(${filtered.length} total)</span>
+          <button onclick="window._customersListPage=Math.min(${totalPages-1},window._customersListPage+1); window.renderCustomersList();"
+            style="padding:6px 14px; border:1px solid var(--border); border-radius:6px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.85rem;"
+            ${currentPage >= totalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
+        </div>` : '';
 
-    const controlRow = document.createElement('tr');
-    controlRow.innerHTML = `<td colspan="7" style="padding:16px 0; text-align:center; background:transparent;">
-      <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+      paginationContainer.innerHTML = `
         ${controlsHtml}
-        ${hintText ? `<p style="font-size:0.75rem; color:var(--text-muted); margin:4px 0 0 0; opacity:0.7;">${hintText}</p>` : ''}
-      </div>
-    </td>`;
-    tbody.appendChild(controlRow);
+        ${hintText ? `<p style="font-size:0.78rem; color:var(--text-muted); margin:4px 0 0 0; opacity:0.8;">${hintText}</p>` : ''}
+      `;
+    }
   }
 };
 

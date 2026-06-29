@@ -1423,8 +1423,8 @@ window.renderCustomersList = function(resetPage) {
       `<td>${esc(displayPhone)}</td>` +
       `<td style="text-align:center; font-weight:600;">${c.ordersCount}</td>` +
       `<td style="text-align:center; font-weight:600;">${c.wishlistCount}</td>` +
-      `<td style="text-align:center;" onclick="event.stopPropagation();">` +
-        `<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;" onclick="window.viewCustomerDetailModal('${encodedCust}')">` +
+      `<td style="text-align:center;">` +
+        `<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;">` +
           `View` +
         `</button>` +
       `</td>` +

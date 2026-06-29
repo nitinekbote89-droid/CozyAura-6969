@@ -773,6 +773,12 @@ import AdminModals from '../components/AdminModals.astro';
 
   window.ordersGoToPage = function(newPage) {
     window.syncCloudInventory(newPage);
+    const tbl = document.getElementById('ordersBody');
+    if (tbl) {
+      tbl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   window.renderOrders = function() {
@@ -867,11 +873,12 @@ import AdminModals from '../components/AdminModals.astro';
   }
 
   window.getOrderBadge = function(status, deliveryMethod) {
-    const c = status.toLowerCase();
-    let display = status;
-    if (status === 'Shipped') {
+    const s = String(status || 'Pending');
+    const c = s.toLowerCase();
+    let display = s;
+    if (s === 'Shipped') {
       display = deliveryMethod === 'Pickup' ? 'Ready to Pickup' : 'Shipped';
-    } else if (status === 'Delivered') {
+    } else if (s === 'Delivered') {
       display = deliveryMethod === 'Pickup' ? 'Completed' : 'Delivered';
     }
     return `<span class="status-badge status-${c}">${display}</span>`;

@@ -1414,12 +1414,14 @@ window.renderCustomersList = function(resetPage) {
     const customers = window.getCompiledCustomers();
 
     // Sync counts
+    const totalStored = sessionStorage.getItem('lumiere_admin_total_users');
+    const displayCount = (totalStored !== null && totalStored !== undefined) ? parseInt(totalStored, 10) : customers.length;
     const registryCountEl = document.getElementById('customerRegistryCount');
-    if (registryCountEl) registryCountEl.textContent = customers.length;
+    if (registryCountEl) registryCountEl.textContent = displayCount;
     const sidebarCountEl = document.getElementById('sidebarCustomerCount');
-    if (sidebarCountEl) sidebarCountEl.textContent = customers.length;
+    if (sidebarCountEl) sidebarCountEl.textContent = displayCount;
     const dashCountEl = document.getElementById('statCustomers');
-    if (dashCountEl) dashCountEl.textContent = customers.length;
+    if (dashCountEl) dashCountEl.textContent = displayCount;
 
     const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const customersWithIndex = customers.map((c, idx) => ({ ...c, sequenceNumber: idx + 1 }));

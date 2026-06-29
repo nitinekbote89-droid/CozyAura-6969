@@ -494,7 +494,11 @@ export async function GET({ request }) {
     const storefront_images_setting = results[4].data;
 
     const users = usersPromiseIdx !== -1 ? results[usersPromiseIdx].data : [];
-    const totalUserCount = usersPromiseIdx !== -1 ? results[usersPromiseIdx].count : 0;
+    let totalUserCount = usersPromiseIdx !== -1 ? results[usersPromiseIdx].count : 0;
+    if (usersPromiseIdx === -1) {
+      const { count: dbUsersCount } = await supabase.from('users').select('*', { count: 'exact', head: true });
+      totalUserCount = dbUsersCount || 0;
+    }
     const user_addresses = addressesPromiseIdx !== -1 ? results[addressesPromiseIdx].data : [];
     const wishlist = wishlistPromiseIdx !== -1 ? results[wishlistPromiseIdx].data : [];
     const feedbacks = feedbacksPromiseIdx !== -1 ? results[feedbacksPromiseIdx].data : [];

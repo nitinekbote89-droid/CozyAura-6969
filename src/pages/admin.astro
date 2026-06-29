@@ -480,17 +480,23 @@ import AdminModals from '../components/AdminModals.astro';
   }
 
   window.updateCustomerCounts = function() {
-    const users = JSON.parse(localStorage.getItem('lumiere_admin_users') || '[]');
-    const addresses = JSON.parse(localStorage.getItem('lumiere_admin_user_addresses') || '[]');
-    const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
-    const wishlist = JSON.parse(localStorage.getItem('lumiere_admin_wishlist') || '[]');
+    const totalStored = sessionStorage.getItem('lumiere_admin_total_users');
+    let count = 0;
+    if (totalStored !== null && totalStored !== undefined) {
+      count = parseInt(totalStored, 10);
+    } else {
+      const users = JSON.parse(localStorage.getItem('lumiere_admin_users') || '[]');
+      const addresses = JSON.parse(localStorage.getItem('lumiere_admin_user_addresses') || '[]');
+      const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+      const wishlist = JSON.parse(localStorage.getItem('lumiere_admin_wishlist') || '[]');
 
-    const emailSet = new Set();
-    users.forEach(u => { if (u.email) emailSet.add(u.email.toLowerCase().trim()); });
-    addresses.forEach(a => { if (a.user_email) emailSet.add(a.user_email.toLowerCase().trim()); });
-    ords.forEach(o => { if (o.shippingInfo?.email) emailSet.add(o.shippingInfo.email.toLowerCase().trim()); });
-    wishlist.forEach(w => { if (w.user_email) emailSet.add(w.user_email.toLowerCase().trim()); });
-    const count = emailSet.size;
+      const emailSet = new Set();
+      users.forEach(u => { if (u.email) emailSet.add(u.email.toLowerCase().trim()); });
+      addresses.forEach(a => { if (a.user_email) emailSet.add(a.user_email.toLowerCase().trim()); });
+      ords.forEach(o => { if (o.shippingInfo?.email) emailSet.add(o.shippingInfo.email.toLowerCase().trim()); });
+      wishlist.forEach(w => { if (w.user_email) emailSet.add(w.user_email.toLowerCase().trim()); });
+      count = emailSet.size;
+    }
 
     const sidebarCustomerCount = document.getElementById('sidebarCustomerCount');
     if (sidebarCustomerCount) sidebarCustomerCount.textContent = count;

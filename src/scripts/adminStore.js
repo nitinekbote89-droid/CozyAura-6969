@@ -926,25 +926,27 @@ window.viewOrderDetails = async function(orderId) {
 
     const isPickup = order.deliveryMethod === 'Pickup';
     const trackingSection = document.getElementById('modalTrackingSection');
-    const updateTrackingBtn = document.getElementById('orderModalSubmitBtn');
     const trackingSaveBtn = document.getElementById('modalTrackingSaveBtn');
+    const pickupActionSection = document.getElementById('modalPickupActionSection');
+    const pickupSubmitBtn = document.getElementById('modalPickupSubmitBtn');
     
-    if (updateTrackingBtn) updateTrackingBtn.style.display = 'none';
     if (trackingSaveBtn) trackingSaveBtn.style.display = 'none';
+    if (pickupActionSection) pickupActionSection.style.display = 'none';
 
     if (isPickup) {
         if (trackingSection) trackingSection.style.display = 'none';
-        if (updateTrackingBtn) {
+        if (pickupActionSection && pickupSubmitBtn) {
             if (order.status === 'Pending') {
-                updateTrackingBtn.style.display = 'block';
-                updateTrackingBtn.textContent = 'Ready to Pickup';
+                pickupActionSection.style.display = 'block';
+                pickupSubmitBtn.textContent = 'Ready to Pickup';
             } else if (order.status === 'Shipped') {
-                updateTrackingBtn.style.display = 'block';
-                updateTrackingBtn.textContent = 'Mark as Completed';
+                pickupActionSection.style.display = 'block';
+                pickupSubmitBtn.textContent = 'Mark as Completed';
             }
         }
     } else {
         if (trackingSection) trackingSection.style.display = 'block';
+        if (pickupActionSection) pickupActionSection.style.display = 'none';
         if (trackingSaveBtn) {
             if (order.status !== 'Delivered') {
                 trackingSaveBtn.style.display = 'block';

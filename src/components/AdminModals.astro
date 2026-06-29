@@ -177,6 +177,11 @@
         <p id="orderModalAddressLabel" style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Shipping Address</p>
         <p id="orderModalAddress" style="font-weight:400; font-size:0.9rem;"></p>
       </div>
+      
+      <!-- Pickup Action Section (Above Product Details) -->
+      <div id="modalPickupActionSection" style="margin-bottom:24px; display:none;">
+        <button type="button" class="btn btn-theme-adaptive" id="modalPickupSubmitBtn" onclick="window.saveTrackingFromModal()" style="font-size:0.9rem; padding:10px 20px; border-radius:6px; width:100%; text-align:center; display:block;"></button>
+      </div>
       <div class="table-container" style="max-height:220px; overflow-y:auto; margin-bottom:24px;">
         <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
           <thead>
@@ -200,7 +205,6 @@
          </div>
       </div>
       <div class="modal-footer" style="padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
-        <button type="button" class="btn btn-theme-adaptive" id="orderModalSubmitBtn" onclick="window.saveTrackingFromModal()" style="padding:8px 16px; border-radius:6.7px;"></button>
         <button type="button" class="btn btn-primary" onclick="window.downloadInvoiceBill()">Download Bill</button>
         <button type="button" class="btn btn-secondary" onclick="window.closeOrderModal()">Dismiss Window</button>
       </div>

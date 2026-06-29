@@ -878,12 +878,13 @@ window.viewOrderDetails = async function(orderId) {
 
     document.getElementById('modalOrderId').textContent = String(decodedId).startsWith('#') ? decodedId : '#' + decodedId;
 
+    // Always show loading view immediately when opening receipt modal
+    if (loader) loader.style.display = 'flex';
+    if (content) content.style.display = 'none';
+    if (modal) modal.classList.add('active');
+
     let order = ords.find(o => String(o.id) === String(decodedId));
     if (!order) {
-        if (loader) loader.style.display = 'flex';
-        if (content) content.style.display = 'none';
-        if (modal) modal.classList.add('active');
-
         try {
             const pwd = sessionStorage.getItem('lumiere_admin_secret');
             const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=get_order_details&orderId=${encodeURIComponent(decodedId)}&t=${Date.now()}`, {
@@ -902,9 +903,8 @@ window.viewOrderDetails = async function(orderId) {
             return;
         }
     } else {
-        if (loader) loader.style.display = 'none';
-        if (content) content.style.display = 'block';
-        if (modal) modal.classList.add('active');
+        // Introduce a small 250ms loading display for visual consistency
+        await new Promise(resolve => setTimeout(resolve, 250));
     }
 
     if (loader) loader.style.display = 'none';

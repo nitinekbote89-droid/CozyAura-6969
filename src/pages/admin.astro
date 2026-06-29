@@ -245,14 +245,20 @@ import AdminModals from '../components/AdminModals.astro';
         </div>
       </div>
 
+      <style is:global>
+        #tab-customers.active {
+          display: flex !important;
+        }
+      </style>
+
       <!-- Customers Pane -->
-      <div id="tab-customers" class="tab-pane">
-        <div class="search-bar" style="margin-bottom: 20px;">
+      <div id="tab-customers" class="tab-pane" style="height: calc(100vh - 136px); flex-direction: column;">
+        <div class="search-bar" style="margin-bottom: 20px; flex-shrink: 0;">
           <input type="text" id="customerSearchInput" placeholder="Search by name, email, or phone..." oninput="window.renderCustomersList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
         </div>
-        <div class="table-container" style="max-height: calc(100vh - 300px); overflow-y: auto;">
+        <div class="table-container" style="flex: 1; min-height: 0; overflow-y: auto;">
           <table>
-            <thead>
+            <thead style="position: sticky; top: 0; z-index: 10; background: var(--bg-main);">
               <tr>
                 <th style="width: 80px;">Index</th>
                 <th>Customer Name</th>
@@ -268,7 +274,7 @@ import AdminModals from '../components/AdminModals.astro';
             </tbody>
           </table>
         </div>
-        <div id="customersPaginationContainer" style="margin-top: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;"></div>
+        <div id="customersPaginationContainer" style="margin-top: 16px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 8px;"></div>
       </div>
 
       <!-- Feedback Pane -->

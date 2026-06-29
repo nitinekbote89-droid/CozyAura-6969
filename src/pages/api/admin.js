@@ -401,7 +401,9 @@ export async function GET({ request }) {
       { data: users, count: totalUserCount },
       { data: user_addresses },
       { data: wishlist },
-      { data: feedbacks, count: totalFeedbackCount }
+      { data: feedbacks, count: totalFeedbackCount },
+      { data: allOrdersEmails },
+      { data: allWishlistEmails }
     ] = await Promise.all([
       supabase.from('product_variants').select('*'),
       supabase.from('orders').select('*', { count: 'exact' }).order('date', { ascending: false }).range(pageStart, pageEnd),
@@ -411,7 +413,9 @@ export async function GET({ request }) {
       supabase.from('users').select('id, email, created_at', { count: 'exact' }).order('created_at', { ascending: false }).range(userPageStart, userPageEnd),
       supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').limit(500),
       supabase.from('wishlist').select('user_email, product_id').limit(500),
-      supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(feedbackPageStart, feedbackPageEnd)
+      supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(feedbackPageStart, feedbackPageEnd),
+      supabase.from('orders').select('shipping_email'),
+      supabase.from('wishlist').select('user_email')
     ]);
 
     // Only fetch order_items for the current page's orders (not all 5000)
@@ -423,6 +427,18 @@ export async function GET({ request }) {
     const totalPages = Math.ceil((totalOrderCount || 0) / PAGE_SIZE);
     const totalUserPages = Math.ceil((totalUserCount || 0) / USER_PAGE_SIZE);
     const totalFeedbackPages = Math.ceil((totalFeedbackCount || 0) / FEEDBACK_PAGE_SIZE);
+
+    const ordersCountMap = {};
+    (allOrdersEmails || []).forEach(o => {
+      const em = o.shipping_email?.toLowerCase().trim();
+      if (em) ordersCountMap[em] = (ordersCountMap[em] || 0) + 1;
+    });
+
+    const wishlistCountMap = {};
+    (allWishlistEmails || []).forEach(w => {
+      const em = w.user_email?.toLowerCase().trim();
+      if (em) wishlistCountMap[em] = (wishlistCountMap[em] || 0) + 1;
+    });
 
     let salesMap = {};
     if (!hasSalesView && order_items) {
@@ -517,6 +533,8 @@ export async function GET({ request }) {
         userAddresses: user_addresses || [],
         wishlist: wishlist || [],
         feedbacks: feedbacks || [],
+        ordersCountMap,
+        wishlistCountMap,
         pagination: {
           page,
           pageSize: PAGE_SIZE,

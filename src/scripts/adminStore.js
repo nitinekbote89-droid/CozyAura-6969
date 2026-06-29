@@ -52,6 +52,8 @@ window.syncCloudInventory = async function(page = null) {
             localStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses || []));
             localStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist || []));
             localStorage.setItem('lumiere_admin_feedbacks', JSON.stringify(json.data.feedbacks || []));
+            localStorage.setItem('lumiere_admin_orders_counts', JSON.stringify(json.data.ordersCountMap || {}));
+            localStorage.setItem('lumiere_admin_wishlist_counts', JSON.stringify(json.data.wishlistCountMap || {}));
             // Store total counts from server pagination metadata
             const pag = json.data.pagination || {};
             if (pag.totalUsers !== undefined) sessionStorage.setItem('lumiere_admin_total_users', String(pag.totalUsers));
@@ -1186,6 +1188,8 @@ window.getCompiledCustomers = function() {
   const addresses = JSON.parse(localStorage.getItem('lumiere_admin_user_addresses') || '[]');
   const orders = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
   const wishlist = JSON.parse(localStorage.getItem('lumiere_admin_wishlist') || '[]');
+  const ordersCountsMap = JSON.parse(localStorage.getItem('lumiere_admin_orders_counts') || '{}');
+  const wishlistCountsMap = JSON.parse(localStorage.getItem('lumiere_admin_wishlist_counts') || '{}');
 
   // Build fast O(1) lookup maps to avoid O(n²) nested filters
   const addrByEmail = {};
@@ -1250,8 +1254,8 @@ window.getCompiledCustomers = function() {
       fname: fname.trim(),
       lname: lname.trim(),
       phone: phone.trim(),
-      ordersCount: userOrders.length,
-      wishlistCount: wishlistCountByEmail[email] || 0
+      ordersCount: ordersCountsMap[email] !== undefined ? ordersCountsMap[email] : userOrders.length,
+      wishlistCount: wishlistCountsMap[email] !== undefined ? wishlistCountsMap[email] : (wishlistCountByEmail[email] || 0)
     };
   });
 
@@ -1526,7 +1530,7 @@ window.renderCustomerDetailModalContent = function() {
     ordersHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No order history.</p>';
   } else {
     ordersHtml = `
-      <div class="table-container" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px;">
+      <div class="table-container" style="max-height: 600px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px;">
         <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
           <thead style="position: sticky; top: 0; z-index: 10; background: var(--bg-main);">
             <tr style="border-bottom:1px solid var(--border);">

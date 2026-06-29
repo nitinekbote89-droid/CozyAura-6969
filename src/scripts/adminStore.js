@@ -1328,6 +1328,9 @@ window.searchCustomersOnServer = async function(q) {
 };
 
 window.renderCustomersList = function(resetPage) {
+  const tbody = document.getElementById('customersTableBody');
+  if (!tbody) return;
+
   window.initCustomerSearch();
 
   if (resetPage) window._customersListPage = 0;

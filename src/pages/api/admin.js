@@ -229,6 +229,88 @@ export async function GET({ request }) {
       return await executeCloudinaryCleanup();
     }
 
+    // ─── SERVER-SIDE CUSTOMER SEARCH ────────────────────────────────────────
+    if (action === 'search_customers') {
+      const q = (url.searchParams.get('q') || '').trim().toLowerCase();
+      if (!q || q.length < 2) {
+        return new Response(JSON.stringify({ success: true, customers: [] }), { status: 200 });
+      }
+
+      // Search users table by email
+      const { data: usersByEmail } = await supabase
+        .from('users')
+        .select('id, email, created_at')
+        .ilike('email', `%${q}%`)
+        .limit(30);
+
+      // Search user_addresses by name or phone
+      const { data: addrMatches } = await supabase
+        .from('user_addresses')
+        .select('user_email, fname, lname, phone, is_default')
+        .or(`fname.ilike.%${q}%,lname.ilike.%${q}%,phone.ilike.%${q}%`)
+        .limit(30);
+
+      // Search orders by shipping email (catches guest customers too)
+      const { data: orderMatches } = await supabase
+        .from('orders')
+        .select('shipping_email, shipping_fname, shipping_lname, shipping_phone, id, total, status, date')
+        .ilike('shipping_email', `%${q}%`)
+        .order('date', { ascending: false })
+        .limit(30);
+
+      // Collect all unique emails from all sources
+      const emailSet = new Set();
+      (usersByEmail || []).forEach(u => { if (u.email) emailSet.add(u.email.toLowerCase().trim()); });
+      (addrMatches || []).forEach(a => { if (a.user_email) emailSet.add(a.user_email.toLowerCase().trim()); });
+      (orderMatches || []).forEach(o => { if (o.shipping_email) emailSet.add(o.shipping_email.toLowerCase().trim()); });
+
+      if (emailSet.size === 0) {
+        return new Response(JSON.stringify({ success: true, customers: [] }), { status: 200 });
+      }
+
+      // For each found email, fetch their full profile in parallel
+      const emailArr = Array.from(emailSet).slice(0, 30);
+      const profilePromises = emailArr.map(async (email) => {
+        const [{ data: addrs }, { data: orders }, { data: wishlist }] = await Promise.all([
+          supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').eq('user_email', email).limit(5),
+          supabase.from('orders').select('id, total, status, date, delivery_method').eq('shipping_email', email).order('date', { ascending: false }).limit(20),
+          supabase.from('wishlist').select('product_id').eq('user_email', email).limit(100)
+        ]);
+
+        // Resolve best name + phone from addresses or orders
+        const defaultAddr = (addrs || []).find(a => a.is_default) || (addrs || [])[0];
+        let fname = defaultAddr?.fname || '';
+        let lname = defaultAddr?.lname || '';
+        let phone = defaultAddr?.phone || '';
+
+        if ((!fname || !lname) && orders && orders.length > 0) {
+          const latestOrder = orders[0];
+          if (!fname) fname = latestOrder.shipping_fname || '';
+          if (!lname) lname = latestOrder.shipping_lname || '';
+          if (!phone) phone = latestOrder.shipping_phone || '';
+        }
+
+        return {
+          email,
+          fname: (fname || '').trim(),
+          lname: (lname || '').trim(),
+          phone: (phone || '').trim(),
+          ordersCount: (orders || []).length,
+          wishlistCount: (wishlist || []).length,
+          recentOrders: (orders || []).slice(0, 5).map(o => ({
+            id: o.id,
+            total: o.total,
+            status: o.status,
+            date: o.date,
+            deliveryMethod: o.delivery_method || 'Shipping'
+          }))
+        };
+      });
+
+      const customers = await Promise.all(profilePromises);
+      return new Response(JSON.stringify({ success: true, customers }), { status: 200 });
+    }
+
     // Pagination: 50 orders per page
     const PAGE_SIZE = 50;
     const page = Math.max(0, parseInt(url.searchParams.get('page') || '0', 10));

@@ -1278,46 +1278,105 @@ window.getCompiledCustomers = function() {
 // Customers list pagination state
 window._customersListPage = 0;
 const CUSTOMERS_PER_PAGE = 30;
+let _customerSearchTimer = null;
+window._customerSearchResults = null; // null = use local cache, array = server results
+
+// Attach debounced server-side search to the search box when it exists
+window.initCustomerSearch = function() {
+  const searchInput = document.getElementById('customerSearchInput');
+  if (!searchInput || searchInput.dataset.serverSearchInit === '1') return;
+  searchInput.dataset.serverSearchInit = '1';
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(_customerSearchTimer);
+    const q = searchInput.value.trim();
+
+    // Clear search: revert to local cache view
+    if (q.length < 2) {
+      window._customerSearchResults = null;
+      window.renderCustomersList(true);
+      return;
+    }
+
+    // Debounce: wait 350ms after user stops typing
+    _customerSearchTimer = setTimeout(() => {
+      window.searchCustomersOnServer(q);
+    }, 350);
+  });
+};
+
+window.searchCustomersOnServer = async function(q) {
+  const container = document.getElementById('customersListContainer');
+  if (!container) return;
+
+  // Show loading state
+  container.innerHTML = '<p style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:20px 0;">🔍 Searching...</p>';
+
+  try {
+    const pwd = sessionStorage.getItem('lumiere_admin_secret');
+    const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=search_customers&q=${encodeURIComponent(q)}&t=${Date.now()}`, {
+      headers: { 'X-Admin-Secret': pwd }
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || 'Search failed');
+
+    window._customerSearchResults = json.customers || [];
+    window._customersListPage = 0;
+    window.renderCustomersList();
+  } catch (e) {
+    container.innerHTML = '<p style="color:var(--danger); font-size:0.88rem; text-align:center; padding:20px 0;">Search failed. Please try again.</p>';
+  }
+};
 
 window.renderCustomersList = function(resetPage) {
   const container = document.getElementById('customersListContainer');
   if (!container) return;
 
+  // Attach search listener (idempotent)
+  window.initCustomerSearch();
+
   if (resetPage) window._customersListPage = 0;
 
-  const customers = window.getCompiledCustomers();
-  
-  // Sync all customer counts in the DOM
-  const registryCountEl = document.getElementById('customerRegistryCount');
-  if (registryCountEl) registryCountEl.textContent = customers.length;
-  const sidebarCountEl = document.getElementById('sidebarCustomerCount');
-  if (sidebarCountEl) sidebarCountEl.textContent = customers.length;
-  const dashCountEl = document.getElementById('statCustomers');
-  if (dashCountEl) dashCountEl.textContent = customers.length;
-
+  // ── DECIDE DATA SOURCE ──────────────────────────────────────────
+  // If user has searched → use server results
+  // If no search query   → use locally compiled customers
   const searchInput = document.getElementById('customerSearchInput');
-  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const hasActiveSearch = searchInput && searchInput.value.trim().length >= 2;
 
-  // Add sequential indices to customers
-  const customersWithIndex = customers.map((c, idx) => ({
-    ...c,
-    sequenceNumber: idx + 1
-  }));
+  let filtered;
+  if (hasActiveSearch && window._customerSearchResults !== null) {
+    // Server results — already filtered by server
+    filtered = (window._customerSearchResults).map((c, idx) => ({ ...c, sequenceNumber: idx + 1 }));
+  } else {
+    // Local cached data
+    const customers = window.getCompiledCustomers();
 
-  // Filter customers by search query
-  const filtered = customersWithIndex.filter(c => {
-    const fullName = `${c.fname} ${c.lname}`.toLowerCase();
-    const seqStr = `#${c.sequenceNumber}`;
-    return c.email.includes(query) || 
-           fullName.includes(query) || 
-           c.phone.includes(query) || 
-           seqStr.includes(query) || 
-           String(c.sequenceNumber) === query;
-  });
+    // Sync counts
+    const registryCountEl = document.getElementById('customerRegistryCount');
+    if (registryCountEl) registryCountEl.textContent = customers.length;
+    const sidebarCountEl = document.getElementById('sidebarCustomerCount');
+    if (sidebarCountEl) sidebarCountEl.textContent = customers.length;
+    const dashCountEl = document.getElementById('statCustomers');
+    if (dashCountEl) dashCountEl.textContent = customers.length;
+
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const customersWithIndex = customers.map((c, idx) => ({ ...c, sequenceNumber: idx + 1 }));
+
+    filtered = customersWithIndex.filter(c => {
+      const fullName = `${c.fname} ${c.lname}`.toLowerCase();
+      const seqStr = `#${c.sequenceNumber}`;
+      return c.email.includes(query) || fullName.includes(query) ||
+             c.phone.includes(query) || seqStr.includes(query) ||
+             String(c.sequenceNumber) === query;
+    });
+  }
 
   container.innerHTML = '';
   if (filtered.length === 0) {
-    container.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding: 20px 0;">No customers found.</p>';
+    const searchVal = searchInput ? searchInput.value.trim() : '';
+    container.innerHTML = searchVal.length >= 2
+      ? `<p style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding: 20px 0;">No customers found for "<strong>${esc(searchVal)}</strong>"</p>`
+      : '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding: 20px 0;">No customers found.</p>';
     return;
   }
 
@@ -1332,7 +1391,7 @@ window.renderCustomersList = function(resetPage) {
     const card = document.createElement('div');
     card.className = 'customer-list-card';
     card.style.cssText = "padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-main); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px;";
-    
+
     if (window._selectedCustomerEmail === c.email) {
       card.style.borderColor = "var(--brand)";
       card.style.background = "rgba(184,151,90,0.08)";
@@ -1341,7 +1400,12 @@ window.renderCustomersList = function(resetPage) {
     card.onclick = () => {
       window._selectedCustomerEmail = c.email;
       window.renderCustomersList();
-      window.showCustomerDetails(c.email);
+      // If we have server result data already, use it directly
+      if (hasActiveSearch && window._customerSearchResults !== null) {
+        window.showCustomerDetailsFromData(c);
+      } else {
+        window.showCustomerDetails(c.email);
+      }
     };
 
     const displayName = `${c.fname} ${c.lname}`.trim() || 'Guest Customer';
@@ -1364,8 +1428,8 @@ window.renderCustomersList = function(resetPage) {
     const paginationDiv = document.createElement('div');
     paginationDiv.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 4px; margin-top:8px; font-size:0.8rem; color:var(--text-muted);';
     paginationDiv.innerHTML = `
-      <button onclick="window._customersListPage=Math.max(0,window._customersListPage-1); window.renderCustomersList();" 
-        style="padding:4px 10px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;" 
+      <button onclick="window._customersListPage=Math.max(0,window._customersListPage-1); window.renderCustomersList();"
+        style="padding:4px 10px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
         ${currentPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
       <span>Page ${currentPage + 1} of ${totalPages} &nbsp;(${filtered.length} total)</span>
       <button onclick="window._customersListPage=Math.min(${totalPages-1},window._customersListPage+1); window.renderCustomersList();"
@@ -1375,6 +1439,94 @@ window.renderCustomersList = function(resetPage) {
     container.appendChild(paginationDiv);
   }
 };
+
+// Show customer details from already-fetched server search data (avoids second fetch)
+window.showCustomerDetailsFromData = function(customer) {
+  const detailPane = document.getElementById('customerDetailPane');
+  const emptyPane = document.getElementById('customerDetailEmpty');
+  if (!detailPane || !emptyPane) return;
+
+  emptyPane.style.display = 'none';
+  detailPane.style.display = 'block';
+
+  const displayName = `${customer.fname} ${customer.lname}`.trim() || 'Guest Customer';
+  const phoneSection = customer.phone ? `<p style="margin:4px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Phone:</strong> ${esc(customer.phone)}</p>` : '';
+
+  let headerHtml = `
+    <div style="border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <h3 style="margin:0; font-size:1.4rem; text-transform:capitalize; font-family:'Cormorant Garamond',serif; color:var(--gold-dark);">${esc(displayName)}</h3>
+        <p style="margin:6px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Email:</strong> ${esc(customer.email)}</p>
+        ${phoneSection}
+      </div>
+      <button class="btn btn-secondary" onclick="window.deleteCustomerProfile('${encodeURIComponent(customer.email)}')" style="border-color:var(--danger); color:var(--danger); display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:0.8rem; height:fit-content; border-radius:6px; font-family:inherit; cursor:pointer;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Delete Profile
+      </button>
+    </div>
+  `;
+
+  // Render recent orders from server data
+  let ordersHtml = '';
+  const recentOrders = customer.recentOrders || [];
+  if (recentOrders.length === 0) {
+    ordersHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No order history.</p>';
+  } else {
+    ordersHtml = `
+      <div class="table-container" style="border:1px solid var(--border); border-radius:6px;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+          <thead>
+            <tr style="background:var(--bg-main); border-bottom:1px solid var(--border);">
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Order ID</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Date</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Status</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Total</th>
+              <th style="padding:10px 12px; text-align:center; font-size:0.75rem;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recentOrders.map(o => {
+              const formattedId = String(o.id).startsWith('#') ? o.id : '#' + o.id;
+              const totalVal = parseInt(String(o.total || '').replace(/[^\d]/g, '')) || 0;
+              return `
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:10px 12px; font-weight:500;">${formattedId}</td>
+                  <td style="padding:10px 12px;">${o.date ? fmtDate(o.date) : '—'}</td>
+                  <td style="padding:10px 12px;">${window.getOrderBadge(o.status, o.deliveryMethod)}</td>
+                  <td style="padding:10px 12px; font-weight:500;">₹${totalVal.toLocaleString('en-IN')}</td>
+                  <td style="padding:10px 12px; text-align:center;">
+                    <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(o.id ?? ''))}')" style="padding:4px 8px; font-size:0.75rem;">Receipt</button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      ${recentOrders.length >= 5 ? `<p style="font-size:0.78rem; color:var(--text-muted); text-align:center; margin-top:8px;">Showing 5 most recent orders. Search this customer in Orders tab for full history.</p>` : ''}
+    `;
+  }
+
+  detailPane.innerHTML = `
+    ${headerHtml}
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+      <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;">
+        <div style="font-size:1.6rem; font-weight:700; color:var(--brand);">${customer.ordersCount}</div>
+        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Orders</div>
+      </div>
+      <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;">
+        <div style="font-size:1.6rem; font-weight:700; color:var(--brand);">${customer.wishlistCount}</div>
+        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Wishlist Items</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <h4 style="margin:0 0 10px 0; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Recent Orders</h4>
+      ${ordersHtml}
+    </div>
+  `;
+};
+
+
 
 window.showCustomerDetails = function(email) {
   const detailPane = document.getElementById('customerDetailPane');

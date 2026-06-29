@@ -274,6 +274,51 @@ export async function GET({ request }) {
       return new Response(JSON.stringify({ success: true, customer }), { status: 200 });
     }
 
+    // ─── GET ORDER DETAILS ──────────────────────────────────────────────────
+    if (action === 'get_order_details') {
+      const orderId = (url.searchParams.get('orderId') || '').trim();
+      if (!orderId) {
+        return new Response(JSON.stringify({ success: false, error: 'Order ID required.' }), { status: 400 });
+      }
+
+      const { data: o } = await supabase.from('orders').select('*').eq('id', orderId).maybeSingle();
+      if (!o) {
+        return new Response(JSON.stringify({ success: false, error: 'Order not found.' }), { status: 404 });
+      }
+
+      const { data: order_items } = await supabase.from('order_items').select('*').eq('order_id', o.id);
+
+      const structuralItems = (order_items || []).map(m => ({
+        product: { id: m.product_id, name: m.product_name, price: m.price },
+        variant: { name: m.variant_name, price: m.price },
+        quantity: m.quantity
+      }));
+
+      const compositeOrder = {
+        id: o.id, date: o.date, total: `₹ ${o.total}`,
+        discount: o.discount || 0, shipping: o.shipping || 0,
+        status: o.status,
+        deliveryMethod: o.delivery_method || 'Shipping',
+        trackingNumber: o.tracking_number, courier: o.courier,
+        trackingLink: o.tracking_link || '',
+        itemsSummary: o.items_summary || '',
+        shippingInfo: {
+          fname: o.shipping_fname || '',
+          lname: o.shipping_lname || '',
+          email: o.shipping_email || '',
+          address: o.shipping_address || '',
+          city: o.shipping_city || '',
+          state: o.shipping_state || '',
+          pincode: o.shipping_pincode || '',
+          phone: o.shipping_phone || '',
+          whatsapp: o.shipping_phone || ''
+        },
+        items: structuralItems
+      };
+
+      return new Response(JSON.stringify({ success: true, order: compositeOrder }), { status: 200 });
+    }
+
     // ─── SERVER-SIDE CUSTOMER SEARCH ────────────────────────────────────────
     if (action === 'search_customers') {
       const q = (url.searchParams.get('q') || '').trim().toLowerCase();

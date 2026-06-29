@@ -867,12 +867,30 @@ window.removeGlobalFragrance = async function(fragrance) {
     } catch(e){ console.error("Failed to remove global fragrance:", e); }
 };
 
-window.viewOrderDetails = function(orderId) {
+window.viewOrderDetails = async function(orderId) {
     const decodedId = decodeURIComponent(orderId);
     const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
     const inv = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
-    const order = ords.find(o => String(o.id) === String(decodedId));
-    if (!order) return;
+    
+    let order = ords.find(o => String(o.id) === String(decodedId));
+    if (!order) {
+        try {
+            const pwd = sessionStorage.getItem('lumiere_admin_secret');
+            const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=get_order_details&orderId=${encodeURIComponent(decodedId)}&t=${Date.now()}`, {
+                headers: { 'X-Admin-Secret': pwd }
+            });
+            const json = await res.json();
+            if (json.success && json.order) {
+                order = json.order;
+            } else {
+                throw new Error(json.error || 'Receipt not found');
+            }
+        } catch(e) {
+            console.error("Failed to load order receipt from database:", e);
+            alert("Could not load receipt details for order " + decodedId + " from database.");
+            return;
+        }
+    }
 
     window.currentViewingOrderId = order.id;
 

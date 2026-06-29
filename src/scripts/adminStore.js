@@ -1572,7 +1572,7 @@ window.renderCustomerDetailModalContent = function() {
     wishlistHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No items in wishlist.</p>';
   } else {
     wishlistHtml = `
-      <div style="display:flex; flex-direction:column; gap:8px; max-height: 250px; overflow-y: auto; padding-right:4px; margin-bottom:8px;">
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;">
         ${wishlistSlice.map(w => {
           const product = inventory.find(p => String(p.id) === String(w.product_id));
           const prodName = product ? product.name : w.product_id;

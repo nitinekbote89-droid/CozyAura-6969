@@ -1522,7 +1522,7 @@ window.openFeedbackModal = function(orderId) {
   document.getElementById('feedbackModalCustomerName').textContent = f.customer_name || 'Anonymous';
   document.getElementById('feedbackModalCustomerEmail').textContent = f.user_email || '—';
   document.getElementById('feedbackModalOrderId').textContent = f.order_id;
-  document.getElementById('feedbackModalRating').textContent = '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating);
+  document.getElementById('feedbackModalRating').innerHTML = '<span style="color:#FFC107;">' + '★'.repeat(f.rating) + '</span>' + '<span style="color:var(--text-muted); opacity:0.25;">' + '★'.repeat(5 - f.rating) + '</span>';
   document.getElementById('feedbackModalPurchasedItems').textContent = itemsSummary;
   document.getElementById('feedbackModalComment').textContent = f.comment || '(No written review comments provided by the customer.)';
   

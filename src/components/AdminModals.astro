@@ -118,80 +118,87 @@
       <button onclick="window.closeOrderModal()" style="background:transparent; border:none; cursor:pointer; display:flex; color: var(--text-main);">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
-    </div>    
-    <!-- Tracking Section -->
-    <div id="modalTrackingSection" style="margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border);">
-      <h4 style="font-weight:500; margin-bottom:12px; font-size:0.9rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Courier & Tracking Information</h4>
-      <div id="modalTrackingFields" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
-        <div>
-          <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Courier Name</label>
-          <input type="text" id="modalCourierInput" placeholder="e.g. BlueDart" style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
-        </div>
-        <div>
-          <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Tracking ID</label>
-          <input type="text" id="modalTrackingInput" placeholder="e.g. AW1294819" style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
-        </div>
-      </div>
-      <div>
-        <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Tracking Link</label>
-        <input type="text" id="modalTrackingLinkInput" placeholder="e.g. https://delhivery.com/track/package/..." style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
-      </div>
+    <!-- Loader View -->
+    <div id="orderModalLoader" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:64px; color:var(--text-muted); gap:16px;">
+      <div class="spinner-gold-mini" style="width:24px; height:24px; border:2px solid rgba(184, 151, 90, 0.2); border-top-color:#b8975a; border-radius:50%; animation:spinCircle 0.8s linear infinite;"></div>
+      <div style="font-size:0.9rem; font-weight:500;">Loading order details...</div>
     </div>
+    <!-- Main Modal Content -->
+    <div id="orderModalContent" style="display: block;">
+      <!-- Tracking Section -->
+      <div id="modalTrackingSection" style="margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border);">
+        <h4 style="font-weight:500; margin-bottom:12px; font-size:0.9rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Courier & Tracking Information</h4>
+        <div id="modalTrackingFields" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div>
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Courier Name</label>
+            <input type="text" id="modalCourierInput" placeholder="e.g. BlueDart" style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
+          </div>
+          <div>
+            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Tracking ID</label>
+            <input type="text" id="modalTrackingInput" placeholder="e.g. AW1294819" style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
+          </div>
+        </div>
+        <div>
+          <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Tracking Link</label>
+          <input type="text" id="modalTrackingLinkInput" placeholder="e.g. https://delhivery.com/track/package/..." style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
+        </div>
+      </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:24px; margin-bottom:24px;">
-      <div>
-        <strong style="color:var(--brand); display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Customer Information</strong>
-        <p id="orderModalCustomer" style="font-weight:500; text-transform:capitalize;"></p>
-        <p id="orderModalEmail" style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;"></p>
-        <p id="orderModalPhone" style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;"></p>
-      </div>
-      <div>
-        <strong style="color:var(--brand); display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Order Logistics</strong>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-          <div>
-            <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block;">Purchase Date</label>
-            <p id="orderModalDate" style="font-weight:500;"></p>
+      <div style="display:grid; grid-template-columns:1fr 1.2fr; gap:24px; margin-bottom:24px;">
+        <div>
+          <strong style="color:var(--brand); display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Customer Information</strong>
+          <p id="orderModalCustomer" style="font-weight:500; text-transform:capitalize;"></p>
+          <p id="orderModalEmail" style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;"></p>
+          <p id="orderModalPhone" style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;"></p>
+        </div>
+        <div>
+          <strong style="color:var(--brand); display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Order Logistics</strong>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block;">Purchase Date</label>
+              <p id="orderModalDate" style="font-weight:500;"></p>
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block;">Payment Info</label>
+              <p id="orderModalPayment" style="font-weight:500;">COD / Pay on Delivery</p>
+            </div>
           </div>
-          <div>
-            <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block;">Payment Info</label>
-            <p id="orderModalPayment" style="font-weight:500;">COD / Pay on Delivery</p>
+          <div style="margin-top:10px;">
+            <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Fulfillment Status</label>
+            <span id="orderModalStatus"></span>
           </div>
         </div>
-        <div style="margin-top:10px;">
-          <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Fulfillment Status</label>
-          <span id="orderModalStatus"></span>
-        </div>
       </div>
-    </div>
-    <div style="margin-bottom:24px; padding:16px; background:var(--bg-main); border:1px solid var(--border); border-radius:6px;">
-      <p id="orderModalAddressLabel" style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Shipping Address</p>
-      <p id="orderModalAddress" style="font-weight:400; font-size:0.9rem;"></p>
-    </div>
-    <div class="table-container" style="max-height:220px; overflow-y:auto; margin-bottom:24px;">
-      <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
-        <thead>
-          <tr style="background:var(--bg-main);">
-            <th style="padding:10px 16px;">Product Details</th>
-            <th style="padding:10px 16px;">Category</th>
-            <th style="padding:10px 16px;">Rate</th>
-            <th style="padding:10px 16px;">Qty</th>
-            <th style="padding:10px 16px; text-align:right;">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody id="orderItemsBody"></tbody>
-      </table>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end; font-size:0.9rem; padding-right:12px; margin-bottom:24px;">
-       <div id="orderModalSubtotalRow" style="color:var(--text-muted);"></div>
-       <div id="orderModalShippingRow" style="color:var(--text-muted);"></div>
-       <div id="orderModalPromoRow" style="color:var(--success); font-weight:500;"></div>
-       <div style="font-size:1.15rem; font-weight:700; color:var(--text-main); border-top:1px solid var(--border); padding-top:8px; margin-top:4px; width:220px; text-align:right;">
-      Gross Total: <span id="orderModalTotal"></span>
-       </div>
-    </div>
-    <div class="modal-footer" style="padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
-      <button type="button" class="btn btn-primary" onclick="window.downloadInvoiceBill()">Download Bill</button>
-      <button type="button" class="btn btn-secondary" onclick="window.closeOrderModal()">Dismiss Window</button>
+      <div style="margin-bottom:24px; padding:16px; background:var(--bg-main); border:1px solid var(--border); border-radius:6px;">
+        <p id="orderModalAddressLabel" style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px;">Shipping Address</p>
+        <p id="orderModalAddress" style="font-weight:400; font-size:0.9rem;"></p>
+      </div>
+      <div class="table-container" style="max-height:220px; overflow-y:auto; margin-bottom:24px;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+          <thead>
+            <tr style="background:var(--bg-main);">
+              <th style="padding:10px 16px;">Product Details</th>
+              <th style="padding:10px 16px;">Category</th>
+              <th style="padding:10px 16px;">Rate</th>
+              <th style="padding:10px 16px;">Qty</th>
+              <th style="padding:10px 16px; text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="orderItemsBody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end; font-size:0.9rem; padding-right:12px; margin-bottom:24px;">
+         <div id="orderModalSubtotalRow" style="color:var(--text-muted);"></div>
+         <div id="orderModalShippingRow" style="color:var(--text-muted);"></div>
+         <div id="orderModalPromoRow" style="color:var(--success); font-weight:500;"></div>
+         <div style="font-size:1.15rem; font-weight:700; color:var(--text-main); border-top:1px solid var(--border); padding-top:8px; margin-top:4px; width:220px; text-align:right;">
+        Gross Total: <span id="orderModalTotal"></span>
+         </div>
+      </div>
+      <div class="modal-footer" style="padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
+        <button type="button" class="btn btn-primary" onclick="window.downloadInvoiceBill()">Download Bill</button>
+        <button type="button" class="btn btn-secondary" onclick="window.closeOrderModal()">Dismiss Window</button>
+      </div>
     </div>
   </div>
 </div>

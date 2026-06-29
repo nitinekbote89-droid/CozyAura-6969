@@ -872,8 +872,18 @@ window.viewOrderDetails = async function(orderId) {
     const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
     const inv = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
     
+    const modal = document.getElementById('orderModal');
+    const loader = document.getElementById('orderModalLoader');
+    const content = document.getElementById('orderModalContent');
+
+    document.getElementById('modalOrderId').textContent = String(decodedId).startsWith('#') ? decodedId : '#' + decodedId;
+
     let order = ords.find(o => String(o.id) === String(decodedId));
     if (!order) {
+        if (loader) loader.style.display = 'flex';
+        if (content) content.style.display = 'none';
+        if (modal) modal.classList.add('active');
+
         try {
             const pwd = sessionStorage.getItem('lumiere_admin_secret');
             const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=get_order_details&orderId=${encodeURIComponent(decodedId)}&t=${Date.now()}`, {
@@ -887,11 +897,18 @@ window.viewOrderDetails = async function(orderId) {
             }
         } catch(e) {
             console.error("Failed to load order receipt from database:", e);
+            if (modal) modal.classList.remove('active');
             alert("Could not load receipt details for order " + decodedId + " from database.");
             return;
         }
+    } else {
+        if (loader) loader.style.display = 'none';
+        if (content) content.style.display = 'block';
+        if (modal) modal.classList.add('active');
     }
 
+    if (loader) loader.style.display = 'none';
+    if (content) content.style.display = 'block';
     window.currentViewingOrderId = order.id;
 
     document.getElementById('modalOrderId').textContent = String(order.id).startsWith('#') ? order.id : '#' + order.id;
@@ -1004,7 +1021,6 @@ window.viewOrderDetails = async function(orderId) {
     document.getElementById('modalTrackingInput').value = order.trackingNumber || '';
     document.getElementById('modalTrackingLinkInput').value = order.trackingLink || '';
 
-    const modal = document.getElementById('orderModal');
     if (modal) modal.classList.add('active');
 };
 

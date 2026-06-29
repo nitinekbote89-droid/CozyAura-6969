@@ -1433,10 +1433,43 @@ window.viewCustomerDetailModal = function(encodedCustomer) {
   window._modalCustomerOrdersPage = 0;
   window._modalCustomerWishlistPage = 0;
   
-  window.renderCustomerDetailModalContent();
-  
   const modal = document.getElementById('customerDetailModal');
   if (modal) modal.classList.add('active');
+
+  const body = document.getElementById('customerDetailModalBody');
+  if (body) {
+    body.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:64px; color:var(--text-muted); gap:16px;">
+        <div class="spinner-gold-mini" style="width:24px; height:24px; border:2px solid rgba(184, 151, 90, 0.2); border-top-color:#b8975a; border-radius:50%; animation:spinCircle 0.8s linear infinite;"></div>
+        <div style="font-size:0.9rem; font-weight:500;">Loading customer profile...</div>
+      </div>
+    `;
+  }
+
+  (async () => {
+    try {
+      const pwd = sessionStorage.getItem('lumiere_admin_secret');
+      const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=get_customer_profile&email=${encodeURIComponent(customer.email)}&t=${Date.now()}`, {
+        headers: { 'X-Admin-Secret': pwd }
+      });
+      const json = await res.json();
+      if (json.success && json.customer) {
+        window._currentViewingModalCustomer = json.customer;
+        window.renderCustomerDetailModalContent();
+      } else {
+        throw new Error(json.error || 'Failed to fetch details');
+      }
+    } catch (e) {
+      console.error(e);
+      if (body) {
+        body.innerHTML = `
+          <div style="text-align:center; padding:48px; color:var(--danger); font-size:0.9rem;">
+            Failed to load profile. <a href="#" onclick="window.viewCustomerDetailModal('${encodedCustomer}'); return false;" style="color:var(--info); text-decoration:underline;">Retry</a>
+          </div>
+        `;
+      }
+    }
+  })();
 };
 
 window.renderCustomerDetailModalContent = function() {

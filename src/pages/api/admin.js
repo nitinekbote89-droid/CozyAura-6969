@@ -229,6 +229,51 @@ export async function GET({ request }) {
       return await executeCloudinaryCleanup();
     }
 
+    // ─── GET CUSTOMER PROFILE ────────────────────────────────────────────────
+    if (action === 'get_customer_profile') {
+      const email = (url.searchParams.get('email') || '').trim().toLowerCase();
+      if (!email) {
+        return new Response(JSON.stringify({ success: false, error: 'Email parameter required.' }), { status: 400 });
+      }
+
+      const [{ data: addrs }, { data: orders }, { data: wishlist }] = await Promise.all([
+        supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').eq('user_email', email).limit(5),
+        supabase.from('orders').select('id, total, status, date, delivery_method').eq('shipping_email', email).order('date', { ascending: false }).limit(200),
+        supabase.from('wishlist').select('product_id').eq('user_email', email).limit(100)
+      ]);
+
+      // Resolve best name + phone from addresses or orders
+      const defaultAddr = (addrs || []).find(a => a.is_default) || (addrs || [])[0];
+      let fname = defaultAddr?.fname || '';
+      let lname = defaultAddr?.lname || '';
+      let phone = defaultAddr?.phone || '';
+
+      if ((!fname || !lname) && orders && orders.length > 0) {
+        const latestOrder = orders[0];
+        if (!fname) fname = latestOrder.shipping_fname || '';
+        if (!lname) lname = latestOrder.shipping_lname || '';
+        if (!phone) phone = latestOrder.shipping_phone || '';
+      }
+
+      const customer = {
+        email,
+        fname: (fname || '').trim(),
+        lname: (lname || '').trim(),
+        phone: (phone || '').trim(),
+        ordersCount: (orders || []).length,
+        wishlistCount: (wishlist || []).length,
+        recentOrders: (orders || []).map(o => ({
+          id: o.id,
+          total: o.total,
+          status: o.status,
+          date: o.date,
+          deliveryMethod: o.delivery_method || 'Shipping'
+        }))
+      };
+
+      return new Response(JSON.stringify({ success: true, customer }), { status: 200 });
+    }
+
     // ─── SERVER-SIDE CUSTOMER SEARCH ────────────────────────────────────────
     if (action === 'search_customers') {
       const q = (url.searchParams.get('q') || '').trim().toLowerCase();

@@ -3165,7 +3165,8 @@ window.showOrderDetail = function(id, isAuto) {
           '</div>' +
           '<div style="font-size:0.8rem; color:var(--stone);">Tap a star to leave a review</div>' +
           '<div id="feedbackFormContent_' + order.id + '" style="display:none; flex-direction:column; gap:0.75rem; margin-top:0.75rem;">' +
-            '<textarea id="feedbackComment_' + order.id + '" placeholder="Write your review... (max 200 words)" style="width: 100%; height: 80px; padding: 0.6rem; border: 1px solid var(--sand); border-radius: 4px; font-family: inherit; font-size: 0.82rem; resize: none; box-sizing: border-box; background: white; outline: none;"></textarea>' +
+            '<textarea id="feedbackComment_' + order.id + '" placeholder="Write your review... (max 200 characters)" maxlength="200" oninput="document.getElementById(\'feedbackCharCount_\' + \'' + order.id + '\').textContent = this.value.length + \'/200 characters\'" style="width: 100%; height: 80px; padding: 0.6rem; border: 1px solid var(--sand); border-radius: 4px; font-family: inherit; font-size: 0.82rem; resize: none; box-sizing: border-box; background: white; outline: none;"></textarea>' +
+            '<div id="feedbackCharCount_' + order.id + '" style="font-size:0.75rem; text-align:right; color:var(--stone); margin-top:-0.4rem; margin-bottom:0.25rem;">0/200 characters</div>' +
             '<button class="btn-primary" onclick="window.submitFeedbackToDatabase(\'' + order.id + '\')" style="width: 100%; padding: 0.75rem; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; border-radius: 4px; cursor: pointer; border: none;">Submit Feedback</button>' +
           '</div>' +
         '</div>';
@@ -4053,10 +4054,9 @@ window.submitFeedbackToDatabase = async function(orderId) {
   const commentField = document.getElementById('feedbackComment_' + orderId);
   const comment = commentField ? commentField.value.trim() : '';
   
-  // Validate word count (max 200 words)
-  const words = comment.split(/\s+/).filter(Boolean);
-  if (words.length > 200) {
-    window.showToast("Feedback comment must not exceed 200 words.", true);
+  // Validate character count (max 200 characters)
+  if (comment.length > 200) {
+    window.showToast("Feedback comment must not exceed 200 characters.", true);
     return;
   }
   

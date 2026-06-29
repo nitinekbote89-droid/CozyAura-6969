@@ -363,7 +363,7 @@ export async function GET({ request }) {
       supabase.from('coupons').select('*'),
       supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
       supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
-      supabase.from('users').select('id, email, created_at', { count: 'exact' }).range(userPageStart, userPageEnd),
+      supabase.from('users').select('id, email, created_at', { count: 'exact' }).order('created_at', { ascending: false }).range(userPageStart, userPageEnd),
       supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').limit(500),
       supabase.from('wishlist').select('user_email, product_id').limit(500),
       supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(feedbackPageStart, feedbackPageEnd)

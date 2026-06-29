@@ -1438,6 +1438,14 @@ window.renderCustomersList = function(resetPage) {
     `;
     container.appendChild(paginationDiv);
   }
+
+  // Show "most recent" hint only in default view (no search typed)
+  if (!hasActiveSearch) {
+    const hint = document.createElement('p');
+    hint.style.cssText = 'font-size:0.75rem; color:var(--text-muted); text-align:center; margin:10px 0 2px 0; opacity:0.7;';
+    hint.innerHTML = `Showing <strong>${filtered.length}</strong> most recent customers &nbsp;·&nbsp; Search by name, email or phone to find anyone`;
+    container.appendChild(hint);
+  }
 };
 
 // Show customer details from already-fetched server search data (avoids second fetch)

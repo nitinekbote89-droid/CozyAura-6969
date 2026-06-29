@@ -245,14 +245,8 @@ import AdminModals from '../components/AdminModals.astro';
         </div>
       </div>
 
-      <style is:global>
-        #tab-customers.active {
-          display: flex !important;
-        }
-      </style>
-
       <!-- Customers Pane -->
-      <div id="tab-customers" class="tab-pane" style="height: calc(100vh - 136px); flex-direction: column;">
+      <div id="tab-customers" class="tab-pane">
         <div class="search-bar" style="margin-bottom: 20px; flex-shrink: 0;">
           <input type="text" id="customerSearchInput" placeholder="Search by name, email, or phone..." oninput="window.renderCustomersList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
         </div>

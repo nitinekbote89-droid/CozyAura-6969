@@ -246,25 +246,27 @@ import AdminModals from '../components/AdminModals.astro';
       </div>
 
       <!-- Customers Pane -->
-      <div id="tab-customers" class="tab-pane" style="height: calc(100vh - 136px);">
-        <div style="display: flex; gap: 24px; height: 100%; align-items: stretch;">
-          <!-- Customers List -->
-          <div style="width: 360px; flex-shrink: 0; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 16px; height: 100%;">
-            <h3 style="font-weight: 500; margin: 0; font-size: 1.1rem; letter-spacing: 0.02em;">Customer Registry (<span id="customerRegistryCount">0</span>)</h3>
-            <input type="text" id="customerSearchInput" placeholder="Search by name, email, or phone..." oninput="window.renderCustomersList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
-            <div id="customersListContainer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
+      <div id="tab-customers" class="tab-pane">
+        <div class="search-bar" style="margin-bottom: 20px;">
+          <input type="text" id="customerSearchInput" placeholder="Search by name, email, or phone..." oninput="window.renderCustomersList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 80px;">Index</th>
+                <th>Customer Name</th>
+                <th>Email Address</th>
+                <th>Phone Number</th>
+                <th style="width: 120px; text-align: center;">Orders</th>
+                <th style="width: 120px; text-align: center;">Wishlist</th>
+                <th style="width: 120px; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="customersTableBody">
               <!-- Loaded dynamically -->
-            </div>
-          </div>
-
-          <!-- Customer Detail Panel -->
-          <div id="customerDetailPane" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: none; flex-direction: column; gap: 20px; overflow-y: auto; height: 100%;">
-            <!-- Loaded dynamically -->
-          </div>
-          <div id="customerDetailEmpty" style="flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.95rem; text-align: center; gap: 12px; height: 100%;">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted); opacity: 0.6;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            Select a customer from the directory list to review their purchase history and active wishlist.
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
 

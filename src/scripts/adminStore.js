@@ -1306,11 +1306,10 @@ window.initCustomerSearch = function() {
 };
 
 window.searchCustomersOnServer = async function(q) {
-  const container = document.getElementById('customersListContainer');
-  if (!container) return;
+  const tbody = document.getElementById('customersTableBody');
+  if (!tbody) return;
 
-  // Show loading state
-  container.innerHTML = '<p style="color:var(--text-muted); font-size:0.88rem; text-align:center; padding:20px 0;">🔍 Searching...</p>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">🔍 Searching...</td></tr>';
 
   try {
     const pwd = sessionStorage.getItem('lumiere_admin_secret');
@@ -1324,31 +1323,22 @@ window.searchCustomersOnServer = async function(q) {
     window._customersListPage = 0;
     window.renderCustomersList();
   } catch (e) {
-    container.innerHTML = '<p style="color:var(--danger); font-size:0.88rem; text-align:center; padding:20px 0;">Search failed. Please try again.</p>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--danger);">Search failed. Please try again.</td></tr>';
   }
 };
 
 window.renderCustomersList = function(resetPage) {
-  const container = document.getElementById('customersListContainer');
-  if (!container) return;
-
-  // Attach search listener (idempotent)
   window.initCustomerSearch();
 
   if (resetPage) window._customersListPage = 0;
 
-  // ── DECIDE DATA SOURCE ──────────────────────────────────────────
-  // If user has searched → use server results
-  // If no search query   → use locally compiled customers
   const searchInput = document.getElementById('customerSearchInput');
   const hasActiveSearch = searchInput && searchInput.value.trim().length >= 2;
 
   let filtered;
   if (hasActiveSearch && window._customerSearchResults !== null) {
-    // Server results — already filtered by server
     filtered = (window._customerSearchResults).map((c, idx) => ({ ...c, sequenceNumber: idx + 1 }));
   } else {
-    // Local cached data
     const customers = window.getCompiledCustomers();
 
     // Sync counts
@@ -1371,12 +1361,12 @@ window.renderCustomersList = function(resetPage) {
     });
   }
 
-  container.innerHTML = '';
+  tbody.innerHTML = '';
   if (filtered.length === 0) {
     const searchVal = searchInput ? searchInput.value.trim() : '';
-    container.innerHTML = searchVal.length >= 2
-      ? `<p style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding: 20px 0;">No customers found for "<strong>${esc(searchVal)}</strong>"</p>`
-      : '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center; padding: 20px 0;">No customers found.</p>';
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">${
+      searchVal.length >= 2 ? `No customers found for "<strong>${esc(searchVal)}</strong>"` : 'No customers found.'
+    }</td></tr>`;
     return;
   }
 
@@ -1386,77 +1376,80 @@ window.renderCustomersList = function(resetPage) {
   const currentPage = window._customersListPage;
   const pageSlice = filtered.slice(currentPage * CUSTOMERS_PER_PAGE, (currentPage + 1) * CUSTOMERS_PER_PAGE);
 
-  const fragment = document.createDocumentFragment();
-  pageSlice.forEach(c => {
-    const card = document.createElement('div');
-    card.className = 'customer-list-card';
-    card.style.cssText = "padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-main); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px;";
-
-    if (window._selectedCustomerEmail === c.email) {
-      card.style.borderColor = "var(--brand)";
-      card.style.background = "rgba(184,151,90,0.08)";
-    }
-
-    card.onclick = () => {
-      window._selectedCustomerEmail = c.email;
-      window.renderCustomersList();
-      // If we have server result data already, use it directly
-      if (hasActiveSearch && window._customerSearchResults !== null) {
-        window.showCustomerDetailsFromData(c);
-      } else {
-        window.showCustomerDetails(c.email);
-      }
-    };
-
+  tbody.innerHTML = pageSlice.map(c => {
     const displayName = `${c.fname} ${c.lname}`.trim() || 'Guest Customer';
-    const displayPhone = c.phone ? `<span style="font-size:0.8rem; color:var(--text-muted);">📞 ${esc(c.phone)}</span>` : '';
+    const displayPhone = c.phone ? esc(c.phone) : '—';
+    const encodedCust = encodeURIComponent(JSON.stringify(c));
+    return `<tr onclick="window.viewCustomerDetailModal('${encodedCust}')" style="cursor:pointer;">` +
+      `<td>#${c.sequenceNumber}</td>` +
+      `<td style="font-weight:500; text-transform:capitalize;">${esc(displayName)}</td>` +
+      `<td style="font-family:monospace;">${esc(c.email)}</td>` +
+      `<td>${esc(displayPhone)}</td>` +
+      `<td style="text-align:center; font-weight:600;">${c.ordersCount}</td>` +
+      `<td style="text-align:center; font-weight:600;">${c.wishlistCount}</td>` +
+      `<td style="text-align:center;" onclick="event.stopPropagation();">` +
+        `<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;" onclick="window.viewCustomerDetailModal('${encodedCust}')">` +
+          `View` +
+        `</button>` +
+      `</td>` +
+    `</tr>`;
+  }).join('');
 
-    card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size:0.95rem; text-transform:capitalize; color:var(--text-main);"><span style="color: var(--brand); font-weight: 600; margin-right: 4px;">#${c.sequenceNumber}</span> ${esc(displayName)}</strong>
-        <span style="font-size:0.75rem; background:var(--bg-surface); padding:2px 6px; border-radius:4px; border:1px solid var(--border); color:var(--text-muted);">${c.ordersCount} orders</span>
+  // Pagination controls & hint row
+  if (totalPages > 1 || !hasActiveSearch) {
+    const hintText = !hasActiveSearch ? `Showing <strong>${filtered.length}</strong> most recent customers &nbsp;·&nbsp; Search by name, email or phone to find anyone` : '';
+    const controlsHtml = totalPages > 1 ? 
+      `<div style="display:inline-flex; align-items:center; gap:12px; font-size:0.8rem; color:var(--text-muted);">
+        <button onclick="window._customersListPage=Math.max(0,window._customersListPage-1); window.renderCustomersList();" 
+          style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
+          ${currentPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
+        <span>Page ${currentPage + 1} of ${totalPages} &nbsp;(${filtered.length} total)</span>
+        <button onclick="window._customersListPage=Math.min(${totalPages-1},window._customersListPage+1); window.renderCustomersList();"
+          style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
+          ${currentPage >= totalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
+      </div>` : '';
+
+    const controlRow = document.createElement('tr');
+    controlRow.innerHTML = `<td colspan="7" style="padding:16px 0; text-align:center; background:transparent;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+        ${controlsHtml}
+        ${hintText ? `<p style="font-size:0.75rem; color:var(--text-muted); margin:4px 0 0 0; opacity:0.7;">${hintText}</p>` : ''}
       </div>
-      <div style="font-size:0.85rem; color:var(--text-muted); word-break:break-all;">${esc(c.email)}</div>
-      ${displayPhone}
-    `;
-    fragment.appendChild(card);
-  });
-  container.appendChild(fragment);
-
-  // Pagination controls
-  if (totalPages > 1) {
-    const paginationDiv = document.createElement('div');
-    paginationDiv.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 4px; margin-top:8px; font-size:0.8rem; color:var(--text-muted);';
-    paginationDiv.innerHTML = `
-      <button onclick="window._customersListPage=Math.max(0,window._customersListPage-1); window.renderCustomersList();"
-        style="padding:4px 10px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
-        ${currentPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
-      <span>Page ${currentPage + 1} of ${totalPages} &nbsp;(${filtered.length} total)</span>
-      <button onclick="window._customersListPage=Math.min(${totalPages-1},window._customersListPage+1); window.renderCustomersList();"
-        style="padding:4px 10px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
-        ${currentPage >= totalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
-    `;
-    container.appendChild(paginationDiv);
-  }
-
-  // Show "most recent" hint only in default view (no search typed)
-  if (!hasActiveSearch) {
-    const hint = document.createElement('p');
-    hint.style.cssText = 'font-size:0.75rem; color:var(--text-muted); text-align:center; margin:10px 0 2px 0; opacity:0.7;';
-    hint.innerHTML = `Showing <strong>${filtered.length}</strong> most recent customers &nbsp;·&nbsp; Search by name, email or phone to find anyone`;
-    container.appendChild(hint);
+    </td>`;
+    tbody.appendChild(controlRow);
   }
 };
 
-// Show customer details from already-fetched server search data (avoids second fetch)
-window.showCustomerDetailsFromData = function(customer) {
-  const detailPane = document.getElementById('customerDetailPane');
-  const emptyPane = document.getElementById('customerDetailEmpty');
-  if (!detailPane || !emptyPane) return;
+window._modalCustomerOrdersPage = 0;
+window._modalCustomerWishlistPage = 0;
+const MODAL_ITEMS_PER_PAGE = 5;
+window._currentViewingModalCustomer = null;
 
-  emptyPane.style.display = 'none';
-  detailPane.style.display = 'block';
+window.closeCustomerDetailModal = function() {
+  const modal = document.getElementById('customerDetailModal');
+  if (modal) modal.classList.remove('active');
+};
 
+window.viewCustomerDetailModal = function(encodedCustomer) {
+  const customer = JSON.parse(decodeURIComponent(encodedCustomer));
+  window._currentViewingModalCustomer = customer;
+  window._modalCustomerOrdersPage = 0;
+  window._modalCustomerWishlistPage = 0;
+  
+  window.renderCustomerDetailModalContent();
+  
+  const modal = document.getElementById('customerDetailModal');
+  if (modal) modal.classList.add('active');
+};
+
+window.renderCustomerDetailModalContent = function() {
+  const customer = window._currentViewingModalCustomer;
+  if (!customer) return;
+
+  const body = document.getElementById('customerDetailModalBody');
+  if (!body) return;
+
+  const email = customer.email.toLowerCase().trim();
   const displayName = `${customer.fname} ${customer.lname}`.trim() || 'Guest Customer';
   const phoneSection = customer.phone ? `<p style="margin:4px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Phone:</strong> ${esc(customer.phone)}</p>` : '';
 
@@ -1467,43 +1460,67 @@ window.showCustomerDetailsFromData = function(customer) {
         <p style="margin:6px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Email:</strong> ${esc(customer.email)}</p>
         ${phoneSection}
       </div>
-      <button class="btn btn-secondary" onclick="window.deleteCustomerProfile('${encodeURIComponent(customer.email)}')" style="border-color:var(--danger); color:var(--danger); display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:0.8rem; height:fit-content; border-radius:6px; font-family:inherit; cursor:pointer;">
+      <button class="btn btn-secondary" onclick="window.deleteCustomerProfileFromModal('${encodeURIComponent(customer.email)}')" style="border-color:var(--danger); color:var(--danger); display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:0.8rem; height:fit-content; border-radius:6px; font-family:inherit; cursor:pointer;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
         Delete Profile
       </button>
     </div>
   `;
 
-  // Render recent orders from server data
+  // Get orders
+  let ordersToUse = [];
+  if (customer.recentOrders) {
+    ordersToUse = customer.recentOrders;
+  } else {
+    const orders = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+    ordersToUse = orders.filter(o => o.shippingInfo?.email?.toLowerCase().trim() === email).map(o => ({
+      id: o.id,
+      total: o.total,
+      status: o.status,
+      date: o.date,
+      deliveryMethod: o.deliveryMethod || 'Shipping'
+    }));
+  }
+
+  // Get wishlist
+  const wishlist = JSON.parse(localStorage.getItem('lumiere_admin_wishlist') || '[]');
+  const wishlistToUse = wishlist.filter(w => w.user_email?.toLowerCase().trim() === email);
+  const inventory = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
+
+  // Paginate Orders
+  const ordersTotalPages = Math.ceil(ordersToUse.length / MODAL_ITEMS_PER_PAGE) || 1;
+  window._modalCustomerOrdersPage = Math.min(window._modalCustomerOrdersPage, ordersTotalPages - 1);
+  const oPage = window._modalCustomerOrdersPage;
+  const ordersSlice = ordersToUse.slice(oPage * MODAL_ITEMS_PER_PAGE, (oPage + 1) * MODAL_ITEMS_PER_PAGE);
+
   let ordersHtml = '';
-  const recentOrders = customer.recentOrders || [];
-  if (recentOrders.length === 0) {
+  if (ordersToUse.length === 0) {
     ordersHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No order history.</p>';
   } else {
     ordersHtml = `
-      <div class="table-container" style="border:1px solid var(--border); border-radius:6px;">
-        <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+      <div class="table-container" style="border:1px solid var(--border); border-radius:6px; margin-bottom:8px;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
           <thead>
             <tr style="background:var(--bg-main); border-bottom:1px solid var(--border);">
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Order ID</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Date</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Status</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Total</th>
-              <th style="padding:10px 12px; text-align:center; font-size:0.75rem;">Action</th>
+              <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Order ID</th>
+              <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Date</th>
+              <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Status</th>
+              <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Total</th>
+              <th style="padding:8px 10px; text-align:center; font-size:0.75rem;">Action</th>
             </tr>
           </thead>
           <tbody>
-            ${recentOrders.map(o => {
+            ${ordersSlice.map(o => {
               const formattedId = String(o.id).startsWith('#') ? o.id : '#' + o.id;
-              const totalVal = parseInt(String(o.total || '').replace(/[^\d]/g, '')) || 0;
+              const totalVal = typeof o.total === 'number' ? o.total : (parseInt(String(o.total || '').replace(/[^\d]/g, '')) || 0);
               return `
                 <tr style="border-bottom:1px solid var(--border);">
-                  <td style="padding:10px 12px; font-weight:500;">${formattedId}</td>
-                  <td style="padding:10px 12px;">${o.date ? fmtDate(o.date) : '—'}</td>
-                  <td style="padding:10px 12px;">${window.getOrderBadge(o.status, o.deliveryMethod)}</td>
-                  <td style="padding:10px 12px; font-weight:500;">₹${totalVal.toLocaleString('en-IN')}</td>
-                  <td style="padding:10px 12px; text-align:center;">
-                    <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(o.id ?? ''))}')" style="padding:4px 8px; font-size:0.75rem;">Receipt</button>
+                  <td style="padding:8px 10px; font-weight:500;">${formattedId}</td>
+                  <td style="padding:8px 10px;">${o.date ? fmtDate(o.date) : '—'}</td>
+                  <td style="padding:8px 10px;">${window.getOrderBadge(o.status, o.deliveryMethod)}</td>
+                  <td style="padding:8px 10px; font-weight:500;">₹${totalVal.toLocaleString('en-IN')}</td>
+                  <td style="padding:8px 10px; text-align:center;">
+                    <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(o.id ?? ''))}')" style="padding:2px 6px; font-size:0.7rem;">Receipt</button>
                   </td>
                 </tr>
               `;
@@ -1511,155 +1528,96 @@ window.showCustomerDetailsFromData = function(customer) {
           </tbody>
         </table>
       </div>
-      ${recentOrders.length >= 5 ? `<p style="font-size:0.78rem; color:var(--text-muted); text-align:center; margin-top:8px;">Showing 5 most recent orders. Search this customer in Orders tab for full history.</p>` : ''}
     `;
+
+    if (ordersTotalPages > 1) {
+      ordersHtml += `
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+          <button onclick="window._modalCustomerOrdersPage=Math.max(0,window._modalCustomerOrdersPage-1); window.renderCustomerDetailModalContent();" 
+            style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main);"
+            ${oPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
+          <span>Page ${oPage + 1} of ${ordersTotalPages} &nbsp;(${ordersToUse.length} total)</span>
+          <button onclick="window._modalCustomerOrdersPage=Math.min(${ordersTotalPages-1},window._modalCustomerOrdersPage+1); window.renderCustomerDetailModalContent();"
+            style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main);"
+            ${oPage >= ordersTotalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
+        </div>
+      `;
+    }
   }
 
-  detailPane.innerHTML = `
-    ${headerHtml}
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
-      <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;">
-        <div style="font-size:1.6rem; font-weight:700; color:var(--brand);">${customer.ordersCount}</div>
-        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Orders</div>
-      </div>
-      <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center;">
-        <div style="font-size:1.6rem; font-weight:700; color:var(--brand);">${customer.wishlistCount}</div>
-        <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Wishlist Items</div>
-      </div>
-    </div>
-    <div style="margin-bottom:16px;">
-      <h4 style="margin:0 0 10px 0; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Recent Orders</h4>
-      ${ordersHtml}
-    </div>
-  `;
-};
+  // Paginate Wishlist
+  const wishlistTotalPages = Math.ceil(wishlistToUse.length / MODAL_ITEMS_PER_PAGE) || 1;
+  window._modalCustomerWishlistPage = Math.min(window._modalCustomerWishlistPage, wishlistTotalPages - 1);
+  const wPage = window._modalCustomerWishlistPage;
+  const wishlistSlice = wishlistToUse.slice(wPage * MODAL_ITEMS_PER_PAGE, (wPage + 1) * MODAL_ITEMS_PER_PAGE);
 
-
-
-window.showCustomerDetails = function(email) {
-  const detailPane = document.getElementById('customerDetailPane');
-  const emptyPane = document.getElementById('customerDetailEmpty');
-  if (!detailPane || !emptyPane) return;
-
-  const customers = window.getCompiledCustomers();
-  const customer = customers.find(c => c.email === email);
-  if (!customer) return;
-
-  emptyPane.style.display = 'none';
-  detailPane.style.display = 'block';
-
-  // Get customer's orders
-  const orders = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
-  const userOrders = orders.filter(o => o.shippingInfo?.email?.toLowerCase().trim() === email);
-
-  // Get customer's wishlist items
-  const wishlist = JSON.parse(localStorage.getItem('lumiere_admin_wishlist') || '[]');
-  const userWishlist = wishlist.filter(w => w.user_email?.toLowerCase().trim() === email);
-
-  // Get products inventory to resolve wishlist details
-  const inventory = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
-
-  // Render profile header
-  const displayName = `${customer.fname} ${customer.lname}`.trim() || 'Guest Customer';
-  const phoneSection = customer.phone ? `<p style="margin:4px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Phone:</strong> ${esc(customer.phone)}</p>` : '';
-  
-  let headerHtml = `
-    <div style="border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:flex-start;">
-      <div>
-        <h3 style="margin:0; font-size:1.4rem; text-transform:capitalize; font-family:'Cormorant Garamond',serif; color:var(--gold-dark);">${esc(displayName)}</h3>
-        <p style="margin:6px 0 0 0; font-size:0.9rem; color:var(--text-muted);"><strong>Email:</strong> ${esc(customer.email)}</p>
-        ${phoneSection}
-      </div>
-      <button class="btn btn-secondary" onclick="window.deleteCustomerProfile('${encodeURIComponent(customer.email)}')" style="border-color:var(--danger); color:var(--danger); display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:0.8rem; height:fit-content; border-radius:6px; font-family:inherit; cursor:pointer;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        Delete Profile
-      </button>
-    </div>
-  `;
-
-  // Render Wishlist Section
   let wishlistHtml = '';
-  if (userWishlist.length === 0) {
+  if (wishlistToUse.length === 0) {
     wishlistHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No items in wishlist.</p>';
   } else {
     wishlistHtml = `
-      <div style="display:flex; flex-direction:column; gap:10px; padding-right:4px;">
-        ${userWishlist.map(w => {
+      <div style="display:flex; flex-direction:column; gap:8px; padding-right:4px; margin-bottom:8px;">
+        ${wishlistSlice.map(w => {
           const product = inventory.find(p => String(p.id) === String(w.product_id));
           const prodName = product ? product.name : w.product_id;
           const coverImg = (product && product.coverImage) || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23E5E7EB'/%3E%3C/svg%3E";
           const variantName = w.variant_name;
           const price = product ? `₹${product.price}` : '—';
           return `
-            <div style="display:flex; align-items:center; gap:12px; padding:10px; border:1px solid var(--border); border-radius:6px; background:var(--bg-main);">
-              <img src="${coverImg}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
+            <div style="display:flex; align-items:center; gap:12px; padding:8px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg-main);">
+              <img src="${coverImg}" style="width:36px; height:36px; object-fit:cover; border-radius:4px; border:1px solid var(--border);">
               <div style="flex:1;">
-                <div style="font-weight:500; font-size:0.9rem; text-transform:capitalize; color:var(--text-main);">${esc(prodName)}</div>
-                <div style="font-size:0.78rem; color:var(--text-muted); text-transform:capitalize;">Variant: ${esc(variantName)}</div>
+                <div style="font-weight:500; font-size:0.85rem; text-transform:capitalize; color:var(--text-main);">${esc(prodName)}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:capitalize;">Variant: ${esc(variantName)}</div>
               </div>
-              <div style="font-weight:600; font-size:0.9rem; color:var(--gold-dark);">${price}</div>
+              <div style="font-weight:600; font-size:0.85rem; color:var(--gold-dark);">${price}</div>
             </div>
           `;
         }).join('')}
       </div>
     `;
+
+    if (wishlistTotalPages > 1) {
+      wishlistHtml += `
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+          <button onclick="window._modalCustomerWishlistPage=Math.max(0,window._modalCustomerWishlistPage-1); window.renderCustomerDetailModalContent();" 
+            style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main);"
+            ${wPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
+          <span>Page ${wPage + 1} of ${wishlistTotalPages} &nbsp;(${wishlistToUse.length} total)</span>
+          <button onclick="window._modalCustomerWishlistPage=Math.min(${wishlistTotalPages-1},window._modalCustomerWishlistPage+1); window.renderCustomerDetailModalContent();"
+            style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main);"
+            ${wPage >= wishlistTotalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
+        </div>
+      `;
+    }
   }
 
-  // Render Order History Section
-  let ordersHtml = '';
-  if (userOrders.length === 0) {
-    ordersHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No order history.</p>';
-  } else {
-    ordersHtml = `
-      <div class="table-container" style="border:1px solid var(--border); border-radius:6px;">
-        <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
-          <thead>
-            <tr style="background:var(--bg-main); border-bottom:1px solid var(--border);">
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Order ID</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Date</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Status</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem;">Total</th>
-              <th style="padding:10px 12px; text-align:center; font-size:0.75rem;">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${userOrders.map(o => {
-              const formattedId = String(o.id).startsWith('#') ? o.id : '#' + o.id;
-              const totalVal = parseInt(String(o.total || '').replace(/[^\d]/g, '')) || 0;
-              return `
-                <tr style="border-bottom:1px solid var(--border);">
-                  <td style="padding:10px 12px; font-weight:500;">${formattedId}</td>
-                  <td style="padding:10px 12px;">${o.date ? fmtDate(o.date) : '—'}</td>
-                  <td style="padding:10px 12px;">${window.getOrderBadge(o.status, o.deliveryMethod)}</td>
-                  <td style="padding:10px 12px; font-weight:500;">₹${totalVal.toLocaleString('en-IN')}</td>
-                  <td style="padding:10px 12px; text-align:center;">
-                    <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(o.id ?? ''))}')" style="padding:4px 8px; font-size:0.75rem;">Receipt</button>
-                  </td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-
-  detailPane.innerHTML = `
+  body.innerHTML = `
     ${headerHtml}
-    
-    <div style="margin-bottom:28px;">
-      <h4 style="margin:0 0 12px 0; font-size:1.05rem; font-weight:500; letter-spacing:0.01em;">Wishlist Products (${userWishlist.length})</h4>
-      ${wishlistHtml}
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:12px;">
+      <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.4rem; font-weight:700; color:var(--brand);">${customer.ordersCount}</div>
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Total Orders</div>
+      </div>
+      <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:1.4rem; font-weight:700; color:var(--brand);">${customer.wishlistCount}</div>
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Wishlist Items</div>
+      </div>
     </div>
-
-    <div>
-      <h4 style="margin:0 0 12px 0; font-size:1.05rem; font-weight:500; letter-spacing:0.01em;">Order History (${userOrders.length})</h4>
-      ${ordersHtml}
+    <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:20px;">
+      <div>
+        <h4 style="margin:0 0 10px 0; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Orders History</h4>
+        ${ordersHtml}
+      </div>
+      <div>
+        <h4 style="margin:0 0 10px 0; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Wishlist</h4>
+        ${wishlistHtml}
+      </div>
     </div>
   `;
 };
 
-window.deleteCustomerProfile = async function(encodedEmail) {
+window.deleteCustomerProfileFromModal = async function(encodedEmail) {
   const email = decodeURIComponent(encodedEmail);
   if (!confirm(`Are you sure you want to delete customer "${email}"? This will permanently delete their profile, saved addresses, wishlist, and all associated order history.`)) {
     return;
@@ -1677,12 +1635,7 @@ window.deleteCustomerProfile = async function(encodedEmail) {
     });
     const json = await res.json();
     if (json.success) {
-      // Hide detail pane
-      const detailPane = document.getElementById('customerDetailPane');
-      const detailEmpty = document.getElementById('customerDetailEmpty');
-      if (detailPane) detailPane.style.display = 'none';
-      if (detailEmpty) detailEmpty.style.display = 'flex';
-      
+      window.closeCustomerDetailModal();
       window.syncCloudInventory();
     } else {
       alert(`Failed to delete customer: ${json.error}`);

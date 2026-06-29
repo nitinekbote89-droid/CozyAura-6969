@@ -1490,21 +1490,19 @@ window.renderCustomerDetailModalContent = function() {
   const wishlistToUse = wishlist.filter(w => w.user_email?.toLowerCase().trim() === email);
   const inventory = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
 
-  // Paginate Orders
-  const ordersTotalPages = Math.ceil(ordersToUse.length / MODAL_ITEMS_PER_PAGE) || 1;
-  window._modalCustomerOrdersPage = Math.min(window._modalCustomerOrdersPage, ordersTotalPages - 1);
-  const oPage = window._modalCustomerOrdersPage;
-  const ordersSlice = ordersToUse.slice(oPage * MODAL_ITEMS_PER_PAGE, (oPage + 1) * MODAL_ITEMS_PER_PAGE);
+  // Paginate Orders (large limit to show all scrollable)
+  const MODAL_ORDERS_LIMIT = 200;
+  const ordersSlice = ordersToUse.slice(0, MODAL_ORDERS_LIMIT);
 
   let ordersHtml = '';
   if (ordersToUse.length === 0) {
     ordersHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No order history.</p>';
   } else {
     ordersHtml = `
-      <div class="table-container" style="border:1px solid var(--border); border-radius:6px; margin-bottom:8px;">
+      <div class="table-container" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px;">
         <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-          <thead>
-            <tr style="background:var(--bg-main); border-bottom:1px solid var(--border);">
+          <thead style="position: sticky; top: 0; z-index: 10; background: var(--bg-main);">
+            <tr style="border-bottom:1px solid var(--border);">
               <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Order ID</th>
               <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Date</th>
               <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Status</th>
@@ -1531,35 +1529,19 @@ window.renderCustomerDetailModalContent = function() {
           </tbody>
         </table>
       </div>
+      ${ordersToUse.length > MODAL_ORDERS_LIMIT ? `<p style="font-size:0.78rem; color:var(--text-muted); text-align:center; margin-top:4px;">Showing top ${MODAL_ORDERS_LIMIT} orders.</p>` : ''}
     `;
-
-    if (ordersTotalPages > 1) {
-      ordersHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
-          <button onclick="window._modalCustomerOrdersPage=Math.max(0,window._modalCustomerOrdersPage-1); window.renderCustomerDetailModalContent();" 
-            style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main);"
-            ${oPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
-          <span>Page ${oPage + 1} of ${ordersTotalPages} &nbsp;(${ordersToUse.length} total)</span>
-          <button onclick="window._modalCustomerOrdersPage=Math.min(${ordersTotalPages-1},window._modalCustomerOrdersPage+1); window.renderCustomerDetailModalContent();"
-            style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main);"
-            ${oPage >= ordersTotalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
-        </div>
-      `;
-    }
   }
 
   // Paginate Wishlist
-  const wishlistTotalPages = Math.ceil(wishlistToUse.length / MODAL_ITEMS_PER_PAGE) || 1;
-  window._modalCustomerWishlistPage = Math.min(window._modalCustomerWishlistPage, wishlistTotalPages - 1);
-  const wPage = window._modalCustomerWishlistPage;
-  const wishlistSlice = wishlistToUse.slice(wPage * MODAL_ITEMS_PER_PAGE, (wPage + 1) * MODAL_ITEMS_PER_PAGE);
+  const wishlistSlice = wishlistToUse.slice(0, 100);
 
   let wishlistHtml = '';
   if (wishlistToUse.length === 0) {
     wishlistHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No items in wishlist.</p>';
   } else {
     wishlistHtml = `
-      <div style="display:flex; flex-direction:column; gap:8px; padding-right:4px; margin-bottom:8px;">
+      <div style="display:flex; flex-direction:column; gap:8px; max-height: 250px; overflow-y: auto; padding-right:4px; margin-bottom:8px;">
         ${wishlistSlice.map(w => {
           const product = inventory.find(p => String(p.id) === String(w.product_id));
           const prodName = product ? product.name : w.product_id;
@@ -1579,20 +1561,6 @@ window.renderCustomerDetailModalContent = function() {
         }).join('')}
       </div>
     `;
-
-    if (wishlistTotalPages > 1) {
-      wishlistHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
-          <button onclick="window._modalCustomerWishlistPage=Math.max(0,window._modalCustomerWishlistPage-1); window.renderCustomerDetailModalContent();" 
-            style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main);"
-            ${wPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
-          <span>Page ${wPage + 1} of ${wishlistTotalPages} &nbsp;(${wishlistToUse.length} total)</span>
-          <button onclick="window._modalCustomerWishlistPage=Math.min(${wishlistTotalPages-1},window._modalCustomerWishlistPage+1); window.renderCustomerDetailModalContent();"
-            style="padding:2px 8px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main);"
-            ${wPage >= wishlistTotalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
-        </div>
-      `;
-    }
   }
 
   body.innerHTML = `
@@ -1607,15 +1575,15 @@ window.renderCustomerDetailModalContent = function() {
         <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Wishlist Items</div>
       </div>
     </div>
-    <div style="display:grid; grid-template-columns:1.2fr 1fr; gap:20px;">
-      <div>
-        <h4 style="margin:0 0 10px 0; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Orders History</h4>
-        ${ordersHtml}
-      </div>
-      <div>
-        <h4 style="margin:0 0 10px 0; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Wishlist</h4>
-        ${wishlistHtml}
-      </div>
+    
+    <div style="margin-bottom:24px;">
+      <h4 style="margin:0 0 10px 0; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Wishlist</h4>
+      ${wishlistHtml}
+    </div>
+
+    <div>
+      <h4 style="margin:0 0 10px 0; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted);">Orders History</h4>
+      ${ordersHtml}
     </div>
   `;
 };

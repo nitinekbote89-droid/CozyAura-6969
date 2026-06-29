@@ -807,6 +807,20 @@ window.notifyMe = function() {
 window.closeProductModal = function() { document.getElementById('productModalOverlay').classList.remove('active'); };
 
 window.addProductToCartFromModal = function() {
+  if (!window.isUserLoggedIn()) {
+    window.showConfirmModal({
+      category: 'Authentication',
+      title: 'Login Required',
+      text: 'You need to login with Google to add items to your cart.',
+      confirmText: 'Login with Google',
+      onConfirm: () => {
+        const activeTab = localStorage.getItem('lumiere_active_page') || 'home';
+        localStorage.setItem('lumiere_login_redirect', activeTab);
+        window.showLogin();
+      }
+    });
+    return;
+  }
   if (!window.selectedVariant) {
     window.showToast("Select a variant", true);
     return;
@@ -3723,8 +3737,16 @@ window.isProductWishlisted = function(productId, variantName) {
 window.toggleWishlistFromModal = async function() {
   const email = window.getLoggedInEmail();
   if (!email) {
-    localStorage.setItem('lumiere_login_redirect', 'wishlistPage');
-    window.showLogin();
+    window.showConfirmModal({
+      category: 'Authentication',
+      title: 'Login Required',
+      text: 'You need to login with Google to add items to your wishlist.',
+      confirmText: 'Login with Google',
+      onConfirm: () => {
+        localStorage.setItem('lumiere_login_redirect', 'wishlistPage');
+        window.showLogin();
+      }
+    });
     return;
   }
 

@@ -1497,11 +1497,11 @@ window.renderCustomerDetailModalContent = function() {
         <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
           <thead style="position: sticky; top: 0; z-index: 10; background: var(--bg-main);">
             <tr style="border-bottom:1px solid var(--border);">
-              <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Order ID</th>
-              <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Date</th>
-              <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Status</th>
-              <th style="padding:8px 10px; text-align:left; font-size:0.75rem;">Total</th>
-              <th style="padding:8px 10px; text-align:center; font-size:0.75rem;">Action</th>
+              <th style="width: 20%; padding:8px 10px; text-align:left; font-size:0.75rem;">Order ID</th>
+              <th style="width: 20%; padding:8px 10px; text-align:left; font-size:0.75rem;">Date</th>
+              <th style="width: 25%; padding:8px 10px; text-align:left; font-size:0.75rem;">Status</th>
+              <th style="width: 20%; padding:8px 10px; text-align:left; font-size:0.75rem;">Total</th>
+              <th style="width: 15%; padding:8px 10px; text-align:center; font-size:0.75rem;">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -1510,11 +1510,11 @@ window.renderCustomerDetailModalContent = function() {
               const totalVal = typeof o.total === 'number' ? o.total : (parseInt(String(o.total || '').replace(/[^\d]/g, '')) || 0);
               return `
                 <tr style="border-bottom:1px solid var(--border);">
-                  <td style="padding:8px 10px; font-weight:500;">${formattedId}</td>
-                  <td style="padding:8px 10px;">${o.date ? fmtDate(o.date) : '—'}</td>
-                  <td style="padding:8px 10px;">${window.getOrderBadge(o.status, o.deliveryMethod)}</td>
-                  <td style="padding:8px 10px; font-weight:500;">₹${totalVal.toLocaleString('en-IN')}</td>
-                  <td style="padding:8px 10px; text-align:center;">
+                  <td style="width: 20%; padding:8px 10px; font-weight:500;">${formattedId}</td>
+                  <td style="width: 20%; padding:8px 10px;">${o.date ? fmtDate(o.date) : '—'}</td>
+                  <td style="width: 25%; padding:8px 10px;">${window.getOrderBadge(o.status, o.deliveryMethod)}</td>
+                  <td style="width: 20%; padding:8px 10px; font-weight:500;">₹${totalVal.toLocaleString('en-IN')}</td>
+                  <td style="width: 15%; padding:8px 10px; text-align:center;">
                     <button class="btn btn-secondary" onclick="window.viewOrderDetails('${encodeURIComponent(String(o.id ?? ''))}')" style="padding:2px 6px; font-size:0.7rem;">Receipt</button>
                   </td>
                 </tr>

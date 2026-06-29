@@ -319,6 +319,27 @@ section.active {
   filter: brightness(1.02);
 }
 
+/* Safe layout scaling for short viewport heights (e.g. small laptops, short windows) */
+@media (max-height: 720px) {
+  :root {
+    --ig-card-size: min(calc((100vw - (2 * var(--ig-track-padding)) - (2 * var(--ig-card-gap))) / 2.5), 52dvh) !important;
+  }
+  .instagram-sticky-viewport {
+    top: 80px !important;
+    height: calc(100dvh - 80px) !important;
+  }
+  .instagram-header {
+    margin-bottom: 0.75rem !important;
+  }
+  .instagram-header h2 {
+    font-size: 1.8rem !important;
+  }
+  .instagram-header p {
+    font-size: 0.8rem !important;
+    margin-top: 0.25rem !important;
+  }
+}
+
 
 @media (max-width: 1024px) {
   :root {

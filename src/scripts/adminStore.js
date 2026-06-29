@@ -927,29 +927,27 @@ window.viewOrderDetails = async function(orderId) {
     const isPickup = order.deliveryMethod === 'Pickup';
     const trackingSection = document.getElementById('modalTrackingSection');
     const updateTrackingBtn = document.getElementById('orderModalSubmitBtn');
+    const trackingSaveBtn = document.getElementById('modalTrackingSaveBtn');
     
-    if (updateTrackingBtn) {
-        updateTrackingBtn.style.display = 'block';
-    }
+    if (updateTrackingBtn) updateTrackingBtn.style.display = 'none';
+    if (trackingSaveBtn) trackingSaveBtn.style.display = 'none';
 
     if (isPickup) {
         if (trackingSection) trackingSection.style.display = 'none';
         if (updateTrackingBtn) {
             if (order.status === 'Pending') {
+                updateTrackingBtn.style.display = 'block';
                 updateTrackingBtn.textContent = 'Mark as Ready for Pickup';
             } else if (order.status === 'Shipped') {
+                updateTrackingBtn.style.display = 'block';
                 updateTrackingBtn.textContent = 'Mark as Picked Up / Completed';
-            } else {
-                updateTrackingBtn.style.display = 'none';
             }
         }
     } else {
         if (trackingSection) trackingSection.style.display = 'block';
-        if (updateTrackingBtn) {
-            if (order.status === 'Delivered') {
-                updateTrackingBtn.style.display = 'none';
-            } else {
-                updateTrackingBtn.textContent = 'Update Tracking & Ship Order';
+        if (trackingSaveBtn) {
+            if (order.status !== 'Delivered') {
+                trackingSaveBtn.style.display = 'block';
             }
         }
     }

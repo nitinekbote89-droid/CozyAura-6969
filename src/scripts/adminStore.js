@@ -508,6 +508,10 @@ window.saveTrackingFromModal = async function() {
     const courierVal = isPickup ? 'Self Pickup' : document.getElementById('modalCourierInput').value.trim();
     const trackingVal = isPickup ? 'N/A' : document.getElementById('modalTrackingInput').value.trim();
     const trackingLinkVal = isPickup ? '' : document.getElementById('modalTrackingLinkInput').value.trim();
+    
+    // Auto status flow: Pending -> Shipped, Shipped -> Delivered (for pickup) or defaults to Shipped
+    const statusVal = (isPickup && order.status === 'Shipped') ? 'Delivered' : 'Shipped';
+
     try {
         const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -516,7 +520,7 @@ window.saveTrackingFromModal = async function() {
                 trackingNo: trackingVal,
                 courier: courierVal,
                 trackingLink: trackingLinkVal,
-                status: "Shipped", adminSecret: sessionStorage.getItem('lumiere_admin_secret')
+                status: statusVal, adminSecret: sessionStorage.getItem('lumiere_admin_secret')
             })
         });
         const json = await res.json();
@@ -922,22 +926,32 @@ window.viewOrderDetails = async function(orderId) {
 
     const isPickup = order.deliveryMethod === 'Pickup';
     const trackingSection = document.getElementById('modalTrackingSection');
-    const updateTrackingBtn = document.querySelector('#orderModal button[onclick="window.saveTrackingFromModal()"]');
+    const updateTrackingBtn = document.getElementById('orderModalSubmitBtn');
     
+    if (updateTrackingBtn) {
+        updateTrackingBtn.style.display = 'block';
+    }
+
     if (isPickup) {
         if (trackingSection) trackingSection.style.display = 'none';
         if (updateTrackingBtn) {
-            if (order.status === 'Shipped') {
-                updateTrackingBtn.textContent = 'Ready for Pickup (Click to Re-save)';
-            } else if (order.status === 'Delivered') {
-                updateTrackingBtn.textContent = 'Order Picked Up / Completed';
-            } else {
+            if (order.status === 'Pending') {
                 updateTrackingBtn.textContent = 'Mark as Ready for Pickup';
+            } else if (order.status === 'Shipped') {
+                updateTrackingBtn.textContent = 'Mark as Picked Up / Completed';
+            } else {
+                updateTrackingBtn.style.display = 'none';
             }
         }
     } else {
         if (trackingSection) trackingSection.style.display = 'block';
-        if (updateTrackingBtn) updateTrackingBtn.textContent = 'Update Tracking & Ship Order';
+        if (updateTrackingBtn) {
+            if (order.status === 'Delivered') {
+                updateTrackingBtn.style.display = 'none';
+            } else {
+                updateTrackingBtn.textContent = 'Update Tracking & Ship Order';
+            }
+        }
     }
 
     const addressLabelEl = document.getElementById('orderModalAddressLabel');

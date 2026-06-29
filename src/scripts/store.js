@@ -3478,6 +3478,13 @@ window.triggerCelebration = function() {
   frame();
 };
 
+window.addEventListener('pageshow', (event) => {
+  window.hideLoadingOverlay();
+  // Also hide global boot loader if active
+  const bootLoader = document.getElementById('globalBootLoader');
+  if (bootLoader) bootLoader.classList.remove('active');
+});
+
 window.addEventListener('DOMContentLoaded', async () => {
   // Show global boot loader by default immediately on DOMContentLoaded
   const bootLoader = document.getElementById('globalBootLoader');

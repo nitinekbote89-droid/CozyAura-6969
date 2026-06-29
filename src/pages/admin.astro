@@ -172,6 +172,7 @@ import AdminModals from '../components/AdminModals.astro';
               <tr>
                 <th>Order #</th>
                 <th>Customer</th>
+                <th>Email</th>
                 <th>Date</th>
                 <th>Total (₹)</th>
                 <th>Status</th>
@@ -801,7 +802,7 @@ import AdminModals from '../components/AdminModals.astro';
     }
 
     if (processedOrders.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding: 24px;">No matching order records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding: 24px;">No matching order records found.</td></tr>`;
     } else {
       processedOrders.forEach(order => {
         const tr = document.createElement('tr');
@@ -822,6 +823,7 @@ import AdminModals from '../components/AdminModals.astro';
         tr.innerHTML = `
           <td><strong>${formattedId}</strong></td>
           <td style="font-weight:500; text-transform:capitalize;">${esc(customerFullName)}</td>
+          <td>${esc(order.email || order.shippingInfo?.email || '—')}</td>
           <td>${order.date ? fmtDate(order.date) : '—'}</td>
           <td>₹${orderTotal.toLocaleString('en-IN')}</td>
           <td>${window.getOrderBadge(order.status, order.deliveryMethod)}</td>

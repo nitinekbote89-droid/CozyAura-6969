@@ -97,7 +97,7 @@ th { font-weight: 500; color: var(--text-muted); font-size: 0.85rem; text-transf
 .status-select { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-family: inherit; font-size: 0.8rem; width: 135px; }
 
 /* Modal */
-.modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; }
+.modal-overlay { position: fixed; top: 0; bottom: 0; right: 0; left: 260px; background: rgba(17, 24, 39, 0.6); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; }
 .modal-overlay.active { opacity: 1; pointer-events: auto; }
 .modal { background: var(--bg-surface); width: 100%; max-width: 600px; border-radius: 8px; padding: 24px; transform: translateY(20px); transition: transform 0.3s, background-color 0.3s; max-height: 90vh; overflow-y: auto; }
 .modal-overlay.active .modal { transform: translateY(0); }

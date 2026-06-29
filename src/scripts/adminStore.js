@@ -511,8 +511,8 @@ window.saveTrackingFromModal = async function() {
     const trackingVal = isPickup ? 'N/A' : document.getElementById('modalTrackingInput').value.trim();
     const trackingLinkVal = isPickup ? '' : document.getElementById('modalTrackingLinkInput').value.trim();
     
-    // Auto status flow: Pending -> Shipped, Shipped -> Delivered (for pickup) or defaults to Shipped
-    const statusVal = (isPickup && order.status === 'Shipped') ? 'Delivered' : 'Shipped';
+    // Auto status flow: Pending -> Shipped, Shipped -> Delivered
+    const statusVal = (order && order.status === 'Shipped') ? 'Delivered' : 'Shipped';
 
     try {
         const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
@@ -950,9 +950,12 @@ window.viewOrderDetails = async function(orderId) {
         if (trackingSection) trackingSection.style.display = 'block';
         if (pickupActionSection) pickupActionSection.style.display = 'none';
         if (trackingSaveBtn) {
-            if (order.status !== 'Delivered') {
+            if (order.status === 'Pending') {
                 trackingSaveBtn.style.display = 'block';
                 trackingSaveBtn.textContent = 'Ready to Ship';
+            } else if (order.status === 'Shipped') {
+                trackingSaveBtn.style.display = 'block';
+                trackingSaveBtn.textContent = 'Mark as Delivered';
             }
         }
     }

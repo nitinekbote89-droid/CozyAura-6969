@@ -52,6 +52,12 @@ window.syncCloudInventory = async function(page = null) {
             localStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses || []));
             localStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist || []));
             localStorage.setItem('lumiere_admin_feedbacks', JSON.stringify(json.data.feedbacks || []));
+            // Store total counts from server pagination metadata
+            const pag = json.data.pagination || {};
+            if (pag.totalUsers !== undefined) sessionStorage.setItem('lumiere_admin_total_users', String(pag.totalUsers));
+            if (pag.totalFeedbacks !== undefined) sessionStorage.setItem('lumiere_admin_total_feedbacks', String(pag.totalFeedbacks));
+            // Invalidate compiled customers cache on fresh data
+            window._compiledCustomersCache = null;
             
             if (typeof window.updateCustomerCounts === 'function') {
                 window.updateCustomerCounts();
@@ -1176,28 +1182,55 @@ const esc = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 const fmtDate = d => { try { const dt = new Date(d); return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString(); } catch(e) { return '—'; } };
 
 window._selectedCustomerEmail = null;
+window._compiledCustomersCache = null;
 
+// Recompute and cache the compiled customers list. Cache is invalidated on every sync.
 window.getCompiledCustomers = function() {
+  if (window._compiledCustomersCache) return window._compiledCustomersCache;
+
   const users = JSON.parse(localStorage.getItem('lumiere_admin_users') || '[]');
   const addresses = JSON.parse(localStorage.getItem('lumiere_admin_user_addresses') || '[]');
   const orders = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
   const wishlist = JSON.parse(localStorage.getItem('lumiere_admin_wishlist') || '[]');
 
+  // Build fast O(1) lookup maps to avoid O(n²) nested filters
+  const addrByEmail = {};
+  addresses.forEach(a => {
+    const em = a.user_email?.toLowerCase().trim();
+    if (!em) return;
+    if (!addrByEmail[em]) addrByEmail[em] = [];
+    addrByEmail[em].push(a);
+  });
+
+  const ordersByEmail = {};
+  orders.forEach(o => {
+    const em = o.shippingInfo?.email?.toLowerCase().trim();
+    if (!em) return;
+    if (!ordersByEmail[em]) ordersByEmail[em] = [];
+    ordersByEmail[em].push(o);
+  });
+
+  const wishlistCountByEmail = {};
+  wishlist.forEach(w => {
+    const em = w.user_email?.toLowerCase().trim();
+    if (!em) return;
+    wishlistCountByEmail[em] = (wishlistCountByEmail[em] || 0) + 1;
+  });
+
   // Collect all unique emails
   const emailSet = new Set();
   users.forEach(u => { if (u.email) emailSet.add(u.email.toLowerCase().trim()); });
-  addresses.forEach(a => { if (a.user_email) emailSet.add(a.user_email.toLowerCase().trim()); });
-  orders.forEach(o => { if (o.shippingInfo?.email) emailSet.add(o.shippingInfo.email.toLowerCase().trim()); });
+  Object.keys(addrByEmail).forEach(em => emailSet.add(em));
+  Object.keys(ordersByEmail).forEach(em => emailSet.add(em));
   wishlist.forEach(w => { if (w.user_email) emailSet.add(w.user_email.toLowerCase().trim()); });
 
   const customers = Array.from(emailSet).map(email => {
-    // Try to find name and phone
     let fname = '';
     let lname = '';
     let phone = '';
 
-    // Check user_addresses
-    const userAddrs = addresses.filter(a => a.user_email?.toLowerCase().trim() === email);
+    // Check user_addresses via map
+    const userAddrs = addrByEmail[email] || [];
     const defaultAddr = userAddrs.find(a => a.is_default) || userAddrs[0];
     if (defaultAddr) {
       fname = defaultAddr.fname || '';
@@ -1205,14 +1238,12 @@ window.getCompiledCustomers = function() {
       phone = defaultAddr.phone || '';
     }
 
-    // Check orders (overwriting if empty or getting latest)
-    const userOrders = orders.filter(o => o.shippingInfo?.email?.toLowerCase().trim() === email);
+    // Check orders via map
+    const userOrders = ordersByEmail[email] || [];
     if (userOrders.length > 0) {
-      // Find the latest order by date
       const latestOrder = userOrders.reduce((latest, current) => {
         return new Date(current.date) > new Date(latest.date) ? current : latest;
       }, userOrders[0]);
-
       if (latestOrder.shippingInfo) {
         if (!fname) fname = latestOrder.shippingInfo.fname || '';
         if (!lname) lname = latestOrder.shippingInfo.lname || '';
@@ -1226,11 +1257,11 @@ window.getCompiledCustomers = function() {
       lname: lname.trim(),
       phone: phone.trim(),
       ordersCount: userOrders.length,
-      wishlistCount: wishlist.filter(w => w.user_email?.toLowerCase().trim() === email).length
+      wishlistCount: wishlistCountByEmail[email] || 0
     };
   });
 
-  // Sort customers alphabetically by name, or by email if name is empty
+  // Sort alphabetically by name
   customers.sort((a, b) => {
     const nameA = `${a.fname} ${a.lname}`.trim().toLowerCase();
     const nameB = `${b.fname} ${b.lname}`.trim().toLowerCase();
@@ -1240,12 +1271,19 @@ window.getCompiledCustomers = function() {
     return a.email.localeCompare(b.email);
   });
 
+  window._compiledCustomersCache = customers;
   return customers;
 };
 
-window.renderCustomersList = function() {
+// Customers list pagination state
+window._customersListPage = 0;
+const CUSTOMERS_PER_PAGE = 30;
+
+window.renderCustomersList = function(resetPage) {
   const container = document.getElementById('customersListContainer');
   if (!container) return;
+
+  if (resetPage) window._customersListPage = 0;
 
   const customers = window.getCompiledCustomers();
   
@@ -1266,7 +1304,7 @@ window.renderCustomersList = function() {
     sequenceNumber: idx + 1
   }));
 
-  // Filter customers by search query (including sequence number search like #5 or 5)
+  // Filter customers by search query
   const filtered = customersWithIndex.filter(c => {
     const fullName = `${c.fname} ${c.lname}`.toLowerCase();
     const seqStr = `#${c.sequenceNumber}`;
@@ -1283,12 +1321,18 @@ window.renderCustomersList = function() {
     return;
   }
 
-  filtered.forEach(c => {
+  // Paginate
+  const totalPages = Math.ceil(filtered.length / CUSTOMERS_PER_PAGE);
+  window._customersListPage = Math.min(window._customersListPage, Math.max(0, totalPages - 1));
+  const currentPage = window._customersListPage;
+  const pageSlice = filtered.slice(currentPage * CUSTOMERS_PER_PAGE, (currentPage + 1) * CUSTOMERS_PER_PAGE);
+
+  const fragment = document.createDocumentFragment();
+  pageSlice.forEach(c => {
     const card = document.createElement('div');
     card.className = 'customer-list-card';
     card.style.cssText = "padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-main); cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px;";
     
-    // Highlight if selected
     if (window._selectedCustomerEmail === c.email) {
       card.style.borderColor = "var(--brand)";
       card.style.background = "rgba(184,151,90,0.08)";
@@ -1296,7 +1340,7 @@ window.renderCustomersList = function() {
 
     card.onclick = () => {
       window._selectedCustomerEmail = c.email;
-      window.renderCustomersList(); // re-render to update active styling
+      window.renderCustomersList();
       window.showCustomerDetails(c.email);
     };
 
@@ -1311,8 +1355,25 @@ window.renderCustomersList = function() {
       <div style="font-size:0.85rem; color:var(--text-muted); word-break:break-all;">${esc(c.email)}</div>
       ${displayPhone}
     `;
-    container.appendChild(card);
+    fragment.appendChild(card);
   });
+  container.appendChild(fragment);
+
+  // Pagination controls
+  if (totalPages > 1) {
+    const paginationDiv = document.createElement('div');
+    paginationDiv.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 4px; margin-top:8px; font-size:0.8rem; color:var(--text-muted);';
+    paginationDiv.innerHTML = `
+      <button onclick="window._customersListPage=Math.max(0,window._customersListPage-1); window.renderCustomersList();" 
+        style="padding:4px 10px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;" 
+        ${currentPage === 0 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>← Prev</button>
+      <span>Page ${currentPage + 1} of ${totalPages} &nbsp;(${filtered.length} total)</span>
+      <button onclick="window._customersListPage=Math.min(${totalPages-1},window._customersListPage+1); window.renderCustomersList();"
+        style="padding:4px 10px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
+        ${currentPage >= totalPages - 1 ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>Next →</button>
+    `;
+    container.appendChild(paginationDiv);
+  }
 };
 
 window.showCustomerDetails = function(email) {
@@ -1471,15 +1532,22 @@ window.deleteCustomerProfile = async function(encodedEmail) {
   }
 };
 
+// Feedbacks list pagination state
+window._feedbacksPage = 0;
+const FEEDBACKS_PER_PAGE = 50;
+
 window.updateFeedbackCounts = function() {
   const feedbacks = JSON.parse(localStorage.getItem('lumiere_admin_feedbacks') || '[]');
+  const total = parseInt(sessionStorage.getItem('lumiere_admin_total_feedbacks') || String(feedbacks.length), 10);
   const sidebarCountEl = document.getElementById('sidebarFeedbackCount');
-  if (sidebarCountEl) sidebarCountEl.textContent = feedbacks.length;
+  if (sidebarCountEl) sidebarCountEl.textContent = total || feedbacks.length;
 };
 
-window.renderFeedbacks = function() {
+window.renderFeedbacks = function(resetPage) {
   const tbody = document.getElementById('feedbackTableBody');
   if (!tbody) return;
+
+  if (resetPage) window._feedbacksPage = 0;
   
   const feedbacks = JSON.parse(localStorage.getItem('lumiere_admin_feedbacks') || '[]');
   
@@ -1487,26 +1555,46 @@ window.renderFeedbacks = function() {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted);">No customer feedback submissions recorded in database.</td></tr>';
     return;
   }
+
+  // Paginate feedbacks — never render more than FEEDBACKS_PER_PAGE rows at once
+  const totalPages = Math.ceil(feedbacks.length / FEEDBACKS_PER_PAGE);
+  window._feedbacksPage = Math.min(window._feedbacksPage, Math.max(0, totalPages - 1));
+  const currentPage = window._feedbacksPage;
+  const pageSlice = feedbacks.slice(currentPage * FEEDBACKS_PER_PAGE, (currentPage + 1) * FEEDBACKS_PER_PAGE);
   
-  tbody.innerHTML = feedbacks.map(function(f) {
-    const esc = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    
-    // stars string in gold/yellow
+  tbody.innerHTML = pageSlice.map(function(f) {
+    const escF = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     const starsHtml = '<span style="color:#FFC107; font-size:1.1rem; letter-spacing:1px;">' + '★'.repeat(f.rating) + '</span>' + '<span style="color:var(--text-muted); opacity:0.25; font-size:1.1rem; letter-spacing:1px;">' + '★'.repeat(5 - f.rating) + '</span>';
     const hasComment = !!(f.comment || '').trim();
-    
     return '<tr style="cursor:pointer;" onclick="window.openFeedbackModal(\'' + f.order_id + '\')">' +
-      '<td style="font-weight:500;">' + esc(f.customer_name || 'Anonymous') + '</td>' +
-      '<td>' + esc(f.user_email || '—') + '</td>' +
-      '<td style="font-family:monospace; font-weight:600;">' + esc(f.order_id) + '</td>' +
+      '<td style="font-weight:500;">' + escF(f.customer_name || 'Anonymous') + '</td>' +
+      '<td>' + escF(f.user_email || '—') + '</td>' +
+      '<td style="font-family:monospace; font-weight:600;">' + escF(f.order_id) + '</td>' +
       '<td>' + starsHtml + '</td>' +
       '<td style="text-align:center;">' +
-        '<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;" onclick="event.stopPropagation(); window.openFeedbackModal(\'' + f.order_id + '\')">' + 
-          (hasComment ? 'Read' : 'View') + 
+        '<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;" onclick="event.stopPropagation(); window.openFeedbackModal(\'' + f.order_id + '\')">' +
+          (hasComment ? 'Read' : 'View') +
         '</button>' +
       '</td>' +
     '</tr>';
   }).join('');
+
+  // Pagination controls row
+  if (totalPages > 1) {
+    const controlRow = document.createElement('tr');
+    controlRow.innerHTML = `<td colspan="5" style="padding:10px 0; text-align:center;">
+      <div style="display:inline-flex; align-items:center; gap:12px; font-size:0.8rem; color:var(--text-muted);">
+        <button onclick="window._feedbacksPage=Math.max(0,window._feedbacksPage-1); window.renderFeedbacks();" 
+          style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
+          ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+        Page ${currentPage + 1} of ${totalPages} &nbsp;(${feedbacks.length} loaded)
+        <button onclick="window._feedbacksPage=Math.min(${totalPages-1},window._feedbacksPage+1); window.renderFeedbacks();"
+          style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
+          ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next →</button>
+      </div>
+    </td>`;
+    tbody.appendChild(controlRow);
+  }
 };
 
 window.openFeedbackModal = function(orderId) {

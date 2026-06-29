@@ -235,6 +235,18 @@ export async function GET({ request }) {
     const pageStart = page * PAGE_SIZE;
     const pageEnd = pageStart + PAGE_SIZE - 1;
 
+    // Pagination for users
+    const USER_PAGE_SIZE = 100;
+    const userPage = Math.max(0, parseInt(url.searchParams.get('userPage') || '0', 10));
+    const userPageStart = userPage * USER_PAGE_SIZE;
+    const userPageEnd = userPageStart + USER_PAGE_SIZE - 1;
+
+    // Pagination for feedbacks
+    const FEEDBACK_PAGE_SIZE = 100;
+    const feedbackPage = Math.max(0, parseInt(url.searchParams.get('feedbackPage') || '0', 10));
+    const feedbackPageStart = feedbackPage * FEEDBACK_PAGE_SIZE;
+    const feedbackPageEnd = feedbackPageStart + FEEDBACK_PAGE_SIZE - 1;
+
     let dbProducts = [];
     let hasSalesView = false;
     try {
@@ -259,20 +271,20 @@ export async function GET({ request }) {
       { data: coupons },
       { data: settings },
       { data: storefront_images_setting },
-      { data: users },
+      { data: users, count: totalUserCount },
       { data: user_addresses },
       { data: wishlist },
-      { data: feedbacks }
+      { data: feedbacks, count: totalFeedbackCount }
     ] = await Promise.all([
       supabase.from('product_variants').select('*'),
       supabase.from('orders').select('*', { count: 'exact' }).order('date', { ascending: false }).range(pageStart, pageEnd),
       supabase.from('coupons').select('*'),
       supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
       supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
-      supabase.from('users').select('*'),
-      supabase.from('user_addresses').select('*'),
-      supabase.from('wishlist').select('*'),
-      supabase.from('feedbacks').select('*').order('created_at', { ascending: false })
+      supabase.from('users').select('id, email, created_at', { count: 'exact' }).range(userPageStart, userPageEnd),
+      supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').limit(500),
+      supabase.from('wishlist').select('user_email, product_id').limit(500),
+      supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(feedbackPageStart, feedbackPageEnd)
     ]);
 
     // Only fetch order_items for the current page's orders (not all 5000)
@@ -282,6 +294,8 @@ export async function GET({ request }) {
       : { data: [] };
 
     const totalPages = Math.ceil((totalOrderCount || 0) / PAGE_SIZE);
+    const totalUserPages = Math.ceil((totalUserCount || 0) / USER_PAGE_SIZE);
+    const totalFeedbackPages = Math.ceil((totalFeedbackCount || 0) / FEEDBACK_PAGE_SIZE);
 
     let salesMap = {};
     if (!hasSalesView && order_items) {
@@ -380,7 +394,15 @@ export async function GET({ request }) {
           page,
           pageSize: PAGE_SIZE,
           totalOrders: totalOrderCount || 0,
-          totalPages
+          totalPages,
+          userPage,
+          userPageSize: USER_PAGE_SIZE,
+          totalUsers: totalUserCount || 0,
+          totalUserPages,
+          feedbackPage,
+          feedbackPageSize: FEEDBACK_PAGE_SIZE,
+          totalFeedbacks: totalFeedbackCount || 0,
+          totalFeedbackPages
         }
       }
     }), { status: 200 });

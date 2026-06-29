@@ -38,7 +38,9 @@ window.syncCloudInventory = async function(page = null) {
     const startTime = Date.now();
     try {
         const activeTab = localStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
-        const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?t=${Date.now()}&page=${page}&tab=${activeTab}`, {
+        const orderSearchEl = document.getElementById('orderSearchInput');
+        const searchQuery = orderSearchEl ? orderSearchEl.value.trim() : '';
+        const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?t=${Date.now()}&page=${page}&tab=${activeTab}&q=${encodeURIComponent(searchQuery)}`, {
             headers: { 'X-Admin-Secret': pwd }
         });
         const json = await res.json();

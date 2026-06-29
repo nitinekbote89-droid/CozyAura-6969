@@ -148,7 +148,7 @@ import AdminModals from '../components/AdminModals.astro';
       <!-- Orders Pane -->
       <div id="tab-orders" class="tab-pane">
         <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; flex-shrink: 0;">
-          <input type="text" id="orderSearchInput" placeholder="Search by order #, customer name, or email instantly..." oninput="window.renderOrders()" style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
+          <input type="text" id="orderSearchInput" placeholder="Search by order #, customer name, or email instantly..." oninput="window.onOrderSearchInput()" style="flex: 1; min-width: 200px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
           <select id="orderDeliveryFilter" onchange="window.onDeliveryFilterChange()" style="padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main); cursor: pointer;">
             <option value="All">All Orders</option>
             <option value="Shipping">Home Delivery</option>
@@ -249,7 +249,7 @@ import AdminModals from '../components/AdminModals.astro';
       <!-- Customers Pane -->
       <div id="tab-customers" class="tab-pane">
         <div class="search-bar" style="margin-bottom: 20px; flex-shrink: 0;">
-          <input type="text" id="customerSearchInput" placeholder="Search by name, email, or phone..." oninput="window.renderCustomersList()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
+          <input type="text" id="customerSearchInput" placeholder="Search by name, email, or phone..." oninput="window.onCustomerSearchInput()" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; background: var(--bg-surface); color: var(--text-main);">
         </div>
         <div class="table-container" style="flex: 1; min-height: 0; overflow-y: auto;">
           <table>
@@ -779,6 +779,32 @@ import AdminModals from '../components/AdminModals.astro';
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  let orderSearchTimeout = null;
+  window.onOrderSearchInput = function() {
+    const tbody = document.getElementById('ordersBody');
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 32px;"><span class="spinner-gold" style="display:inline-block; width:24px; height:24px; border:2px solid rgba(184, 151, 90, 0.2); border-top-color:var(--gold); border-radius:50%; animation:spinCircle 0.8s linear infinite; margin-bottom:8px;"></span><div style="color:var(--text-muted); font-size:0.9rem;">Searching database...</div></td></tr>`;
+    }
+    
+    clearTimeout(orderSearchTimeout);
+    orderSearchTimeout = setTimeout(() => {
+      window.syncCloudInventory(0);
+    }, 450);
+  };
+
+  let customerSearchTimeout = null;
+  window.onCustomerSearchInput = function() {
+    const tbody = document.getElementById('customersTableBody');
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 32px;"><span class="spinner-gold" style="display:inline-block; width:24px; height:24px; border:2px solid rgba(184, 151, 90, 0.2); border-top-color:var(--gold); border-radius:50%; animation:spinCircle 0.8s linear infinite; margin-bottom:8px;"></span><div style="color:var(--text-muted); font-size:0.9rem;">Searching database...</div></td></tr>`;
+    }
+
+    clearTimeout(customerSearchTimeout);
+    customerSearchTimeout = setTimeout(() => {
+      window.syncCloudInventory(0);
+    }, 450);
   };
 
   window.renderOrders = function() {

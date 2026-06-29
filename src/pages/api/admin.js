@@ -437,10 +437,24 @@ export async function GET({ request }) {
     }
 
     const tab = url.searchParams.get('tab') || 'dashboard';
+    const searchQuery = url.searchParams.get('q') || '';
+
+    let ordersQuery = supabase.from('orders').select('*', { count: 'exact' }).order('date', { ascending: false });
+    if (searchQuery.trim()) {
+      const trimmed = searchQuery.trim();
+      const isNumeric = /^\d+$/.test(trimmed) || (trimmed.startsWith('#') && /^\d+$/.test(trimmed.slice(1)));
+      const orderIdSearch = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+      if (isNumeric) {
+        ordersQuery = ordersQuery.or(`id.eq.${parseInt(orderIdSearch, 10)},shipping_email.ilike.%${trimmed}%,shipping_fname.ilike.%${trimmed}%,shipping_lname.ilike.%${trimmed}%`);
+      } else {
+        ordersQuery = ordersQuery.or(`shipping_email.ilike.%${trimmed}%,shipping_fname.ilike.%${trimmed}%,shipping_lname.ilike.%${trimmed}%`);
+      }
+    }
+    ordersQuery = ordersQuery.range(pageStart, pageEnd);
 
     const promises = [
       supabase.from('product_variants').select('*'),
-      supabase.from('orders').select('*', { count: 'exact' }).order('date', { ascending: false }).range(pageStart, pageEnd),
+      ordersQuery,
       supabase.from('coupons').select('*'),
       supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
       supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
@@ -454,13 +468,25 @@ export async function GET({ request }) {
     let wishlistEmailsPromiseIdx = -1;
 
     if (tab === 'customers') {
-      usersPromiseIdx = promises.push(supabase.from('users').select('email', { count: 'exact' }).order('email', { ascending: true }).range(userPageStart, userPageEnd)) - 1;
+      let usersQuery = supabase.from('users').select('email', { count: 'exact' }).order('email', { ascending: true });
+      if (searchQuery.trim()) {
+        usersQuery = usersQuery.ilike('email', `%${searchQuery.trim()}%`);
+      }
+      usersQuery = usersQuery.range(userPageStart, userPageEnd);
+
+      usersPromiseIdx = promises.push(usersQuery) - 1;
       addressesPromiseIdx = promises.push(supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').limit(500)) - 1;
       wishlistPromiseIdx = promises.push(supabase.from('wishlist').select('user_email, product_id').limit(500)) - 1;
       ordersEmailsPromiseIdx = promises.push(supabase.from('orders').select('shipping_email')) - 1;
       wishlistEmailsPromiseIdx = promises.push(supabase.from('wishlist').select('user_email')) - 1;
     } else if (tab === 'feedback') {
-      feedbacksPromiseIdx = promises.push(supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(feedbackPageStart, feedbackPageEnd)) - 1;
+      let feedbacksQuery = supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+      if (searchQuery.trim()) {
+        feedbacksQuery = feedbacksQuery.or(`user_email.ilike.%${searchQuery.trim()}%,message.ilike.%${searchQuery.trim()}%`);
+      }
+      feedbacksQuery = feedbacksQuery.range(feedbackPageStart, feedbackPageEnd);
+
+      feedbacksPromiseIdx = promises.push(feedbacksQuery) - 1;
     }
 
     const results = await Promise.all(promises);

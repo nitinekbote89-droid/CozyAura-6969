@@ -531,6 +531,19 @@ window.saveTrackingFromModal = async function() {
     // Auto status flow: Pending -> Shipped, Shipped -> Delivered
     const statusVal = (order && order.status === 'Shipped') ? 'Delivered' : 'Shipped';
 
+    let displayStatus = statusVal;
+    if (isPickup) {
+        if (statusVal === 'Shipped') displayStatus = 'Ready to Pickup';
+        if (statusVal === 'Delivered') displayStatus = 'Completed';
+    } else {
+        if (statusVal === 'Shipped') displayStatus = 'Shipped';
+        if (statusVal === 'Delivered') displayStatus = 'Delivered';
+    }
+
+    if (!confirm(`Are you sure you want to change the status of order ${window.currentViewingOrderId} to "${displayStatus}"?`)) {
+        return;
+    }
+
     try {
         const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },

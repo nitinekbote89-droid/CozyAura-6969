@@ -2122,12 +2122,19 @@ window.executeSecurePayment = async function() {
 
 window.clearUserProfileState = function() {
   window._ordersData = null;
+  window.wishlistCache = [];
   var list = document.getElementById('myOrdersListContainer');
   if (list) list.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 2rem 0;">No order history found.</p>';
   var detail = document.getElementById('orderDetailContent');
   if (detail) { detail.style.display = 'none'; }
   var empty = document.getElementById('orderDetailEmpty');
   if (empty) empty.style.display = 'block';
+
+  var wishlistContainer = document.getElementById('myWishlistContainer');
+  if (wishlistContainer) {
+    wishlistContainer.innerHTML = '<p style="font-size:0.85rem; color:var(--stone); text-align:center; padding: 4rem 0; grid-column: 1 / -1;">Please sign in to view your wishlist.</p>';
+  }
+
   localStorage.removeItem('lumiere_user_phone');
   localStorage.removeItem('lumiere_user_addresses');
   window.renderAccountAvatar();

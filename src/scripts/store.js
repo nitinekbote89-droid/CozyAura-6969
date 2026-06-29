@@ -1651,8 +1651,16 @@ window.goToCheckout = async function() {
   // Require Google login for checking out
   const email = window.getLoggedInEmail();
   if (!email) {
-    localStorage.setItem('lumiere_login_redirect', 'payment');
-    window.showLogin();
+    window.showConfirmModal({
+      category: 'Authentication',
+      title: 'Login Required',
+      text: 'You need to login with Google to proceed to checkout and purchase items.',
+      confirmText: 'Login with Google',
+      onConfirm: () => {
+        localStorage.setItem('lumiere_login_redirect', 'payment');
+        window.showLogin();
+      }
+    });
     return;
   }
 

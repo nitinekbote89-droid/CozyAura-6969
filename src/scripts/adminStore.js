@@ -937,10 +937,10 @@ window.viewOrderDetails = async function(orderId) {
         if (updateTrackingBtn) {
             if (order.status === 'Pending') {
                 updateTrackingBtn.style.display = 'block';
-                updateTrackingBtn.textContent = 'Mark as Ready for Pickup';
+                updateTrackingBtn.textContent = 'Ready to Pickup';
             } else if (order.status === 'Shipped') {
                 updateTrackingBtn.style.display = 'block';
-                updateTrackingBtn.textContent = 'Mark as Picked Up / Completed';
+                updateTrackingBtn.textContent = 'Mark as Completed';
             }
         }
     } else {
@@ -948,6 +948,7 @@ window.viewOrderDetails = async function(orderId) {
         if (trackingSaveBtn) {
             if (order.status !== 'Delivered') {
                 trackingSaveBtn.style.display = 'block';
+                trackingSaveBtn.textContent = 'Ready to Ship';
             }
         }
     }

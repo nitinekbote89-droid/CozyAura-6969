@@ -144,7 +144,7 @@
           <input type="text" id="modalTrackingLinkInput" placeholder="e.g. https://delhivery.com/track/package/..." style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
         </div>
         <div style="margin-top:16px;">
-          <button type="button" class="btn btn-primary" id="modalTrackingSaveBtn" onclick="window.saveTrackingFromModal()" style="background:#b8975a; border:none; color:#111111; font-weight:600; font-size:0.9rem; padding:10px 20px; border-radius:6px; cursor:pointer; width:100%; text-align:center; display:block;">Update Tracking & Ship Order</button>
+          <button type="button" class="btn btn-theme-adaptive" id="modalTrackingSaveBtn" onclick="window.saveTrackingFromModal()" style="font-size:0.9rem; padding:10px 20px; border-radius:6px; width:100%; text-align:center; display:block;">Ready to Ship</button>
         </div>
       </div>
 
@@ -200,7 +200,7 @@
          </div>
       </div>
       <div class="modal-footer" style="padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
-        <button type="button" class="btn btn-primary" id="orderModalSubmitBtn" onclick="window.saveTrackingFromModal()" style="background:#b8975a; border:none; color:#111111; font-weight:600; padding:8px 16px; border-radius:6.7px; cursor:pointer;"></button>
+        <button type="button" class="btn btn-theme-adaptive" id="orderModalSubmitBtn" onclick="window.saveTrackingFromModal()" style="padding:8px 16px; border-radius:6.7px;"></button>
         <button type="button" class="btn btn-primary" onclick="window.downloadInvoiceBill()">Download Bill</button>
         <button type="button" class="btn btn-secondary" onclick="window.closeOrderModal()">Dismiss Window</button>
       </div>
@@ -265,3 +265,22 @@
     </div>
   </div>
 </div>
+
+<style is:global>
+  .btn-theme-adaptive {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease !important;
+  }
+  :root[data-theme="dark"] .btn-theme-adaptive,
+  [data-theme="dark"] .btn-theme-adaptive {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .btn-theme-adaptive:hover {
+    opacity: 0.9 !important;
+  }
+</style>

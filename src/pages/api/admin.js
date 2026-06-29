@@ -617,10 +617,14 @@ export async function GET({ request }) {
         coupons,
         fragrances: settings ? settings.value : [],
         storefrontImages: storefront_images_setting ? storefront_images_setting.value : null,
-        users: users || [],
-        userAddresses: user_addresses || [],
-        wishlist: wishlist || [],
-        feedbacks: feedbacks || [],
+        ...(tab === 'customers' ? {
+          users: users || [],
+          userAddresses: user_addresses || [],
+          wishlist: wishlist || []
+        } : {}),
+        ...(tab === 'feedback' ? {
+          feedbacks: feedbacks || []
+        } : {}),
         ordersCountMap,
         wishlistCountMap,
         pagination: {

@@ -1530,7 +1530,7 @@ window.renderCustomerDetailModalContent = function() {
     ordersHtml = '<p style="color:var(--text-muted); font-size:0.88rem; margin:0;">No order history.</p>';
   } else {
     ordersHtml = `
-      <div class="table-container" style="max-height: 600px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px;">
+      <div class="table-container" style="border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px;">
         <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
           <thead style="position: sticky; top: 0; z-index: 10; background: var(--bg-main);">
             <tr style="border-bottom:1px solid var(--border);">

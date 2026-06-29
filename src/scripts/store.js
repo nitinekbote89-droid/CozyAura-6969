@@ -385,8 +385,25 @@ window.showPage = function(pageId, updateHistory = true) {
   // Require login for protected pages
   const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage'];
   if (protectedPages.includes(pageId) && !window.isUserLoggedIn()) {
-    localStorage.setItem('lumiere_login_redirect', pageId);
-    window.showLogin();
+    let text = 'You need to login with Google to access this page.';
+    if (pageId === 'wishlistPage') {
+      text = 'You need to login with Google to view your wishlist.';
+    } else if (pageId === 'ordersPage') {
+      text = 'You need to login with Google to view your order history.';
+    } else if (pageId === 'addressesPage') {
+      text = 'You need to login with Google to manage your saved addresses.';
+    }
+
+    window.showConfirmModal({
+      category: 'Authentication',
+      title: 'Login Required',
+      text: text,
+      confirmText: 'Login with Google',
+      onConfirm: () => {
+        localStorage.setItem('lumiere_login_redirect', pageId);
+        window.showLogin();
+      }
+    });
     return;
   }
 

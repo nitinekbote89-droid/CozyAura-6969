@@ -442,13 +442,8 @@ export async function GET({ request }) {
     let ordersQuery = supabase.from('orders').select('*', { count: 'exact' }).order('date', { ascending: false });
     if (searchQuery.trim()) {
       const trimmed = searchQuery.trim();
-      const isNumeric = /^\d+$/.test(trimmed) || (trimmed.startsWith('#') && /^\d+$/.test(trimmed.slice(1)));
-      const orderIdSearch = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
-      if (isNumeric) {
-        ordersQuery = ordersQuery.or(`id.eq.${parseInt(orderIdSearch, 10)},shipping_email.ilike.%${trimmed}%,shipping_fname.ilike.%${trimmed}%,shipping_lname.ilike.%${trimmed}%`);
-      } else {
-        ordersQuery = ordersQuery.or(`shipping_email.ilike.%${trimmed}%,shipping_fname.ilike.%${trimmed}%,shipping_lname.ilike.%${trimmed}%`);
-      }
+      const withHash = trimmed.startsWith('#') ? trimmed : '#' + trimmed;
+      ordersQuery = ordersQuery.or(`id.eq.${trimmed},id.eq.${withHash},shipping_email.ilike.%${trimmed}%,shipping_fname.ilike.%${trimmed}%,shipping_lname.ilike.%${trimmed}%`);
     }
     ordersQuery = ordersQuery.range(pageStart, pageEnd);
 

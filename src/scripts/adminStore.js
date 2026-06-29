@@ -486,7 +486,21 @@ window.updateOrderStatus = async function(orderId, newStatus) {
     const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
     const order = ords.find(o => String(o.id) === String(decodedId));
 
-    // Confirmation happens onmousedown of the dropdown. Proceeding directly here.
+    let displayStatus = newStatus;
+    if (order && order.deliveryMethod === 'Pickup') {
+        if (newStatus === 'Shipped') displayStatus = 'Ready to Pickup';
+        if (newStatus === 'Delivered') displayStatus = 'Completed';
+    } else {
+        if (newStatus === 'Shipped') displayStatus = 'Shipped';
+        if (newStatus === 'Delivered') displayStatus = 'Delivered';
+    }
+
+    if (!confirm(`Are you sure you want to change the status of order ${decodedId} to "${displayStatus}"?`)) {
+        if (typeof window.renderOrders === 'function') {
+            window.renderOrders();
+        }
+        return;
+    }
 
     const trackingNo = order ? order.trackingNumber || '' : '';
     const courier = order ? order.courier || '' : '';

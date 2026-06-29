@@ -784,7 +784,11 @@ import AdminModals from '../components/AdminModals.astro';
 
     let processedOrders = ords.map((order, index) => ({ ...order, originalIndex: index })).filter(order => {
         const paddedId = String(order.id).startsWith('#') ? String(order.id).slice(1) : String(order.id);
-        const matchesSearch = paddedId.includes(searchQuery) || (order.customer && order.customer.toLowerCase().includes(searchQuery)) || (`${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.toLowerCase().includes(searchQuery));
+        const matchesSearch = paddedId.includes(searchQuery) 
+            || (order.customer && order.customer.toLowerCase().includes(searchQuery)) 
+            || (`${order.shippingInfo?.fname || ''} ${order.shippingInfo?.lname || ''}`.toLowerCase().includes(searchQuery))
+            || (order.email && order.email.toLowerCase().includes(searchQuery))
+            || (order.shippingInfo?.email && order.shippingInfo.email.toLowerCase().includes(searchQuery));
         const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
         const isPickup = order.deliveryMethod === 'Pickup';
         const matchesDelivery = deliveryFilter === 'All'

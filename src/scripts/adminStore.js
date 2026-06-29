@@ -37,7 +37,8 @@ window.syncCloudInventory = async function(page = null) {
     }
     const startTime = Date.now();
     try {
-        const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?t=${Date.now()}&page=${page}`, {
+        const activeTab = localStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
+        const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?t=${Date.now()}&page=${page}&tab=${activeTab}`, {
             headers: { 'X-Admin-Secret': pwd }
         });
         const json = await res.json();
@@ -48,12 +49,12 @@ window.syncCloudInventory = async function(page = null) {
             localStorage.setItem('lumiere_admin_coupons', JSON.stringify(json.data.coupons));
             localStorage.setItem('lumiere_admin_fragrances', JSON.stringify(json.data.fragrances));
             localStorage.setItem('lumiere_admin_storefront_images', JSON.stringify(json.data.storefrontImages || {}));
-            localStorage.setItem('lumiere_admin_users', JSON.stringify(json.data.users || []));
-            localStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses || []));
-            localStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist || []));
-            localStorage.setItem('lumiere_admin_feedbacks', JSON.stringify(json.data.feedbacks || []));
-            localStorage.setItem('lumiere_admin_orders_counts', JSON.stringify(json.data.ordersCountMap || {}));
-            localStorage.setItem('lumiere_admin_wishlist_counts', JSON.stringify(json.data.wishlistCountMap || {}));
+            if (json.data.users !== undefined) localStorage.setItem('lumiere_admin_users', JSON.stringify(json.data.users));
+            if (json.data.userAddresses !== undefined) localStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses));
+            if (json.data.wishlist !== undefined) localStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist));
+            if (json.data.feedbacks !== undefined) localStorage.setItem('lumiere_admin_feedbacks', JSON.stringify(json.data.feedbacks));
+            if (json.data.ordersCountMap !== undefined) localStorage.setItem('lumiere_admin_orders_counts', JSON.stringify(json.data.ordersCountMap));
+            if (json.data.wishlistCountMap !== undefined) localStorage.setItem('lumiere_admin_wishlist_counts', JSON.stringify(json.data.wishlistCountMap));
             // Store total counts from server pagination metadata
             const pag = json.data.pagination || {};
             if (pag.totalUsers !== undefined) sessionStorage.setItem('lumiere_admin_total_users', String(pag.totalUsers));
@@ -69,7 +70,7 @@ window.syncCloudInventory = async function(page = null) {
             }
             
             const activeTab = localStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
-            window.switchTab(activeTab);
+            window.switchTab(activeTab, null, true);
         }
     } catch(e) { 
         console.error("Cloud syncing loop halted.", e); 

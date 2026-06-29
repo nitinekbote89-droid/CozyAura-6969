@@ -436,32 +436,50 @@ export async function GET({ request }) {
       dbProducts = data || [];
     }
 
-    // Fetch paginated orders (with total count) and all other data in parallel
-    const [
-      { data: product_variants },
-      { data: orders, count: totalOrderCount },
-      { data: coupons },
-      { data: settings },
-      { data: storefront_images_setting },
-      { data: users, count: totalUserCount },
-      { data: user_addresses },
-      { data: wishlist },
-      { data: feedbacks, count: totalFeedbackCount },
-      { data: allOrdersEmails },
-      { data: allWishlistEmails }
-    ] = await Promise.all([
+    const tab = url.searchParams.get('tab') || 'dashboard';
+
+    const promises = [
       supabase.from('product_variants').select('*'),
       supabase.from('orders').select('*', { count: 'exact' }).order('date', { ascending: false }).range(pageStart, pageEnd),
       supabase.from('coupons').select('*'),
       supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
       supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
-      supabase.from('users').select('id, email, created_at', { count: 'exact' }).order('created_at', { ascending: false }).range(userPageStart, userPageEnd),
-      supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').limit(500),
-      supabase.from('wishlist').select('user_email, product_id').limit(500),
-      supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(feedbackPageStart, feedbackPageEnd),
-      supabase.from('orders').select('shipping_email'),
-      supabase.from('wishlist').select('user_email')
-    ]);
+    ];
+
+    let usersPromiseIdx = -1;
+    let addressesPromiseIdx = -1;
+    let wishlistPromiseIdx = -1;
+    let feedbacksPromiseIdx = -1;
+    let ordersEmailsPromiseIdx = -1;
+    let wishlistEmailsPromiseIdx = -1;
+
+    if (tab === 'customers') {
+      usersPromiseIdx = promises.push(supabase.from('users').select('id, email, created_at', { count: 'exact' }).order('created_at', { ascending: false }).range(userPageStart, userPageEnd)) - 1;
+      addressesPromiseIdx = promises.push(supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').limit(500)) - 1;
+      wishlistPromiseIdx = promises.push(supabase.from('wishlist').select('user_email, product_id').limit(500)) - 1;
+      ordersEmailsPromiseIdx = promises.push(supabase.from('orders').select('shipping_email')) - 1;
+      wishlistEmailsPromiseIdx = promises.push(supabase.from('wishlist').select('user_email')) - 1;
+    } else if (tab === 'feedback') {
+      feedbacksPromiseIdx = promises.push(supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false }).range(feedbackPageStart, feedbackPageEnd)) - 1;
+    }
+
+    const results = await Promise.all(promises);
+
+    const product_variants = results[0].data;
+    const orders = results[1].data;
+    const totalOrderCount = results[1].count;
+    const coupons = results[2].data;
+    const settings = results[3].data;
+    const storefront_images_setting = results[4].data;
+
+    const users = usersPromiseIdx !== -1 ? results[usersPromiseIdx].data : [];
+    const totalUserCount = usersPromiseIdx !== -1 ? results[usersPromiseIdx].count : 0;
+    const user_addresses = addressesPromiseIdx !== -1 ? results[addressesPromiseIdx].data : [];
+    const wishlist = wishlistPromiseIdx !== -1 ? results[wishlistPromiseIdx].data : [];
+    const feedbacks = feedbacksPromiseIdx !== -1 ? results[feedbacksPromiseIdx].data : [];
+    const totalFeedbackCount = feedbacksPromiseIdx !== -1 ? results[feedbacksPromiseIdx].count : 0;
+    const allOrdersEmails = ordersEmailsPromiseIdx !== -1 ? results[ordersEmailsPromiseIdx].data : [];
+    const allWishlistEmails = wishlistEmailsPromiseIdx !== -1 ? results[wishlistEmailsPromiseIdx].data : [];
 
     // Only fetch order_items for the current page's orders (not all 5000)
     const currentPageOrderIds = (orders || []).map(o => o.id);

@@ -401,7 +401,7 @@ import AdminModals from '../components/AdminModals.astro';
       }
   });
 
-  window.switchTab = function(tabId, navElement) {
+  window.switchTab = function(tabId, navElement, skipSync) {
     if (!navElement) {
         navElement = document.getElementById('nav-' + tabId);
     }
@@ -415,6 +415,12 @@ import AdminModals from '../components/AdminModals.astro';
     if (targetPane) targetPane.classList.add('active');
 
     localStorage.setItem('lumiere_admin_active_tab', tabId);
+
+    if (!skipSync && (tabId === 'customers' || tabId === 'feedback')) {
+      if (typeof window.syncCloudInventory === 'function') {
+        window.syncCloudInventory();
+      }
+    }
 
     const pageTitle = document.getElementById('pageTitle');
     const btnAddProduct = document.getElementById('btnAddProduct');

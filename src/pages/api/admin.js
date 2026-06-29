@@ -329,7 +329,7 @@ export async function GET({ request }) {
       // Search users table by email
       const { data: usersByEmail } = await supabase
         .from('users')
-        .select('id, email, created_at')
+        .select('email')
         .ilike('email', `%${q}%`)
         .limit(30);
 
@@ -454,7 +454,7 @@ export async function GET({ request }) {
     let wishlistEmailsPromiseIdx = -1;
 
     if (tab === 'customers') {
-      usersPromiseIdx = promises.push(supabase.from('users').select('id, email, created_at', { count: 'exact' }).order('created_at', { ascending: false }).range(userPageStart, userPageEnd)) - 1;
+      usersPromiseIdx = promises.push(supabase.from('users').select('email', { count: 'exact' }).order('email', { ascending: true }).range(userPageStart, userPageEnd)) - 1;
       addressesPromiseIdx = promises.push(supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').limit(500)) - 1;
       wishlistPromiseIdx = promises.push(supabase.from('wishlist').select('user_email, product_id').limit(500)) - 1;
       ordersEmailsPromiseIdx = promises.push(supabase.from('orders').select('shipping_email')) - 1;

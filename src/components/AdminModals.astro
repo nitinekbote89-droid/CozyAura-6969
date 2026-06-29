@@ -175,9 +175,11 @@
       <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
         <thead>
           <tr style="background:var(--bg-main);">
-            <th style="padding:10px 16px;">Product / Scent Variant</th>
-            <th style="padding:10px 16px; text-align:center; width:80px;">Qty</th>
-            <th style="padding:10px 16px; text-align:right; width:120px;">Price</th>
+            <th style="padding:10px 16px;">Product Details</th>
+            <th style="padding:10px 16px;">Category</th>
+            <th style="padding:10px 16px;">Rate</th>
+            <th style="padding:10px 16px;">Qty</th>
+            <th style="padding:10px 16px; text-align:right;">Subtotal</th>
           </tr>
         </thead>
         <tbody id="orderItemsBody"></tbody>
@@ -191,8 +193,8 @@
       Gross Total: <span id="orderModalTotal"></span>
        </div>
     </div>
-    <div class="modal-footer" style="padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between;">
-      <button type="button" class="btn btn-primary" onclick="window.updateOrderDeliveryStatus()">Save Fulfillment Changes</button>
+    <div class="modal-footer" style="padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
+      <button type="button" class="btn btn-primary" onclick="window.downloadInvoiceBill()">Download Bill</button>
       <button type="button" class="btn btn-secondary" onclick="window.closeOrderModal()">Dismiss Window</button>
     </div>
   </div>

@@ -1030,7 +1030,17 @@ window.handleAccountDropdownAction = function() {
   if (window.isUserLoggedIn()) {
     window.confirmLogout();
   } else {
-    window.showLogin();
+    window.showConfirmModal({
+      category: 'Authentication',
+      title: 'Login Required',
+      text: 'You need to login with Google to access your account.',
+      confirmText: 'Login with Google',
+      onConfirm: () => {
+        const activeTab = localStorage.getItem('lumiere_active_page') || 'home';
+        localStorage.setItem('lumiere_login_redirect', activeTab);
+        window.showLogin();
+      }
+    });
   }
 };
 
@@ -1041,7 +1051,17 @@ window.closeAccountMenu = function() {
 
 window.toggleAccountMenu = function() {
   if (!window.isUserLoggedIn()) {
-    window.showLogin();
+    window.showConfirmModal({
+      category: 'Authentication',
+      title: 'Login Required',
+      text: 'You need to login with Google to access your account details, orders, and addresses.',
+      confirmText: 'Login with Google',
+      onConfirm: () => {
+        const activeTab = localStorage.getItem('lumiere_active_page') || 'home';
+        localStorage.setItem('lumiere_login_redirect', activeTab);
+        window.showLogin();
+      }
+    });
     return;
   }
   const dd = document.getElementById('accountDropdown');

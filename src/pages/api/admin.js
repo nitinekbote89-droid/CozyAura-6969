@@ -831,7 +831,8 @@ export async function POST({ request }) {
             orderId: order.id,
             trackingNumber: data.trackingNo || order.tracking_number || '',
             courier: data.courier || order.courier || '',
-            trackingLink: data.trackingLink || order.tracking_link || ''
+            trackingLink: data.trackingLink || order.tracking_link || '',
+            deliveryMethod: order.delivery_method
           });
         }
       }

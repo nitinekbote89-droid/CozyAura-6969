@@ -1068,7 +1068,7 @@ window.viewOrderDetails = async function(orderId) {
     // Lock courier fields if order is already Delivered or Completed
     const isFinalized = order.status === 'Delivered' || order.status === 'Completed';
     const lockStyle = isFinalized
-      ? 'background:var(--bg-main); color:var(--text-muted); opacity:0.6; cursor:not-allowed; pointer-events:none; width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;'
+      ? 'background:var(--bg-surface); color:var(--text-main); cursor:default; user-select:text; width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;'
       : 'background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;';
     ['modalCourierInput', 'modalTrackingInput', 'modalTrackingLinkInput'].forEach(id => {
       const el = document.getElementById(id);

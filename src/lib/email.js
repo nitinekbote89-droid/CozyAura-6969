@@ -122,7 +122,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
                 </p>
               </div>
               <div style="text-align:center; margin-top:24px;">
-                <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
+                <a href="https://cozyaura-6969-production.up.railway.app/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
               </div>
             </td>
           </tr>
@@ -139,15 +139,12 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 </html>`;
   }
 
-  const trackSection = trackingLink
-    ? `<div style="margin-top:16px; text-align:center;">
-         <a href="${trackingLink}" style="display:inline-block;background:#b8975a;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;margin-bottom:12px;">Track Package</a><br>
-         <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
-       </div>`
-    : `<div style="margin-top:16px; text-align:center;">
-         ${trackingNumber ? `<p style="margin:0 0 12px;color:#6b5d53;font-size:14px;">Tracking No: <strong style="color:#1a1a2e;">${trackingNumber}</strong></p>` : ''}
-         <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
-       </div>`;
+  const trackSection = `
+    <div style="margin-top:16px; text-align:center;">
+      ${trackingNumber ? `<p style="margin:0 0 12px;color:#6b5d53;font-size:14px;">Tracking No: <strong style="color:#1a1a2e;">${trackingNumber}</strong></p>` : ''}
+      <a href="https://cozyaura-6969-production.up.railway.app/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
+    </div>
+  `;
 
   return `
 <!DOCTYPE html>

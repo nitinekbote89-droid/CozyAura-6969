@@ -3216,11 +3216,28 @@ window.showOrderDetail = function(id, isAuto) {
     }
   }
 
-  var contentHtml =
-    '<div class="order-detail-header"><h3 class="order-detail-title" style="margin:0;line-height:1;">Order ID: ' + order.id + '</h3><span class="status-pill ' + order.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span></div>' +
-    '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle">' + step1Icon + '</div><span class="tracker-label">' + step1Label + '</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle">' + step2Icon + '</div><span class="tracker-label">' + step2Label + '</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle">' + step3Icon + '</div><span class="tracker-label">' + step3Label + '</span></div></div></div>' +
-    (details.tracking && !isPickup ? 
-      ('<div class="order-tracking-card" style="margin-top:0; margin-bottom:1.5rem;">' +
+  var trackingCardHtml = '';
+  if (isPickup) {
+    trackingCardHtml = 
+      '<div class="order-tracking-card" style="margin-top:0; margin-bottom:1.5rem;">' +
+        '<div>' +
+          '<div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Pickup Location</div>' +
+          '<div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
+            'Lumière Studio, Koregaon Park, Pune' +
+          '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Pickup Hours</div>' +
+          '<div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem; justify-content:flex-end;">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' +
+            'Mon - Sat, 11 AM - 7 PM' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  } else if (details.tracking) {
+    trackingCardHtml = 
+      '<div class="order-tracking-card" style="margin-top:0; margin-bottom:1.5rem;">' +
         '<div>' +
           '<div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Courier Partner</div>' +
           '<div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">' + window.__svg.truck + details.courier + '</div>' +
@@ -3235,7 +3252,13 @@ window.showOrderDetail = function(id, isAuto) {
             '</div>' +
           '</div>' +
         '</div>' +
-      '</div>') : '') +
+      '</div>';
+  }
+
+  var contentHtml =
+    '<div class="order-detail-header"><h3 class="order-detail-title" style="margin:0;line-height:1;">Order ID: ' + order.id + '</h3><span class="status-pill ' + order.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span></div>' +
+    '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle">' + step1Icon + '</div><span class="tracker-label">' + step1Label + '</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle">' + step2Icon + '</div><span class="tracker-label">' + step2Label + '</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle">' + step3Icon + '</div><span class="tracker-label">' + step3Label + '</span></div></div></div>' +
+    trackingCardHtml +
     '<div class="orders-grid-info" style="margin-bottom:0;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;border-bottom:1px dashed rgba(196,181,160,0.2);padding-bottom:0.5rem;"><span style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--stone);font-weight:500;">Order Invoice</span><span style="font-size:0.8rem;color:var(--stone);font-weight:400;">' + new Date(order.date).toLocaleDateString() + '</span></div>' +
       itemsHtml +
@@ -3280,6 +3303,49 @@ window.trackPackage = async function(e) {
           if (o.status === 'Shipped') displayStatus = 'Ready to Pick';
           else if (o.status === 'Delivered') displayStatus = 'Completed';
         }
+        var trackingCardHtml = '';
+        if (isPickup) {
+          trackingCardHtml = `
+            <div class="order-tracking-card" style="margin-top:0; margin-bottom:1.25rem;">
+              <div>
+                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Pickup Location</div>
+                <div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  Lumière Studio, Koregaon Park, Pune
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Pickup Hours</div>
+                <div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem; justify-content:flex-end;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Mon - Sat, 11 AM - 7 PM
+                </div>
+              </div>
+            </div>`;
+        } else if (details.tracking) {
+          trackingCardHtml = `
+            <div class="order-tracking-card" style="margin-top:0; margin-bottom:1.25rem;">
+              <div>
+                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Courier Partner</div>
+                <div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">${window.__svg.truck}${details.courier}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Waybill / Tracking No.</div>
+                <div style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-end;">
+                  ${o.trackingLink ? `
+                    <a href="${o.trackingLink}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.8rem; color:var(--gold-dark); text-decoration:none; font-weight:500; background:var(--cream); border:1px solid rgba(184,151,90,0.2); padding:0.3rem 0.6rem; border-radius:4px; transition:all 0.2s;">
+                      ${window.__svg.external}Track
+                    </a>
+                  ` : ''}
+                  <div class="tracking-copy-btn" onclick="window.copyToClipboard('${details.tracking}', event)">
+                    <span class="tracking-text-span">${details.tracking}</span>
+                    ${window.__svg.copy}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        }
+
         return `
           <div style="background:var(--cream); padding:1.5rem; border:1px solid var(--sand); border-radius:8px; margin-bottom:1rem; box-shadow: 0 4px 12px rgba(42,36,32,0.015);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid rgba(196,181,160,0.2); padding-bottom:0.75rem;">
@@ -3287,28 +3353,7 @@ window.trackPackage = async function(e) {
               <span class="status-pill ${o.status.toLowerCase()}">${displayStatus}</span>
             </div>
             <div style="font-size:0.9rem; line-height:1.6; color:var(--charcoal);">
-              ${details.tracking && !isPickup ? `
-                <div class="order-tracking-card" style="margin-top:0; margin-bottom:1.25rem;">
-                  <div>
-                    <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Courier Partner</div>
-                    <div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">${window.__svg.truck}${details.courier}</div>
-                  </div>
-                  <div style="text-align:right;">
-                    <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Waybill / Tracking No.</div>
-                    <div style="display:flex; align-items:center; gap:0.5rem; justify-content:flex-end;">
-                      ${o.trackingLink ? `
-                        <a href="${o.trackingLink}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.8rem; color:var(--gold-dark); text-decoration:none; font-weight:500; background:var(--cream); border:1px solid rgba(184,151,90,0.2); padding:0.3rem 0.6rem; border-radius:4px; transition:all 0.2s;">
-                          ${window.__svg.external}Track
-                        </a>
-                      ` : ''}
-                      <div class="tracking-copy-btn" onclick="window.copyToClipboard('${details.tracking}', event)">
-                        <span class="tracking-text-span">${details.tracking}</span>
-${window.__svg.copy}
-                       </div>
-                    </div>
-                  </div>
-                </div>
-              ` : ''}
+              ${trackingCardHtml}
               <div style="margin-bottom:0.4rem;"><strong style="font-weight:500;">Items:</strong> ${o.itemsString}</div>
               <div style="margin-bottom:0.8rem;"><strong style="font-weight:500;">Total:</strong> <span style="font-family:'Cormorant Garamond',serif; color:var(--gold-dark); font-weight:600; font-size:1.1rem;">${o.total}</span></div>
             </div>

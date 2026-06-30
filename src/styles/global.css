@@ -389,10 +389,19 @@ section.active {
 /* Shop Controls Desktop Layout */
 .shop-controls {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 1.2rem;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 3rem;
+}
+.shop-search-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  justify-content: flex-start;
+  min-width: 0;
 }
 .shop-search-row {
   display: flex;
@@ -402,6 +411,13 @@ section.active {
   width: 100%;
   max-width: 600px;
 }
+.shop-sort-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
+}
 .search-bar-rounded {
   position: relative;
   display: flex;
@@ -409,7 +425,7 @@ section.active {
   background: white;
   padding: 2px;
   width: 100%;
-  max-width: 320px;
+  max-width: 280px;
 }
 .search-bar-rounded input {
   border: none;
@@ -435,10 +451,10 @@ section.active {
 }
 .shop-filters-dropdown-panel {
   display: flex;
-  gap: 1.5rem;
+  gap: 0.5rem;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
+  flex: 2;
 }
 .sort-select-wrap select {
   border: 1px solid var(--sand);

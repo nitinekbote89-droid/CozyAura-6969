@@ -365,8 +365,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <h2>The <em>Collection</em></h2>
       </div>
       <div class="shop-controls">
-        <div class="shop-search-row">
-          <!-- Rounded Search Bar -->
+        <!-- LEFT: Search Bar -->
+        <div class="shop-search-left">
           <div class="search-bar-rounded" id="shopSearchWrapper">
             <svg class="search-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"></circle>
@@ -375,8 +375,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
             <input type="text" id="shopSearchInput" placeholder="Search candles..." oninput="window.triggerSearch()">
             <button class="btn-primary search-btn-desktop" onclick="window.triggerSearch()">Search</button>
           </div>
-
-          <!-- Filter toggle button (hidden on desktop) -->
+          <!-- Filter toggle button (mobile only) -->
           <button type="button" class="filter-toggle-btn" onclick="window.toggleShopFilters(event)" aria-label="Toggle Filters">
             <svg class="filter-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="4" y1="21" x2="4" y2="14"></line>
@@ -392,10 +391,13 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           </button>
         </div>
 
-        <!-- Filters Dropdown Panel -->
+        <!-- CENTER: Category Filters -->
         <div class="shop-filters-dropdown-panel" id="shopFiltersPanel">
           <div class="filter-bar" id="categoryFilters"></div>
-          
+        </div>
+
+        <!-- RIGHT: Sort Dropdown -->
+        <div class="shop-sort-right">
           <div class="sort-select-wrap">
             <label for="shopSortSelect" class="sr-only">Sort by</label>
             <select id="shopSortSelect" onchange="window.triggerSearch()">

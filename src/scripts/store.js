@@ -515,7 +515,46 @@ window.renderProducts = function(list) {
 window.renderCategoryFilters = function() {
   const bar = document.getElementById('categoryFilters'); if (!bar) return;
   bar.innerHTML = categories.map(cat => `<button class="filter-btn ${cat === window.activeCategory ? 'active' : ''}" onclick="window.selectCategory('${encodeURIComponent(cat)}')">${cat}</button>`).join('');
+  
+  if (typeof window.renderFragranceCheckboxes === 'function') {
+    window.renderFragranceCheckboxes();
+  }
 };
+
+window.renderFragranceCheckboxes = function() {
+  const container = document.getElementById('fragranceCheckboxesList');
+  if (!container) return;
+  const fragrances = window.GLOBAL_FRAGRANCES || [];
+  if (fragrances.length === 0) {
+    container.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem; padding: 4px 0;">No fragrances available</div>`;
+    return;
+  }
+  container.innerHTML = fragrances.map(frag => {
+    const norm = frag.toLowerCase().trim();
+    return `
+      <label class="filter-option-label">
+        <input type="checkbox" name="fragranceFilter" value="${norm}" onchange="window.triggerSearch()">
+        ${toTitleCase(frag)}
+      </label>
+    `;
+  }).join('');
+};
+
+window.toggleCustomFilterMenu = function(event) {
+  if (event) event.stopPropagation();
+  const dropdown = document.getElementById('customFilterDropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('active');
+  }
+};
+
+// Close custom filter dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('customFilterDropdown');
+  if (dropdown && !dropdown.contains(e.target)) {
+    dropdown.classList.remove('active');
+  }
+});
 
 window.selectCategory = function(cat) { 
   cat = decodeURIComponent(cat); 
@@ -545,13 +584,17 @@ window.triggerSearch = function() {
     });
   }
 
-  // Handle sorting
-  const sortBy = document.getElementById('shopSortSelect')?.value || 'default';
-  if (sortBy === 'name-asc') {
-    list.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortBy === 'name-desc') {
-    list.sort((a, b) => b.name.localeCompare(a.name));
-  } else if (sortBy === 'price-asc') {
+  // Filter by fragrance checkboxes
+  const checkedFragrances = Array.from(document.querySelectorAll('input[name="fragranceFilter"]:checked')).map(el => el.value.toLowerCase().trim());
+  if (checkedFragrances.length > 0) {
+    list = list.filter(p => {
+      return p.variants && p.variants.some(v => v.name && checkedFragrances.includes(v.name.toLowerCase().trim()));
+    });
+  }
+
+  // Handle sorting (Read from checked radio input)
+  const sortBy = document.querySelector('input[name="shopSort"]:checked')?.value || 'default';
+  if (sortBy === 'price-asc') {
     list.sort((a, b) => a.price - b.price);
   } else if (sortBy === 'price-desc') {
     list.sort((a, b) => b.price - a.price);

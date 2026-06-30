@@ -391,22 +391,39 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           </button>
         </div>
 
-        <!-- CENTER: Category Filters -->
+        <!-- CENTER & RIGHT: Category Filters & Sort/Filter Dropdown (hidden on mobile by default) -->
         <div class="shop-filters-dropdown-panel" id="shopFiltersPanel">
           <div class="filter-bar" id="categoryFilters"></div>
-        </div>
-
-        <!-- RIGHT: Sort Dropdown -->
-        <div class="shop-sort-right">
-          <div class="sort-select-wrap">
-            <label for="shopSortSelect" class="sr-only">Sort by</label>
-            <select id="shopSortSelect" onchange="window.triggerSearch()">
-              <option value="default">Sort By: Featured</option>
-              <option value="name-asc">Alphabetical: A-Z</option>
-              <option value="name-desc">Alphabetical: Z-A</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-            </select>
+          
+          <div class="shop-sort-right">
+            <div class="custom-filter-dropdown" id="customFilterDropdown">
+              <button type="button" class="custom-filter-btn" onclick="window.toggleCustomFilterMenu(event)">
+                Sort & Filter <span class="arrow">▼</span>
+              </button>
+              <div class="custom-filter-menu" id="customFilterMenu">
+                <div class="filter-section">
+                  <h4>Sort By</h4>
+                  <label class="filter-option-label">
+                    <input type="radio" name="shopSort" value="default" checked onchange="window.triggerSearch()">
+                    Featured
+                  </label>
+                  <label class="filter-option-label">
+                    <input type="radio" name="shopSort" value="price-desc" onchange="window.triggerSearch()">
+                    Price: High to Low
+                  </label>
+                  <label class="filter-option-label">
+                    <input type="radio" name="shopSort" value="price-asc" onchange="window.triggerSearch()">
+                    Price: Low to High
+                  </label>
+                </div>
+                <div class="filter-section border-top">
+                  <h4>Fragrances</h4>
+                  <div id="fragranceCheckboxesList">
+                    <!-- Dynamically populated checkboxes -->
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

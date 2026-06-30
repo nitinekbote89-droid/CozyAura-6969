@@ -266,7 +266,7 @@ window.resizeAndConvertImage = function(file, forceSquare) {
                         const minDim = Math.min(img.width, img.height);
                         const sourceX = (img.width - minDim) / 2;
                         const sourceY = (img.height - minDim) / 2;
-                        const targetSize = Math.min(minDim, 1200);
+                        const targetSize = Math.min(minDim, 1920);
                         
                         canvas.width = targetSize;
                         canvas.height = targetSize;

@@ -675,7 +675,7 @@ export async function POST({ request }) {
       if (liveCoverUrl && liveCoverUrl.startsWith("data:image")) {
         liveCoverUrl = await uploadToCloudinary(liveCoverUrl, `cover_${data.product.id}`);
       }
-      liveCoverUrl = optimizeImageUrl(liveCoverUrl, 1200);
+      liveCoverUrl = optimizeImageUrl(liveCoverUrl, 1920);
 
       const { error: upsertErr } = await supabase.from('products').upsert({
         id: data.product.id,
@@ -715,7 +715,7 @@ export async function POST({ request }) {
         if (variantMediaUrl && variantMediaUrl.startsWith("data:image")) {
           variantMediaUrl = await uploadToCloudinary(variantMediaUrl, `var_${data.product.id}_${fragranceName.replace(/\s+/g, '')}`);
         }
-        variantMediaUrl = optimizeImageUrl(variantMediaUrl, 1200);
+        variantMediaUrl = optimizeImageUrl(variantMediaUrl, 1920);
         variantRows.push({
           product_id: data.product.id,
           variant_name: fragranceName,
@@ -885,8 +885,7 @@ export async function POST({ request }) {
           const publicId = `sf_${key}`;
           val = await uploadToCloudinary(val, publicId);
         }
-        const isBanner = ['home_hero', 'about_process', 'contact_banner'].includes(key);
-        const targetWidth = isBanner ? 1920 : 1200;
+        const targetWidth = 1920;
         updatedImages[key] = optimizeImageUrl(val, targetWidth);
       }));
 

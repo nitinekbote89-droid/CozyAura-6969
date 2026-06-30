@@ -1065,6 +1065,37 @@ window.viewOrderDetails = async function(orderId) {
     document.getElementById('modalTrackingInput').value = order.trackingNumber || '';
     document.getElementById('modalTrackingLinkInput').value = order.trackingLink || '';
 
+    // Lock courier fields if order is already Delivered or Completed
+    const isFinalized = order.status === 'Delivered' || order.status === 'Completed';
+    const lockStyle = isFinalized
+      ? 'background:var(--bg-main); color:var(--text-muted); opacity:0.6; cursor:not-allowed; pointer-events:none; width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;'
+      : 'background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;';
+    ['modalCourierInput', 'modalTrackingInput', 'modalTrackingLinkInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.readOnly = isFinalized;
+        el.style.cssText = lockStyle;
+      }
+    });
+    const saveBtn = document.getElementById('modalTrackingSaveBtn');
+    if (saveBtn) saveBtn.style.display = isFinalized ? 'none' : 'block';
+
+    // Show a locked notice when finalized
+    let lockNotice = document.getElementById('modalTrackingLockedNotice');
+    if (isFinalized) {
+      if (!lockNotice) {
+        lockNotice = document.createElement('p');
+        lockNotice.id = 'modalTrackingLockedNotice';
+        lockNotice.style.cssText = 'font-size:0.8rem; color:var(--text-muted); margin-top:8px; display:flex; align-items:center; gap:6px;';
+        lockNotice.innerHTML = '🔒 Courier details are locked — this order has been delivered.';
+        const trackingSection = document.getElementById('modalTrackingSection');
+        if (trackingSection) trackingSection.appendChild(lockNotice);
+      }
+      lockNotice.style.display = 'flex';
+    } else {
+      if (lockNotice) lockNotice.style.display = 'none';
+    }
+
     if (modal) modal.classList.add('active');
 };
 

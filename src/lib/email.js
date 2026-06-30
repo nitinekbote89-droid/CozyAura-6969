@@ -84,8 +84,9 @@ function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipp
 </html>`;
 }
 
-function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink, deliveryMethod }) {
+function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink, deliveryMethod, siteOrigin }) {
   const isPickup = deliveryMethod === 'Pickup';
+  const base = siteOrigin || 'https://lumiere-candles.in';
 
   if (isPickup) {
     return `
@@ -120,6 +121,9 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
                   Mon - Sat, 11:00 AM - 7:00 PM
                 </p>
               </div>
+              <div style="text-align:center; margin-top:24px;">
+                <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
+              </div>
             </td>
           </tr>
           <tr>
@@ -136,10 +140,14 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
   }
 
   const trackSection = trackingLink
-    ? `<a href="${trackingLink}" style="display:inline-block;background:#b8975a;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:15px;margin-top:16px;">Track Your Order</a>`
-    : trackingNumber
-    ? `<p style="margin:8px 0 0;color:#6b5d53;font-size:14px;">Tracking No: <strong style="color:#1a1a2e;">${trackingNumber}</strong></p>`
-    : '';
+    ? `<div style="margin-top:16px; text-align:center;">
+         <a href="${trackingLink}" style="display:inline-block;background:#b8975a;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;margin-bottom:12px;">Track Package</a><br>
+         <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
+       </div>`
+    : `<div style="margin-top:16px; text-align:center;">
+         ${trackingNumber ? `<p style="margin:0 0 12px;color:#6b5d53;font-size:14px;">Tracking No: <strong style="color:#1a1a2e;">${trackingNumber}</strong></p>` : ''}
+         <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
+       </div>`;
 
   return `
 <!DOCTYPE html>
@@ -162,7 +170,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
               <p style="margin:0 0 4px;color:#6b5d53;font-size:15px;line-height:1.5;">
                 Hi ${name}, your order <strong style="color:#1a1a2e;">${orderId}</strong> has been shipped${courier ? ` via <strong>${courier}</strong>` : ''}.
               </p>
-              <div style="text-align:center;">${trackSection}</div>
+              ${trackSection}
             </td>
           </tr>
           <tr>
@@ -221,13 +229,13 @@ export async function sendOrderConfirmation({ email, name, orderId, items, subto
   });
 }
 
-export async function sendOrderShipped({ email, name, orderId, trackingNumber, courier, trackingLink, deliveryMethod }) {
+export async function sendOrderShipped({ email, name, orderId, trackingNumber, courier, trackingLink, deliveryMethod, siteOrigin }) {
   const isPickup = deliveryMethod === 'Pickup';
   const subject = isPickup ? `Order Ready for Pickup — ${orderId}` : `Order Shipped — ${orderId}`;
   return sendViaSendGrid({
     to: email,
     subject,
-    html: orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink, deliveryMethod })
+    html: orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink, deliveryMethod, siteOrigin })
   });
 }
 

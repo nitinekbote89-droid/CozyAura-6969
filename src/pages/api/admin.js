@@ -825,6 +825,7 @@ export async function POST({ request }) {
       if (data.status === 'Shipped') {
         const { data: order } = await supabase.from('orders').select('*').eq('id', data.orderId).maybeSingle();
         if (order?.shipping_email) {
+          const origin = new URL(request.url).origin;
           await sendOrderShipped({
             email: order.shipping_email,
             name: `${order.shipping_fname || ''} ${order.shipping_lname || ''}`.trim(),
@@ -832,7 +833,8 @@ export async function POST({ request }) {
             trackingNumber: data.trackingNo || order.tracking_number || '',
             courier: data.courier || order.courier || '',
             trackingLink: data.trackingLink || order.tracking_link || '',
-            deliveryMethod: order.delivery_method
+            deliveryMethod: order.delivery_method,
+            siteOrigin: origin
           });
         }
       }

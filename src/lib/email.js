@@ -141,7 +141,6 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 
   const trackSection = `
     <div style="margin-top:16px; text-align:center;">
-      ${trackingNumber ? `<p style="margin:0 0 12px;color:#6b5d53;font-size:14px;">Tracking No: <strong style="color:#1a1a2e;">${trackingNumber}</strong></p>` : ''}
       <a href="https://cozyaura-6969-production.up.railway.app/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
     </div>
   `;
@@ -165,7 +164,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
             <td style="padding:32px 40px;">
               <h2 style="margin:0 0 6px;color:#1a1a2e;font-size:20px;">Your order is on its way!</h2>
               <p style="margin:0 0 4px;color:#6b5d53;font-size:15px;line-height:1.5;">
-                Hi ${name}, your order <strong style="color:#1a1a2e;">${orderId}</strong> has been shipped${courier ? ` via <strong>${courier}</strong>` : ''}.
+                Hi ${name}, your order <strong style="color:#1a1a2e;">${orderId}</strong> has been shipped.
               </p>
               ${trackSection}
             </td>

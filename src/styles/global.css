@@ -389,17 +389,17 @@ section.active {
 /* Shop Controls Desktop Layout */
 .shop-controls {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1.2rem;
   margin-bottom: 3rem;
 }
 .shop-search-row {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex: 1;
-  justify-content: flex-end;
+  justify-content: center;
+  width: 100%;
   max-width: 600px;
 }
 .search-bar-rounded {
@@ -437,6 +437,8 @@ section.active {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 .sort-select-wrap select {
   border: 1px solid var(--sand);

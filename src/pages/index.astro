@@ -101,6 +101,17 @@ if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_STALE_TTL) {
 // Cloudinary auto-optimization: serve WebP + auto quality
 function cloudinaryOpt(url, width) {
   if (!url || !url.includes('res.cloudinary.com')) return url;
+  if (!url.includes('/image/upload/')) return url;
+  if (url.includes('/image/upload/f_auto')) {
+    if (width) {
+      if (url.includes('w_')) {
+        return url.replace(/([,/])w_\d+/, `$1w_${width}`);
+      } else {
+        return url.replace('/image/upload/f_auto,', `/image/upload/f_auto,w_${width},`);
+      }
+    }
+    return url;
+  }
   const params = ['f_auto', 'q_auto'];
   if (width) params.push(`w_${width}`);
   return url.replace('/image/upload/', `/image/upload/${params.join(',')}/`);

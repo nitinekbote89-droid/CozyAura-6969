@@ -99,42 +99,8 @@ if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_STALE_TTL) {
 }
 
 // Cloudinary auto-optimization: serve WebP + auto quality
-// Cloudinary auto-optimization: serve WebP + auto quality
-function cloudinaryOpt(url, width, isSquare) {
-  if (!url || !url.includes('res.cloudinary.com')) return url;
-  if (!url.includes('/image/upload/')) return url;
-  
-  const parts = url.split('/image/upload/');
-  const baseUrl = parts[0] + '/image/upload/';
-  let remaining = parts[1];
-  
-  // Clean up any existing duplicate transformations if they got saved/corrupted
-  remaining = remaining.replace(/(f_auto,q_auto[^/]*\/)+/, '');
-  
-  const slashIdx = remaining.indexOf('/');
-  let transString = remaining.substring(0, slashIdx);
-  let pathString = remaining.substring(slashIdx);
-  
-  const isVersion = transString.startsWith('v') && !isNaN(transString.substring(1));
-  if (isVersion) {
-    pathString = '/' + transString + pathString;
-    transString = '';
-  }
-  
-  const params = ['f_auto', 'q_auto'];
-  if (width) {
-    if (isSquare) {
-      params.push('c_fill', 'g_auto', `w_${width}`, `h_${width}`);
-    } else {
-      params.push(`w_${width}`);
-    }
-  } else {
-    if (transString && !isVersion) {
-      return baseUrl + transString + pathString;
-    }
-  }
-  
-  return baseUrl + params.join(',') + pathString;
+function cloudinaryOpt(url) {
+  return url;
 }
 
 // SSR products grid HTML to eliminate CLS from JS-populated product cards
@@ -146,7 +112,7 @@ if (initialCatalog?.inventory) {
       displayCategory = 'jar';
     }
     const imgHtml = item.coverImage
-      ? `<img src="${cloudinaryOpt(item.coverImage, 600, true)}" srcset="${cloudinaryOpt(item.coverImage, 600, true)} 600w, ${cloudinaryOpt(item.coverImage, 800, true)} 800w, ${cloudinaryOpt(item.coverImage, 1200, true)} 1200w" sizes="(max-width: 480px) 600px, (max-width: 1024px) 800px, 1200px" alt="${item.name}" width="600" height="600" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`
+      ? `<img src="${item.coverImage}" alt="${item.name}" width="300" height="300" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`
       : '<div class="cream-fallback"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--taupe)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.5-.75-3-1.5-4.5.25 1 1.5 2 1.5 3.5s-1.25 2.5-2.5 3.5z"/><path d="M12 2C10 6 8 10 8 14c0 3.5 2 5 4 5s4-1.5 4-5c0-4-2-8-4-12z"/><circle cx="12" cy="14" r="3" fill="var(--warm-white)" opacity="0.3"/></svg></div>';
     return `<div class="product-card" onclick="window.openProductModal('${item.id}')">
       <div class="product-img">
@@ -174,7 +140,7 @@ if (initialCatalog?.inventory) {
     const rankTextColor = rank === 1 ? 'var(--black)' : 'var(--cream)';
     const displayCategory = (prod.category || '').toLowerCase().trim() === 'jar2' ? 'jar' : (prod.category || 'Luxury Scent');
     const imgHtml = prod.coverImage
-      ? `<img src="${cloudinaryOpt(prod.coverImage, 600, true)}" srcset="${cloudinaryOpt(prod.coverImage, 600, true)} 600w, ${cloudinaryOpt(prod.coverImage, 800, true)} 800w, ${cloudinaryOpt(prod.coverImage, 1200, true)} 1200w" sizes="(max-width: 480px) 600px, (max-width: 1024px) 800px, 1200px" alt="${prod.name}" width="300" height="300" style="width:100%;height:100%;object-fit:cover;">`
+      ? `<img src="${prod.coverImage}" alt="${prod.name}" width="300" height="300" style="width:100%;height:100%;object-fit:cover;">`
       : `<div class="cream-fallback">${fireSvg}</div>`;
     return `<div class="bestseller-card" style="--card-idx: ${idx}; z-index: ${10 + idx};" onclick="window.openProductModal('${prod.id}')"><div class="bestseller-card-content"><div class="bestseller-card-left"><span class="bestseller-rank-badge" style="background:${rankColor};color:${rankTextColor};">#${rank} Best Seller</span><h3>${prod.name}</h3><div class="bestseller-card-scent">${displayCategory}</div><p class="bestseller-card-desc">${prod.description ? prod.description.substring(0, 120) + '...' : 'Hand-poured 100% natural soya candle blended with botanical oils.'}</p><div class="bestseller-card-footer"><span class="bestseller-card-price">₹${prod.price}</span><span class="bestseller-card-cta">View Details ${arrowSvg}</span></div></div><div class="bestseller-card-right">${imgHtml}</div></div></div>`;
   }).join('');
@@ -205,7 +171,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 ---
 
 <Layout>
-  {heroImageUrl && <link rel="preload" as="image" href={cloudinaryOpt(heroImageUrl, 1920)} imagesrcset={`${cloudinaryOpt(heroImageUrl, 600)} 600w, ${cloudinaryOpt(heroImageUrl, 1200)} 1200w, ${cloudinaryOpt(heroImageUrl, 1920)} 1920w`} imagesizes="(max-width: 480px) 600px, (max-width: 1024px) 1200px, 1920px" fetchpriority="high" slot="head" />}
+  {heroImageUrl && <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" slot="head" />}
   <script is:inline slot="head">
   window.showPage = window.showPage || function showPage(pageId, updateHistory) {
     var _orig = window.showPage;
@@ -275,7 +241,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="hero-visual">
         <div class="hero-float-wrapper">
           <div class="hero-image-frame">
-            <img src={cloudinaryOpt(heroImageUrl, 1920) || ''} srcset={heroImageUrl ? `${cloudinaryOpt(heroImageUrl, 600)} 600w, ${cloudinaryOpt(heroImageUrl, 1200)} 1200w, ${cloudinaryOpt(heroImageUrl, 1920)} 1920w` : ''} sizes="(max-width: 480px) 600px, (max-width: 1024px) 1200px, 1920px" id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" />
+            <img src={heroImageUrl || ''} id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" />
             <div class="hero-frame-glow"></div>
             <div class="hero-frame-border"></div>
           </div>

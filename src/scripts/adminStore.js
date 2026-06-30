@@ -248,7 +248,7 @@ window.generateFragranceStockFormFields = function(selectedStocksMapping = {}, s
     });
 };
 
-window.resizeAndConvertImage = function(file) {
+window.resizeAndConvertImage = function(file, forceSquare) {
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = function (e) {
@@ -256,33 +256,45 @@ window.resizeAndConvertImage = function(file) {
             img.onload = function() {
                 try {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1200;
-                    const MAX_HEIGHT = 1200;
-                    let width = img.width;
-                    let height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        resolve(e.target.result);
+                        return;
+                    }
 
-                    if (width > height) {
+                    if (forceSquare) {
+                        const minDim = Math.min(img.width, img.height);
+                        const sourceX = (img.width - minDim) / 2;
+                        const sourceY = (img.height - minDim) / 2;
+                        const targetSize = Math.min(minDim, 1200);
+                        
+                        canvas.width = targetSize;
+                        canvas.height = targetSize;
+                        
+                        ctx.drawImage(img, sourceX, sourceY, minDim, minDim, 0, 0, targetSize, targetSize);
+                    } else {
+                        const MAX_WIDTH = 1920;
+                        const MAX_HEIGHT = 1080;
+                        let width = img.width;
+                        let height = img.height;
+
                         if (width > MAX_WIDTH) {
                             height *= MAX_WIDTH / width;
                             width = MAX_WIDTH;
                         }
-                    } else {
                         if (height > MAX_HEIGHT) {
                             width *= MAX_HEIGHT / height;
                             height = MAX_HEIGHT;
                         }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        ctx.drawImage(img, 0, 0, width, height);
                     }
 
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    if (ctx) {
-                        ctx.drawImage(img, 0, 0, width, height);
-                        const webpDataUrl = canvas.toDataURL('image/webp', 0.82);
-                        resolve(webpDataUrl);
-                    } else {
-                        resolve(e.target.result);
-                    }
+                    const webpDataUrl = canvas.toDataURL('image/webp', 0.82);
+                    resolve(webpDataUrl);
                 } catch (err) {
                     console.error("WebP conversion / resizing error:", err);
                     resolve(e.target.result);
@@ -300,7 +312,7 @@ window.resizeAndConvertImage = function(file) {
 window.handleCoverImageSelection = async function(e) {
     const file = e.target.files[0];
     if (!file) return;
-    const base64Str = await window.resizeAndConvertImage(file);
+    const base64Str = await window.resizeAndConvertImage(file, true);
     window.currentCoverImageBase64 = base64Str;
     
     const pBox = document.getElementById('prodCoverImagePreview');
@@ -322,7 +334,7 @@ window.clearCoverImage = function() {
 window.handleFragranceImageSelection = async function(e, fragrance) {
     const file = e.target.files[0];
     if (!file) return;
-    const base64Str = await window.resizeAndConvertImage(file);
+    const base64Str = await window.resizeAndConvertImage(file, true);
     window.currentFragranceImagesMap[fragrance] = base64Str;
     
     const pBox = document.getElementById(`preview_box_${fragrance}`);
@@ -1229,7 +1241,8 @@ window.selectStorefrontPage = function(pageVal) {
 window.handleStorefrontImageSelection = async function(e, key) {
     const file = e.target.files[0];
     if (!file) return;
-    const base64Str = await window.resizeAndConvertImage(file);
+    const forceSquare = key.startsWith('ig_');
+    const base64Str = await window.resizeAndConvertImage(file, forceSquare);
     
     if (!window.currentStorefrontImages) {
         window.currentStorefrontImages = {};

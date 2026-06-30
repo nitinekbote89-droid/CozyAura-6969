@@ -28,8 +28,12 @@ window.attemptLogin = async function() {
 
 window.syncCloudInventory = async function(page = null) {
     if (page === null) {
-        page = window._ordersCurrentPage || 0;
+        // Read from sessionStorage so it survives re-renders and focus events
+        page = parseInt(sessionStorage.getItem('lumiere_admin_orders_page') || '0', 10) || 0;
     }
+    // Persist current page for future calls
+    sessionStorage.setItem('lumiere_admin_orders_page', String(page));
+    window._ordersCurrentPage = page;
     const pwd = sessionStorage.getItem('lumiere_admin_secret');
     const syncIndicator = document.getElementById('syncIndicator');
     if (syncIndicator) {

@@ -778,6 +778,9 @@ import AdminModals from '../components/AdminModals.astro';
   window._ordersCurrentPage = 0;
 
   window.ordersGoToPage = function(newPage) {
+    // Save immediately before fetch so any concurrent re-render uses the right page
+    sessionStorage.setItem('lumiere_admin_orders_page', String(newPage));
+    window._ordersCurrentPage = newPage;
     window.syncCloudInventory(newPage);
     const tbl = document.getElementById('ordersBody');
     if (tbl) {
@@ -796,6 +799,9 @@ import AdminModals from '../components/AdminModals.astro';
     
     clearTimeout(orderSearchTimeout);
     orderSearchTimeout = setTimeout(() => {
+      // Reset to page 0 when searching
+      sessionStorage.setItem('lumiere_admin_orders_page', '0');
+      window._ordersCurrentPage = 0;
       window.syncCloudInventory(0);
     }, 450);
   };

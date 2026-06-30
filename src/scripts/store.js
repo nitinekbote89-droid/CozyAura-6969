@@ -273,8 +273,7 @@ async function syncCatalogDataset() {
             window.PRODUCTS = json.data.inventory.map(item => {
                let vars = Object.entries(item.fragranceStocks || {}).map(([fName, qty]) => ({
                   id: fName, name: fName, price: item.price, inStock: qty > 0, maxStock: qty,
-image: item.fragranceImages?.[fName] ? `<img 
- src="${item.fragranceImages[fName]}"  alt="${fName}" width="400" height="500" style="width:100%;height:100%;object-fit:cover;">` : null,
+                  image: item.fragranceImages?.[fName] ? `<img src="${cloudinaryOpt(item.fragranceImages[fName], 600, true)}" srcset="${cloudinaryOpt(item.fragranceImages[fName], 600, true)} 600w, ${cloudinaryOpt(item.fragranceImages[fName], 800, true)} 800w, ${cloudinaryOpt(item.fragranceImages[fName], 1200, true)} 1200w" sizes="(max-width: 480px) 600px, (max-width: 1024px) 800px, 1200px" alt="${fName}" width="600" height="600" style="width:100%;height:100%;object-fit:cover;">` : null,
                   rawImage: item.fragranceImages?.[fName] || null
                }));
                if (vars.length === 0) {
@@ -286,9 +285,7 @@ image: item.fragranceImages?.[fName] ? `<img
                 }
                 return {
                    id: item.id, name: item.name, scent: normalizedCategory, price: item.price, category: normalizedCategory,
-                   image: item.coverImage ? `<img 
- src="${item.coverImage}"  alt="${item.name}" width="300" height="400" 
- style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback">${window.__svg.fire}</div>`,
+                   image: item.coverImage ? `<img src="${cloudinaryOpt(item.coverImage, 600, true)}" srcset="${cloudinaryOpt(item.coverImage, 600, true)} 600w, ${cloudinaryOpt(item.coverImage, 800, true)} 800w, ${cloudinaryOpt(item.coverImage, 1200, true)} 1200w" sizes="(max-width: 480px) 600px, (max-width: 1024px) 800px, 1200px" alt="${item.name}" width="600" height="600" style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback">${window.__svg.fire}</div>`,
                   description: item.description, specs: Array.isArray(item.specifications) ? item.specifications.join('\n') : item.specifications,
                   inStock: item.stock > 0, variants: vars,
                   totalSales: item.totalSales || 0,
@@ -3746,22 +3743,41 @@ window.addEventListener('storage', (e) => {
   }
 });
 
-function cloudinaryOpt(url, width) {
+function cloudinaryOpt(url, width, isSquare) {
   if (!url || !url.includes('res.cloudinary.com')) return url;
   if (!url.includes('/image/upload/')) return url;
-  if (url.includes('/image/upload/f_auto')) {
-    if (width) {
-      if (url.includes('w_')) {
-        return url.replace(/([,/])w_\d+/, `$1w_${width}`);
-      } else {
-        return url.replace('/image/upload/f_auto,', `/image/upload/f_auto,w_${width},`);
-      }
-    }
-    return url;
+  
+  const parts = url.split('/image/upload/');
+  const baseUrl = parts[0] + '/image/upload/';
+  let remaining = parts[1];
+  
+  // Clean up any existing duplicate transformations if they got saved/corrupted
+  remaining = remaining.replace(/(f_auto,q_auto[^/]*\/)+/, '');
+  
+  const slashIdx = remaining.indexOf('/');
+  let transString = remaining.substring(0, slashIdx);
+  let pathString = remaining.substring(slashIdx);
+  
+  const isVersion = transString.startsWith('v') && !isNaN(transString.substring(1));
+  if (isVersion) {
+    pathString = '/' + transString + pathString;
+    transString = '';
   }
+  
   const params = ['f_auto', 'q_auto'];
-  if (width) params.push('w_' + width);
-  return url.replace('/image/upload/', '/image/upload/' + params.join(',') + '/');
+  if (width) {
+    if (isSquare) {
+      params.push('c_fill', 'g_auto', `w_${width}`, `h_${width}`);
+    } else {
+      params.push(`w_${width}`);
+    }
+  } else {
+    if (transString && !isVersion) {
+      return baseUrl + transString + pathString;
+    }
+  }
+  
+  return baseUrl + params.join(',') + pathString;
 }
 
 window.applyStorefrontImages = function() {
@@ -3774,9 +3790,9 @@ window.applyStorefrontImages = function() {
     if (targetSrc) {
       if (heroImg.getAttribute('src') !== targetSrc) {
         heroImg.style.opacity = '0';
-        heroImg.setAttribute('src', cloudinaryOpt(targetSrc));
-        heroImg.setAttribute('srcset', cloudinaryOpt(targetSrc, 380) + ' 380w, ' + cloudinaryOpt(targetSrc, 760) + ' 760w, ' + cloudinaryOpt(targetSrc, 1000) + ' 1000w');
-        heroImg.setAttribute('sizes', '(max-width: 480px) 380px, (max-width: 1024px) 760px, 1000px');
+        heroImg.setAttribute('src', cloudinaryOpt(targetSrc, 1920));
+        heroImg.setAttribute('srcset', cloudinaryOpt(targetSrc, 600) + ' 600w, ' + cloudinaryOpt(targetSrc, 1200) + ' 1200w, ' + cloudinaryOpt(targetSrc, 1920) + ' 1920w');
+        heroImg.setAttribute('sizes', '(max-width: 480px) 600px, (max-width: 1024px) 1200px, 1920px');
         heroImg.onload = () => { heroImg.style.opacity = '1'; };
         if (heroImg.complete) heroImg.style.opacity = '1';
       } else {
@@ -4012,9 +4028,9 @@ window.renderWishlist = async function() {
     
     let imgHtml = '';
     if (imgUrl) {
-      imgHtml = `<img src="${imgUrl}" alt="${prod.name}" style="width:100%; height:100%; object-fit:cover;">`;
+      imgHtml = `<img src="${cloudinaryOpt(imgUrl, 600, true)}" srcset="${cloudinaryOpt(imgUrl, 600, true)} 600w, ${cloudinaryOpt(imgUrl, 800, true)} 800w, ${cloudinaryOpt(imgUrl, 1200, true)} 1200w" sizes="(max-width: 480px) 600px, (max-width: 1024px) 800px, 1200px" alt="${prod.name}" style="width:100%; height:100%; object-fit:cover;">`;
     } else {
-      imgHtml = `<div class="cream-fallback" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--taupe)" stroke-width="1.5"><circle cx="12" cy="14" r="3" fill="var(--taupe)" opacity="0.3"/></svg></div>`;
+      imgHtml = `<div class="cream-fallback" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--warm-white)" stroke-width="1.5"><circle cx="12" cy="14" r="3" fill="var(--warm-white)" opacity="0.3"/></svg></div>`;
     }
 
     html += `

@@ -1492,7 +1492,7 @@ window.renderCustomersList = function(resetPage) {
     const displayName = `${c.fname} ${c.lname}`.trim() || 'Guest Customer';
     const displayPhone = c.phone ? esc(c.phone) : '—';
     const encodedCust = encodeURIComponent(JSON.stringify(c));
-    return `<tr onclick="window.viewCustomerDetailModal('${encodedCust}')" style="cursor:pointer;">` +
+    return `<tr>` +
       `<td>#${c.sequenceNumber}</td>` +
       `<td style="font-weight:500; text-transform:capitalize;">${esc(displayName)}</td>` +
       `<td style="font-family:monospace;">${esc(c.email)}</td>` +
@@ -1500,7 +1500,7 @@ window.renderCustomersList = function(resetPage) {
       `<td style="text-align:center; font-weight:600;">${c.ordersCount}</td>` +
       `<td style="text-align:center; font-weight:600;">${c.wishlistCount}</td>` +
       `<td style="text-align:center;">` +
-        `<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;">` +
+        `<button class="btn btn-secondary" onclick="window.viewCustomerDetailModal('${encodedCust}')" style="padding:4px 10px; font-size:0.75rem; border-radius:4px; cursor:pointer;">` +
           `View` +
         `</button>` +
       `</td>` +

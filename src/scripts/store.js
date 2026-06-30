@@ -3775,7 +3775,7 @@ window.applyStorefrontImages = function() {
       if (heroImg.getAttribute('src') !== targetSrc) {
         heroImg.style.opacity = '0';
         heroImg.setAttribute('src', cloudinaryOpt(targetSrc));
-        heroImg.setAttribute('srcset', cloudinaryOpt(targetSrc, 380) + ' 380w, ' + cloudinaryOpt(targetSrc, 760) + ' 760w');
+        heroImg.setAttribute('srcset', cloudinaryOpt(targetSrc, 380) + ' 380w, ' + cloudinaryOpt(targetSrc, 760) + ' 760w, ' + cloudinaryOpt(targetSrc, 1000) + ' 1000w');
         heroImg.setAttribute('sizes', '(max-width: 768px) 280px, 380px');
         heroImg.onload = () => { heroImg.style.opacity = '1'; };
         if (heroImg.complete) heroImg.style.opacity = '1';

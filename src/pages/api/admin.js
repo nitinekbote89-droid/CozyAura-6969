@@ -239,7 +239,7 @@ export async function GET({ request }) {
       const [{ data: addrs }, { data: orders }, { data: wishlist }] = await Promise.all([
         supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').eq('user_email', email).limit(5),
         supabase.from('orders').select('id, total, status, date, delivery_method').eq('shipping_email', email).order('date', { ascending: false }).limit(200),
-        supabase.from('wishlist').select('product_id').eq('user_email', email).limit(100)
+        supabase.from('wishlist').select('product_id, variant_name').eq('user_email', email).limit(100)
       ]);
 
       // Resolve best name + phone from addresses or orders
@@ -364,7 +364,7 @@ export async function GET({ request }) {
         const [{ data: addrs }, { data: orders }, { data: wishlist }] = await Promise.all([
           supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').eq('user_email', email).limit(5),
           supabase.from('orders').select('id, total, status, date, delivery_method').eq('shipping_email', email).order('date', { ascending: false }).limit(200),
-          supabase.from('wishlist').select('product_id').eq('user_email', email).limit(100)
+          supabase.from('wishlist').select('product_id, variant_name').eq('user_email', email).limit(100)
         ]);
 
         // Resolve best name + phone from addresses or orders
@@ -471,7 +471,7 @@ export async function GET({ request }) {
 
       usersPromiseIdx = promises.push(usersQuery) - 1;
       addressesPromiseIdx = promises.push(supabase.from('user_addresses').select('user_email, fname, lname, phone, is_default').limit(500)) - 1;
-      wishlistPromiseIdx = promises.push(supabase.from('wishlist').select('user_email, product_id').limit(500)) - 1;
+      wishlistPromiseIdx = promises.push(supabase.from('wishlist').select('user_email, product_id, variant_name').limit(500)) - 1;
       ordersEmailsPromiseIdx = promises.push(supabase.from('orders').select('shipping_email')) - 1;
       wishlistEmailsPromiseIdx = promises.push(supabase.from('wishlist').select('user_email')) - 1;
     } else if (tab === 'feedback') {

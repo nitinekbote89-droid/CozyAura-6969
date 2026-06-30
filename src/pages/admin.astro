@@ -738,7 +738,7 @@ import AdminModals from '../components/AdminModals.astro';
 
   window.getStatusBadge = function(stock) {
     if (stock <= 0) return '<span class="status-badge status-out">Out of Stock</span>';
-    if (stock <= 40) return '<span class="status-badge status-low">Low Stock</span>';
+    if (stock <= 40) return '<span class="status-badge" style="background:#F3E8FF; color:#7E22CE; font-weight:600; border:1px solid #E9D5FF;">Low Priority</span>';
     return '<span class="status-badge status-instock">In Stock</span>';
   }
 

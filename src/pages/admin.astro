@@ -572,7 +572,7 @@ import AdminModals from '../components/AdminModals.astro';
       } else {
           outOfStockFragrancesQueue.forEach(fMat => {
               let priorityBadge = '';
-              let badgeColor = '#DB2777';
+              let badgeColor = '#7E22CE';
               if (fMat._tier === 4) {
                   priorityBadge = `<span class="status-badge" style="background:#FEE2E2; color:#DC2626; font-weight:600; border:1px solid #FCA5A5;">CRITICAL</span>`;
                   badgeColor = 'var(--danger)';
@@ -633,7 +633,7 @@ import AdminModals from '../components/AdminModals.astro';
       } else {
           priorityItems.forEach(item => {
               let priorityBadge = '';
-              let textColor = '#DB2777';
+              let textColor = '#7E22CE';
               if (item._tier === 3) { 
                   priorityBadge = `<span class="status-badge" style="background:#FEE2E2; color:#DC2626; font-weight:600; border:1px solid #FCA5A5;">HIGH PRIORITY</span>`; 
                   textColor = 'var(--danger)';
@@ -703,7 +703,7 @@ import AdminModals from '../components/AdminModals.astro';
       let dynamicFragranceCells = '';
       if(item.fragranceStocks && Object.keys(item.fragranceStocks).length > 0) {
           dynamicFragranceCells = Object.entries(item.fragranceStocks).map(([f, qty]) => {
-              const labelColor = qty <= 5 ? 'var(--danger)' : (qty <= 10 ? 'var(--warning)' : (qty <= 15 ? '#DB2777' : 'var(--success)'));
+              const labelColor = qty <= 5 ? 'var(--danger)' : (qty <= 10 ? 'var(--warning)' : (qty <= 15 ? '#7E22CE' : 'var(--success)'));
               const fImg = item.fragranceImages?.[f] || fallbackSVG;
               const imgHTML = `<img src="${fImg}" style="width:18px; height:18px; object-fit:cover; border-radius:50%; border:1px solid var(--border); vertical-align:middle; margin-right:6px;">`;
               return `<div style="display:flex; align-items:center; margin-bottom:4px;">${imgHTML}<span style="text-transform:capitalize;font-weight:500; margin-right:4px;">${esc(f)}</span>: &nbsp;<span style="color:${labelColor}; font-weight:600;">${qty}</span></div>`;
@@ -723,7 +723,7 @@ import AdminModals from '../components/AdminModals.astro';
         <td style="text-transform:capitalize;">${esc(item.category)}</td>
         <td style="font-size:0.85rem; line-height:1.3;">${dynamicFragranceCells}</td>
         <td>₹${itemPrice.toLocaleString('en-IN')}</td>
-        <td><strong style="color: ${item.stock <= 10 ? 'var(--danger)' : (item.stock <= 25 ? 'var(--warning)' : (item.stock <= 40 ? '#DB2777' : 'var(--success)'))}">${item.stock}</strong> units</td>
+        <td><strong style="color: ${item.stock <= 10 ? 'var(--danger)' : (item.stock <= 25 ? 'var(--warning)' : (item.stock <= 40 ? '#7E22CE' : 'var(--success)'))}">${item.stock}</strong> units</td>
         <td>${window.getStatusBadge(item.stock)}</td>
         <td>
           <div class="action-btns">

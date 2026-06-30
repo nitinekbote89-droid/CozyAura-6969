@@ -3219,7 +3219,7 @@ window.showOrderDetail = function(id, isAuto) {
   var contentHtml =
     '<div class="order-detail-header"><h3 class="order-detail-title" style="margin:0;line-height:1;">Order ID: ' + order.id + '</h3><span class="status-pill ' + order.status.toLowerCase() + '" style="margin:0;">' + displayStatus + '</span></div>' +
     '<div class="tracker-container"><div class="tracker-steps-line"><div class="tracker-progress-line" style="width:' + (order.status === 'Delivered' ? '100' : order.status === 'Shipped' ? '50' : '0') + '%"></div></div><div class="tracker-nodes"><div class="tracker-node' + (order.status !== 'Pending' ? ' completed' : ' active') + '"><div class="tracker-circle">' + step1Icon + '</div><span class="tracker-label">' + step1Label + '</span></div><div class="tracker-node' + (order.status === 'Shipped' || order.status === 'Delivered' ? ' completed' : order.status === 'Pending' ? '' : ' active') + '"><div class="tracker-circle">' + step2Icon + '</div><span class="tracker-label">' + step2Label + '</span></div><div class="tracker-node' + (order.status === 'Delivered' ? ' completed active' : '') + '"><div class="tracker-circle">' + step3Icon + '</div><span class="tracker-label">' + step3Label + '</span></div></div></div>' +
-    (details.tracking ? 
+    (details.tracking && !isPickup ? 
       ('<div class="order-tracking-card" style="margin-top:0; margin-bottom:1.5rem;">' +
         '<div>' +
           '<div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Courier Partner</div>' +
@@ -3287,7 +3287,7 @@ window.trackPackage = async function(e) {
               <span class="status-pill ${o.status.toLowerCase()}">${displayStatus}</span>
             </div>
             <div style="font-size:0.9rem; line-height:1.6; color:var(--charcoal);">
-              ${details.tracking ? `
+              ${details.tracking && !isPickup ? `
                 <div class="order-tracking-card" style="margin-top:0; margin-bottom:1.25rem;">
                   <div>
                     <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Courier Partner</div>

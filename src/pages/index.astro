@@ -182,6 +182,34 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
   window.handleBottomNavClick = window.handleBottomNavClick || function handleBottomNavClick(pageId, element) {
     window.showPage(pageId);
   };
+  window.setCartType = function(type) {
+    var highlight = document.getElementById('cartTypeHighlight');
+    var normalText = document.getElementById('toggleNormal');
+    var giftText = document.getElementById('toggleGift');
+    if (!highlight || !normalText || !giftText) return;
+    
+    if (type === 'normal') {
+      highlight.style.transform = 'translateX(0)';
+      normalText.style.color = 'var(--black)';
+      normalText.style.fontWeight = '600';
+      giftText.style.color = 'var(--stone)';
+      giftText.style.fontWeight = '500';
+      sessionStorage.setItem('lumiere_cart_type', 'normal');
+    } else {
+      highlight.style.transform = 'translateX(62px)';
+      normalText.style.color = 'var(--stone)';
+      normalText.style.fontWeight = '500';
+      giftText.style.color = 'var(--black)';
+      giftText.style.fontWeight = '600';
+      sessionStorage.setItem('lumiere_cart_type', 'gift');
+    }
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    var savedCartType = sessionStorage.getItem('lumiere_cart_type') || 'normal';
+    setTimeout(function() {
+      window.setCartType(savedCartType);
+    }, 50);
+  });
   </script>
   <div class="page-wrapper">
   <nav>
@@ -435,7 +463,14 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <div class="order-items-container" id="orderItemsContainer"></div>
       </div>
       <div class="checkout-summary" style="position: sticky; top: 7rem;">
-        <h3>Summary</h3>
+        <div class="summary-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(196,181,160,0.2); padding-bottom:1rem; margin-bottom:2rem;">
+          <h3 style="font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:300; color:var(--black); margin:0; padding:0; border:none;">Summary</h3>
+          <div class="cart-type-toggle" style="display:inline-flex; background:rgba(196,181,160,0.15); padding:3px; border-radius:30px; font-family:'Jost',sans-serif; font-size:0.75rem; font-weight:500; position:relative; user-select:none; width:130px; height:30px; align-items:center;">
+            <div id="cartTypeHighlight" style="position:absolute; top:3px; left:3px; width:62px; height:24px; background:#fff; border-radius:20px; transition:transform 0.25s cubic-bezier(0.25, 1, 0.5, 1); box-shadow:0 2px 4px rgba(42,36,32,0.08); z-index:1;"></div>
+            <span id="toggleNormal" onclick="window.setCartType('normal')" style="padding:4px 0; border-radius:20px; cursor:pointer; z-index:2; width:62px; text-align:center; color:var(--black); transition:color 0.25s; font-weight:600;">Normal</span>
+            <span id="toggleGift" onclick="window.setCartType('gift')" style="padding:4px 0; border-radius:20px; cursor:pointer; z-index:2; width:62px; text-align:center; color:var(--stone); transition:color 0.25s; font-weight:500;">Gift</span>
+          </div>
+        </div>
         <div id="promoContainer"></div>
         <!-- Manual Discount Input Box -->
         <div class="checkout-discount-box cart-discount-box" style="padding-bottom: 0; border-bottom: none; margin-bottom: 1.5rem; margin-top: 0.5rem; display: flex;">

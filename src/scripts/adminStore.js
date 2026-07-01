@@ -41,7 +41,7 @@ window.syncCloudInventory = async function(page = null) {
     }
     const startTime = Date.now();
     try {
-        const activeTab = localStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
+        const activeTab = sessionStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
         const orderSearchEl = document.getElementById('orderSearchInput');
         const searchQuery = orderSearchEl ? orderSearchEl.value.trim() : '';
         const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?t=${Date.now()}&page=${page}&tab=${activeTab}&q=${encodeURIComponent(searchQuery)}`, {
@@ -49,18 +49,18 @@ window.syncCloudInventory = async function(page = null) {
         });
         const json = await res.json();
         if (json.success && json.data) {
-            localStorage.setItem('lumiere_admin_inventory', JSON.stringify(json.data.inventory));
-            localStorage.setItem('lumiere_admin_orders', JSON.stringify(json.data.orders));
-            localStorage.setItem('lumiere_admin_orders_pagination', JSON.stringify(json.data.pagination || { page: 0, pageSize: 200, totalOrders: 0, totalPages: 1 }));
-            localStorage.setItem('lumiere_admin_coupons', JSON.stringify(json.data.coupons));
-            localStorage.setItem('lumiere_admin_fragrances', JSON.stringify(json.data.fragrances));
-            localStorage.setItem('lumiere_admin_storefront_images', JSON.stringify(json.data.storefrontImages || {}));
-            if (json.data.users !== undefined) localStorage.setItem('lumiere_admin_users', JSON.stringify(json.data.users));
-            if (json.data.userAddresses !== undefined) localStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses));
-            if (json.data.wishlist !== undefined) localStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist));
-            if (json.data.feedbacks !== undefined) localStorage.setItem('lumiere_admin_feedbacks', JSON.stringify(json.data.feedbacks));
-            if (json.data.ordersCountMap !== undefined) localStorage.setItem('lumiere_admin_orders_counts', JSON.stringify(json.data.ordersCountMap));
-            if (json.data.wishlistCountMap !== undefined) localStorage.setItem('lumiere_admin_wishlist_counts', JSON.stringify(json.data.wishlistCountMap));
+            sessionStorage.setItem('lumiere_admin_inventory', JSON.stringify(json.data.inventory));
+            sessionStorage.setItem('lumiere_admin_orders', JSON.stringify(json.data.orders));
+            sessionStorage.setItem('lumiere_admin_orders_pagination', JSON.stringify(json.data.pagination || { page: 0, pageSize: 200, totalOrders: 0, totalPages: 1 }));
+            sessionStorage.setItem('lumiere_admin_coupons', JSON.stringify(json.data.coupons));
+            sessionStorage.setItem('lumiere_admin_fragrances', JSON.stringify(json.data.fragrances));
+            sessionStorage.setItem('lumiere_admin_storefront_images', JSON.stringify(json.data.storefrontImages || {}));
+            if (json.data.users !== undefined) sessionStorage.setItem('lumiere_admin_users', JSON.stringify(json.data.users));
+            if (json.data.userAddresses !== undefined) sessionStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses));
+            if (json.data.wishlist !== undefined) sessionStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist));
+            if (json.data.feedbacks !== undefined) sessionStorage.setItem('lumiere_admin_feedbacks', JSON.stringify(json.data.feedbacks));
+            if (json.data.ordersCountMap !== undefined) sessionStorage.setItem('lumiere_admin_orders_counts', JSON.stringify(json.data.ordersCountMap));
+            if (json.data.wishlistCountMap !== undefined) sessionStorage.setItem('lumiere_admin_wishlist_counts', JSON.stringify(json.data.wishlistCountMap));
             // Store total counts from server pagination metadata
             const pag = json.data.pagination || {};
             if (pag.totalUsers !== undefined) sessionStorage.setItem('lumiere_admin_total_users', String(pag.totalUsers));
@@ -75,7 +75,7 @@ window.syncCloudInventory = async function(page = null) {
                 window.updateFeedbackCounts();
             }
             
-            const activeTab = localStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
+            const activeTab = sessionStorage.getItem('lumiere_admin_active_tab') || 'dashboard';
             window.switchTab(activeTab, null, true);
         }
     } catch(e) { 
@@ -112,7 +112,7 @@ window.openModalForAdd = function() {
 
 window.openModalForEdit = function(productId) {
   const decodedId = decodeURIComponent(productId);
-  const inv = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
+  const inv = JSON.parse(sessionStorage.getItem('lumiere_admin_inventory') || '[]');
   const p = inv.find(item => String(item.id) === String(decodedId));
   if (!p) return;
 
@@ -156,7 +156,7 @@ window.closeModal = function() {
 window.populateCategorySelect = function(selectedCategory = '') {
     const select = document.getElementById('prodCategory');
     if (!select) return;
-    const inv = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
+    const inv = JSON.parse(sessionStorage.getItem('lumiere_admin_inventory') || '[]');
     const categories = [...new Set(inv.map(p => p.category ? p.category.toLowerCase().trim() : ''))].filter(Boolean).sort();
     
     select.innerHTML = '';
@@ -198,7 +198,7 @@ window.handleCategoryChange = function(e) {
 window.generateFragranceStockFormFields = function(selectedStocksMapping = {}, selectedImagesMapping = {}) {
     const parentContainer = document.getElementById('prodFragrancesStockMatrix');
     if (!parentContainer) return;
-    const globalFragrances = JSON.parse(localStorage.getItem('lumiere_admin_fragrances') || '[]');
+    const globalFragrances = JSON.parse(sessionStorage.getItem('lumiere_admin_fragrances') || '[]');
     parentContainer.innerHTML = '';
 
     const existingFragrances = Object.keys(selectedStocksMapping);
@@ -424,9 +424,9 @@ window.handleProductSubmit = async function(e) {
         category = document.getElementById('prodCategoryCustom').value.trim().toLowerCase();
     }
 
-    const globalFragrances = JSON.parse(localStorage.getItem('lumiere_admin_fragrances') || '[]');
+    const globalFragrances = JSON.parse(sessionStorage.getItem('lumiere_admin_fragrances') || '[]');
     const existingProduct = window.editingProductId
-        ? JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]').find(p => String(p.id) === String(window.editingProductId))
+        ? JSON.parse(sessionStorage.getItem('lumiere_admin_inventory') || '[]').find(p => String(p.id) === String(window.editingProductId))
         : null;
 
     const fragranceStocks = {};
@@ -499,7 +499,7 @@ window.deleteProduct = async function(id) {
 
 window.updateOrderStatus = async function(orderId, newStatus) {
     const decodedId = decodeURIComponent(orderId);
-    const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+    const ords = JSON.parse(sessionStorage.getItem('lumiere_admin_orders') || '[]');
     const order = ords.find(o => String(o.id) === String(decodedId));
 
     let displayStatus = newStatus;
@@ -537,7 +537,7 @@ window.updateOrderStatus = async function(orderId, newStatus) {
 };
 
 window.saveTrackingFromModal = async function() {
-    const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+    const ords = JSON.parse(sessionStorage.getItem('lumiere_admin_orders') || '[]');
     const order = ords.find(o => String(o.id) === String(window.currentViewingOrderId));
     const isPickup = order && order.deliveryMethod === 'Pickup';
     const courierVal = isPickup ? 'Self Pickup' : document.getElementById('modalCourierInput').value.trim();
@@ -571,7 +571,7 @@ window.saveTrackingFromModal = async function() {
 window.clearAllOrders = async function() {
     if (!confirm("Are you sure you want to permanently delete all order history from database? This action is irreversible!")) return;
     
-    const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+    const ords = JSON.parse(sessionStorage.getItem('lumiere_admin_orders') || '[]');
     const adminSecret = sessionStorage.getItem('lumiere_admin_secret');
     
     try {
@@ -590,11 +590,11 @@ window.clearAllOrders = async function() {
 
 window.downloadInvoiceBill = function() {
     if(!window.currentViewingOrderId) return;
-    const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+    const ords = JSON.parse(sessionStorage.getItem('lumiere_admin_orders') || '[]');
     const order = ords.find(o => String(o.id) === String(window.currentViewingOrderId));
     if(!order) return;
 
-    const inventory = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
+    const inventory = JSON.parse(sessionStorage.getItem('lumiere_admin_inventory') || '[]');
 
     const orderNum = String(order.id).startsWith('#') ? String(order.id).slice(1) : String(order.id);
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -885,7 +885,7 @@ window.deleteCoupon = async function(code) {
 
 window.addGlobalFragrance = async function() {
     const input = document.getElementById('newGlobalFragranceInput'); const val = input.value.trim().toLowerCase(); if(!val) return;
-    let fragrances = JSON.parse(localStorage.getItem('lumiere_admin_fragrances') || '[]');
+    let fragrances = JSON.parse(sessionStorage.getItem('lumiere_admin_fragrances') || '[]');
     if(fragrances.includes(val)) return; fragrances.push(val);
     try {
         await fetch(ADMINISTRATIVE_API_ROUTE, {
@@ -899,7 +899,7 @@ window.addGlobalFragrance = async function() {
 window.removeGlobalFragrance = async function(fragrance) {
     const decodedFragrance = decodeURIComponent(fragrance);
     if (!confirm("Remove this target scent parameter option?")) return;
-    let fragrances = JSON.parse(localStorage.getItem('lumiere_admin_fragrances') || '[]').filter(f => f !== decodedFragrance);
+    let fragrances = JSON.parse(sessionStorage.getItem('lumiere_admin_fragrances') || '[]').filter(f => f !== decodedFragrance);
     try {
         await fetch(ADMINISTRATIVE_API_ROUTE, {
             method: "POST", headers: { "Content-Type": "application/json" },
@@ -911,8 +911,8 @@ window.removeGlobalFragrance = async function(fragrance) {
 
 window.viewOrderDetails = async function(orderId) {
     const decodedId = decodeURIComponent(orderId);
-    const ords = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
-    const inv = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
+    const ords = JSON.parse(sessionStorage.getItem('lumiere_admin_orders') || '[]');
+    const inv = JSON.parse(sessionStorage.getItem('lumiere_admin_inventory') || '[]');
     
     const modal = document.getElementById('orderModal');
     const loader = document.getElementById('orderModalLoader');
@@ -1136,7 +1136,7 @@ window.renderStorefrontImages = function() {
     const page = pageSelect ? pageSelect.value : 'home';
     
     // Initialize currentStorefrontImages if not set
-    const sfImages = JSON.parse(localStorage.getItem('lumiere_admin_storefront_images') || '{}');
+    const sfImages = JSON.parse(sessionStorage.getItem('lumiere_admin_storefront_images') || '{}');
     if (!window.currentStorefrontImages || Object.keys(window.currentStorefrontImages).length === 0) {
         window.currentStorefrontImages = {
             home_hero: sfImages.home_hero || "",
@@ -1279,7 +1279,7 @@ window.saveStorefrontImages = async function() {
         });
         const json = await res.json();
         if (json.success) {
-            localStorage.setItem('lumiere_admin_storefront_images', JSON.stringify(json.storefrontImages));
+            sessionStorage.setItem('lumiere_admin_storefront_images', JSON.stringify(json.storefrontImages));
             window.currentStorefrontImages = { ...json.storefrontImages };
             alert("Storefront images saved successfully!");
             window.syncCloudInventory(); // Sync changes
@@ -1306,12 +1306,12 @@ window._compiledCustomersCache = null;
 window.getCompiledCustomers = function() {
   if (window._compiledCustomersCache) return window._compiledCustomersCache;
 
-  const users = JSON.parse(localStorage.getItem('lumiere_admin_users') || '[]');
-  const addresses = JSON.parse(localStorage.getItem('lumiere_admin_user_addresses') || '[]');
-  const orders = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
-  const wishlist = JSON.parse(localStorage.getItem('lumiere_admin_wishlist') || '[]');
-  const ordersCountsMap = JSON.parse(localStorage.getItem('lumiere_admin_orders_counts') || '{}');
-  const wishlistCountsMap = JSON.parse(localStorage.getItem('lumiere_admin_wishlist_counts') || '{}');
+  const users = JSON.parse(sessionStorage.getItem('lumiere_admin_users') || '[]');
+  const addresses = JSON.parse(sessionStorage.getItem('lumiere_admin_user_addresses') || '[]');
+  const orders = JSON.parse(sessionStorage.getItem('lumiere_admin_orders') || '[]');
+  const wishlist = JSON.parse(sessionStorage.getItem('lumiere_admin_wishlist') || '[]');
+  const ordersCountsMap = JSON.parse(sessionStorage.getItem('lumiere_admin_orders_counts') || '{}');
+  const wishlistCountsMap = JSON.parse(sessionStorage.getItem('lumiere_admin_wishlist_counts') || '{}');
 
   // Build fast O(1) lookup maps to avoid O(n²) nested filters
   const addrByEmail = {};
@@ -1630,7 +1630,7 @@ window.renderCustomerDetailModalContent = function() {
   if (customer.recentOrders) {
     ordersToUse = customer.recentOrders;
   } else {
-    const orders = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+    const orders = JSON.parse(sessionStorage.getItem('lumiere_admin_orders') || '[]');
     ordersToUse = orders.filter(o => o.shippingInfo?.email?.toLowerCase().trim() === email).map(o => ({
       id: o.id,
       total: o.total,
@@ -1641,9 +1641,9 @@ window.renderCustomerDetailModalContent = function() {
   }
 
   // Get wishlist
-  const wishlist = JSON.parse(localStorage.getItem('lumiere_admin_wishlist') || '[]');
+  const wishlist = JSON.parse(sessionStorage.getItem('lumiere_admin_wishlist') || '[]');
   const wishlistToUse = wishlist.filter(w => w.user_email?.toLowerCase().trim() === email);
-  const inventory = JSON.parse(localStorage.getItem('lumiere_admin_inventory') || '[]');
+  const inventory = JSON.parse(sessionStorage.getItem('lumiere_admin_inventory') || '[]');
 
   // Paginate Orders (large limit to show all scrollable)
   const MODAL_ORDERS_LIMIT = 200;
@@ -1776,7 +1776,7 @@ window._feedbacksPage = 0;
 const FEEDBACKS_PER_PAGE = 50;
 
 window.updateFeedbackCounts = function() {
-  const feedbacks = JSON.parse(localStorage.getItem('lumiere_admin_feedbacks') || '[]');
+  const feedbacks = JSON.parse(sessionStorage.getItem('lumiere_admin_feedbacks') || '[]');
   const total = parseInt(sessionStorage.getItem('lumiere_admin_total_feedbacks') || String(feedbacks.length), 10);
   const sidebarCountEl = document.getElementById('sidebarFeedbackCount');
   if (sidebarCountEl) sidebarCountEl.textContent = total || feedbacks.length;
@@ -1788,7 +1788,7 @@ window.renderFeedbacks = function(resetPage) {
 
   if (resetPage) window._feedbacksPage = 0;
   
-  const feedbacks = JSON.parse(localStorage.getItem('lumiere_admin_feedbacks') || '[]');
+  const feedbacks = JSON.parse(sessionStorage.getItem('lumiere_admin_feedbacks') || '[]');
   
   if (feedbacks.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted);">No customer feedback submissions recorded in database.</td></tr>';
@@ -1837,12 +1837,12 @@ window.renderFeedbacks = function(resetPage) {
 };
 
 window.openFeedbackModal = function(orderId) {
-  const feedbacks = JSON.parse(localStorage.getItem('lumiere_admin_feedbacks') || '[]');
+  const feedbacks = JSON.parse(sessionStorage.getItem('lumiere_admin_feedbacks') || '[]');
   const f = feedbacks.find(item => item.order_id === orderId);
   if (!f) return;
   
   // Resolve purchase items summary from orders list in local storage
-  const orders = JSON.parse(localStorage.getItem('lumiere_admin_orders') || '[]');
+  const orders = JSON.parse(sessionStorage.getItem('lumiere_admin_orders') || '[]');
   const matchedOrder = orders.find(o => String(o.id) === String(orderId));
   const itemsSummary = matchedOrder ? (matchedOrder.itemsSummary || '(No details found)') : '(No details found)';
   

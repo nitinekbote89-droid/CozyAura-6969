@@ -1667,7 +1667,7 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
   if (!window.isUserLoggedIn()) {
     localStorage.setItem('lumiere_login_redirect', 'contact');
     window.showLogin();
-    alert("Login required. Please login first.");
+    window.showToast("Login required. Please login first.", true);
     return;
   }
 
@@ -1690,10 +1690,10 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
       this.reset();
       document.getElementById('contactSuccessMsg').classList.add('show');
     } else {
-      alert(json.error || 'Failed to send message.');
+      window.showToast(json.error || 'Failed to send message.', true);
     }
   } catch(e) {
-    alert('Could not send message. Please try again.');
+    window.showToast('Could not send message. Please try again.', true);
   } finally {
     window.hideLoadingOverlay();
   }

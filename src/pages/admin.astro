@@ -506,7 +506,8 @@ import AdminModals from '../components/AdminModals.astro';
       if (pageTitle) pageTitle.textContent = "Customer Feedback & Reviews";
       if (feedbackToggleContainer) feedbackToggleContainer.style.display = "flex";
       if (typeof window.switchFeedbackMode === 'function') {
-        window.switchFeedbackMode('feedback');
+        const savedMode = sessionStorage.getItem('lumiere_admin_feedback_mode') || 'feedback';
+        window.switchFeedbackMode(savedMode);
       } else if (typeof window.renderFeedbacks === 'function') {
         window.renderFeedbacks();
       }

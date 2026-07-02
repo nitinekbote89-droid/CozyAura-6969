@@ -1788,6 +1788,7 @@ window.updateFeedbackCounts = function() {
 };
 
 window.switchFeedbackMode = function(mode) {
+  sessionStorage.setItem('lumiere_admin_feedback_mode', mode);
   const slider = document.getElementById('feedbackTypeSlider');
   const optFeedback = document.getElementById('toggleFeedbackOpt');
   const optMessage = document.getElementById('toggleMessageOpt');

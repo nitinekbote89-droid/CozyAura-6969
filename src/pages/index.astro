@@ -944,26 +944,20 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
               <input type="text" id="contactName" autocomplete="name" required/>
             </div>
             <div class="form-group">
-              <label for="contactEmail">Email Address</label>
-              <input type="email" id="contactEmail" autocomplete="email" required/>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
               <label for="contactPhone">Phone Number</label>
               <input type="tel" id="contactPhone" autocomplete="tel" required/>
             </div>
-            <div class="form-group">
-              <label for="contactSubject">Subject</label>
-              <select id="contactSubject" required>
-                <option value="">Select a topic</option>
-                <option value="Order Inquiry">Order Inquiry</option>
-                <option value="Product Question">Product Question</option>
-                <option value="Wholesale">Wholesale &amp; Gifting</option>
-                <option value="Feedback">Feedback</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
+          </div>
+          <div class="form-group">
+            <label for="contactSubject">Subject</label>
+            <select id="contactSubject" required>
+              <option value="">Select a topic</option>
+              <option value="Order Inquiry">Order Inquiry</option>
+              <option value="Product Question">Product Question</option>
+              <option value="Wholesale">Wholesale &amp; Gifting</option>
+              <option value="Feedback">Feedback</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <div class="form-group">
             <label for="contactMessage">Message</label>

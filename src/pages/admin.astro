@@ -72,6 +72,11 @@ import AdminModals from '../components/AdminModals.astro';
         <button class="btn btn-primary" id="btnCleanImages" style="display: none; background: var(--stone); color: white; border: none;" onclick="window.cleanUnusedImages()">
           Clean Unused Images
         </button>
+        <div id="feedbackToggleContainer" style="display: none; background: rgba(184, 151, 90, 0.15); padding: 3px; border-radius: 30px; font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; position: relative; user-select: none; width: 170px; height: 32px; align-items: center;">
+          <div id="feedbackTypeSlider" style="position: absolute; top: 3px; left: 3px; width: 82px; height: 26px; background: var(--brand); border-radius: 20px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.15);"></div>
+          <span id="toggleFeedbackOpt" onclick="window.switchFeedbackMode('feedback')" style="padding: 4px 0; border-radius: 20px; cursor: pointer; z-index: 2; width: 82px; text-align: center; color: white; transition: color 0.25s; font-weight: 600; line-height: 24px;">Feedback</span>
+          <span id="toggleMessageOpt" onclick="window.switchFeedbackMode('message')" style="padding: 4px 0; border-radius: 20px; cursor: pointer; z-index: 2; width: 82px; text-align: center; color: var(--text-muted); transition: color 0.25s; font-weight: 500; line-height: 24px;">Messages</span>
+        </div>
       </div>
     </header>
 
@@ -281,7 +286,8 @@ import AdminModals from '../components/AdminModals.astro';
 
       <!-- Feedback Pane -->
       <div id="tab-feedback" class="tab-pane">
-        <div class="table-container" style="max-height: calc(100vh - 240px); overflow-y: auto;">
+        <!-- Feedbacks Table Container -->
+        <div id="feedbackTableContainer" class="table-container" style="max-height: calc(100vh - 240px); overflow-y: auto;">
           <table>
             <thead>
               <tr>
@@ -293,6 +299,24 @@ import AdminModals from '../components/AdminModals.astro';
               </tr>
             </thead>
             <tbody id="feedbackTableBody">
+              <!-- Loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Messages Table Container -->
+        <div id="messagesTableContainer" class="table-container" style="max-height: calc(100vh - 240px); overflow-y: auto; display: none;">
+          <table>
+            <thead>
+              <tr>
+                <th>Sender Name</th>
+                <th>Email Address</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th style="width: 120px; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="messagesTableBody">
               <!-- Loaded dynamically -->
             </tbody>
           </table>
@@ -440,11 +464,13 @@ import AdminModals from '../components/AdminModals.astro';
     const btnAddCoupon = document.getElementById('btnAddCoupon');
     const btnClearOrders = document.getElementById('btnClearOrders');
     const btnCleanImages = document.getElementById('btnCleanImages');
+    const feedbackToggleContainer = document.getElementById('feedbackToggleContainer');
 
     if (btnAddProduct) btnAddProduct.style.display = "none";
     if (btnAddCoupon) btnAddCoupon.style.display = "none";
     if (btnClearOrders) btnClearOrders.style.display = "none";
     if (btnCleanImages) btnCleanImages.style.display = "none";
+    if (feedbackToggleContainer) feedbackToggleContainer.style.display = "none";
 
     if (tabId === 'dashboard') {
       if (pageTitle) pageTitle.textContent = "Dashboard Overview";
@@ -478,7 +504,10 @@ import AdminModals from '../components/AdminModals.astro';
       }
     } else if (tabId === 'feedback') {
       if (pageTitle) pageTitle.textContent = "Customer Feedback & Reviews";
-      if (typeof window.renderFeedbacks === 'function') {
+      if (feedbackToggleContainer) feedbackToggleContainer.style.display = "flex";
+      if (typeof window.switchFeedbackMode === 'function') {
+        window.switchFeedbackMode('feedback');
+      } else if (typeof window.renderFeedbacks === 'function') {
         window.renderFeedbacks();
       }
     }

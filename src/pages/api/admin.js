@@ -502,6 +502,7 @@ export async function GET({ request }) {
     let addressesPromiseIdx = -1;
     let wishlistPromiseIdx = -1;
     let feedbacksPromiseIdx = -1;
+    let messagesPromiseIdx = -1;
     let ordersEmailsPromiseIdx = -1;
     let wishlistEmailsPromiseIdx = -1;
 
@@ -520,11 +521,17 @@ export async function GET({ request }) {
     } else if (tab === 'feedback') {
       let feedbacksQuery = supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false });
       if (searchQuery.trim()) {
-        feedbacksQuery = feedbacksQuery.or(`user_email.ilike.%${searchQuery.trim()}%,message.ilike.%${searchQuery.trim()}%`);
+        feedbacksQuery = feedbacksQuery.or(`user_email.ilike.%${searchQuery.trim()}%,comment.ilike.%${searchQuery.trim()}%`);
       }
       feedbacksQuery = feedbacksQuery.range(feedbackPageStart, feedbackPageEnd);
-
       feedbacksPromiseIdx = promises.push(feedbacksQuery) - 1;
+
+      let messagesQuery = supabase.from('messages').select('*', { count: 'exact' }).order('id', { ascending: false });
+      if (searchQuery.trim()) {
+        messagesQuery = messagesQuery.or(`name.ilike.%${searchQuery.trim()}%,email.ilike.%${searchQuery.trim()}%,subject.ilike.%${searchQuery.trim()}%,message.ilike.%${searchQuery.trim()}%`);
+      }
+      messagesQuery = messagesQuery.range(feedbackPageStart, feedbackPageEnd);
+      messagesPromiseIdx = promises.push(messagesQuery) - 1;
     }
 
     const results = await Promise.all(promises);
@@ -546,6 +553,8 @@ export async function GET({ request }) {
     const wishlist = wishlistPromiseIdx !== -1 ? results[wishlistPromiseIdx].data : [];
     const feedbacks = feedbacksPromiseIdx !== -1 ? results[feedbacksPromiseIdx].data : [];
     const totalFeedbackCount = feedbacksPromiseIdx !== -1 ? results[feedbacksPromiseIdx].count : 0;
+    const messages = messagesPromiseIdx !== -1 ? results[messagesPromiseIdx].data : [];
+    const totalMessagesCount = messagesPromiseIdx !== -1 ? results[messagesPromiseIdx].count : 0;
     const allOrdersEmails = ordersEmailsPromiseIdx !== -1 ? results[ordersEmailsPromiseIdx].data : [];
     const allWishlistEmails = wishlistEmailsPromiseIdx !== -1 ? results[wishlistEmailsPromiseIdx].data : [];
 
@@ -558,6 +567,7 @@ export async function GET({ request }) {
     const totalPages = Math.ceil((totalOrderCount || 0) / PAGE_SIZE);
     const totalUserPages = Math.ceil((totalUserCount || 0) / USER_PAGE_SIZE);
     const totalFeedbackPages = Math.ceil((totalFeedbackCount || 0) / FEEDBACK_PAGE_SIZE);
+    const totalMessagePages = Math.ceil((totalMessagesCount || 0) / FEEDBACK_PAGE_SIZE);
 
     const ordersCountMap = {};
     (allOrdersEmails || []).forEach(o => {
@@ -666,7 +676,8 @@ export async function GET({ request }) {
           wishlist: wishlist || []
         } : {}),
         ...(tab === 'feedback' ? {
-          feedbacks: feedbacks || []
+          feedbacks: feedbacks || [],
+          messages: messages || []
         } : {}),
         ordersCountMap,
         wishlistCountMap,
@@ -682,7 +693,9 @@ export async function GET({ request }) {
           feedbackPage,
           feedbackPageSize: FEEDBACK_PAGE_SIZE,
           totalFeedbacks: totalFeedbackCount || 0,
-          totalFeedbackPages
+          totalFeedbackPages,
+          totalMessages: totalMessagesCount || 0,
+          totalMessagePages
         }
       }
     }), { status: 200 });

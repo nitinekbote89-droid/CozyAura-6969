@@ -384,6 +384,17 @@ export async function POST({ request }) {
         message: message.trim()
       });
 
+      const { error: dbErr } = await supabase.from('messages').insert({
+        name: name.trim(),
+        email: emailTrimmed,
+        subject: subject.trim(),
+        message: message.trim()
+      });
+
+      if (dbErr) {
+        console.error("Failed to insert message into Supabase database:", dbErr);
+      }
+
       return new Response(JSON.stringify({ success: true, message: "Message sent! We'll get back to you soon." }), { status: 200 });
     }
 

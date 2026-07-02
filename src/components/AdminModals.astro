@@ -252,6 +252,36 @@
   </div>
 </div>
 
+<!-- Message Modal -->
+<div class="modal-overlay" id="messageDetailModal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <h3>Customer Contact Message</h3>
+      <button onclick="window.closeMessageModal()" style="background:transparent; border:none; cursor:pointer; display:flex; color: var(--text-main);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px; margin-top:16px; font-size:0.95rem; line-height:1.6; color:var(--text-main);">
+      <div>
+        <strong style="color:var(--brand); display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Sender Info</strong>
+        <span id="messageModalSenderName" style="font-weight:600;"></span> 
+        <span id="messageModalSenderEmail" style="color:var(--text-muted); font-size:0.9rem; margin-left:8px;"></span>
+      </div>
+      <div>
+        <strong style="color:var(--brand); display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px;">Subject</strong>
+        <span id="messageModalSubject" style="font-weight:500; font-size:0.92rem; color:var(--text-main);"></span>
+      </div>
+      <div style="border-top:1px solid var(--border); padding-top:16px;">
+        <strong style="color:var(--brand); display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">Written Message</strong>
+        <div id="messageModalBody" style="background:var(--bg-main); padding:16px; border-radius:6px; border:1px solid var(--border); white-space:pre-wrap; font-style:italic; word-break:break-word; overflow-wrap:break-word; max-width:100%;"></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end;">
+      <button type="button" class="btn btn-secondary" onclick="window.closeMessageModal()">Dismiss Window</button>
+    </div>
+  </div>
+</div>
+
 <!-- Customer Details Modal -->
 <div class="modal-overlay" id="customerDetailModal" style="z-index: 1200;">
   <div class="modal" style="max-width: calc(100% - 48px); width: calc(100% - 48px); max-height: calc(100% - 48px); height: calc(100% - 48px); display: flex; flex-direction: column;">

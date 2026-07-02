@@ -59,12 +59,14 @@ window.syncCloudInventory = async function(page = null) {
             if (json.data.userAddresses !== undefined) sessionStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses));
             if (json.data.wishlist !== undefined) sessionStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist));
             if (json.data.feedbacks !== undefined) sessionStorage.setItem('lumiere_admin_feedbacks', JSON.stringify(json.data.feedbacks));
+            if (json.data.messages !== undefined) sessionStorage.setItem('lumiere_admin_messages', JSON.stringify(json.data.messages));
             if (json.data.ordersCountMap !== undefined) sessionStorage.setItem('lumiere_admin_orders_counts', JSON.stringify(json.data.ordersCountMap));
             if (json.data.wishlistCountMap !== undefined) sessionStorage.setItem('lumiere_admin_wishlist_counts', JSON.stringify(json.data.wishlistCountMap));
             // Store total counts from server pagination metadata
             const pag = json.data.pagination || {};
             if (pag.totalUsers !== undefined) sessionStorage.setItem('lumiere_admin_total_users', String(pag.totalUsers));
             if (pag.totalFeedbacks !== undefined) sessionStorage.setItem('lumiere_admin_total_feedbacks', String(pag.totalFeedbacks));
+            if (pag.totalMessages !== undefined) sessionStorage.setItem('lumiere_admin_total_messages', String(pag.totalMessages));
             // Invalidate compiled customers cache on fresh data
             window._compiledCustomersCache = null;
             
@@ -1771,15 +1773,53 @@ window.deleteCustomerProfileFromModal = async function(encodedEmail) {
   }
 };
 
-// Feedbacks list pagination state
-window._feedbacksPage = 0;
-const FEEDBACKS_PER_PAGE = 50;
-
 window.updateFeedbackCounts = function() {
   const feedbacks = JSON.parse(sessionStorage.getItem('lumiere_admin_feedbacks') || '[]');
-  const total = parseInt(sessionStorage.getItem('lumiere_admin_total_feedbacks') || String(feedbacks.length), 10);
+  const messages = JSON.parse(sessionStorage.getItem('lumiere_admin_messages') || '[]');
+  const totalFeedbacks = parseInt(sessionStorage.getItem('lumiere_admin_total_feedbacks') || String(feedbacks.length), 10);
+  const totalMessages = parseInt(sessionStorage.getItem('lumiere_admin_total_messages') || String(messages.length), 10);
+  const total = totalFeedbacks + totalMessages;
   const sidebarCountEl = document.getElementById('sidebarFeedbackCount');
-  if (sidebarCountEl) sidebarCountEl.textContent = total || feedbacks.length;
+  if (sidebarCountEl) sidebarCountEl.textContent = total;
+};
+
+window.switchFeedbackMode = function(mode) {
+  const slider = document.getElementById('feedbackTypeSlider');
+  const optFeedback = document.getElementById('toggleFeedbackOpt');
+  const optMessage = document.getElementById('toggleMessageOpt');
+  const feedbacksContainer = document.getElementById('feedbackTableContainer');
+  const messagesContainer = document.getElementById('messagesTableContainer');
+  const pageTitle = document.getElementById('pageTitle');
+  
+  if (mode === 'feedback') {
+    if (slider) slider.style.left = '3px';
+    if (optFeedback) {
+      optFeedback.style.color = 'white';
+      optFeedback.style.fontWeight = '600';
+    }
+    if (optMessage) {
+      optMessage.style.color = 'var(--text-muted)';
+      optMessage.style.fontWeight = '500';
+    }
+    if (feedbacksContainer) feedbacksContainer.style.display = 'block';
+    if (messagesContainer) messagesContainer.style.display = 'none';
+    if (pageTitle) pageTitle.textContent = "Customer Feedback & Reviews";
+    window.renderFeedbacks();
+  } else {
+    if (slider) slider.style.left = '85px';
+    if (optFeedback) {
+      optFeedback.style.color = 'var(--text-muted)';
+      optFeedback.style.fontWeight = '500';
+    }
+    if (optMessage) {
+      optMessage.style.color = 'white';
+      optMessage.style.fontWeight = '600';
+    }
+    if (feedbacksContainer) feedbacksContainer.style.display = 'none';
+    if (messagesContainer) messagesContainer.style.display = 'block';
+    if (pageTitle) pageTitle.textContent = "Customer Messages & Inbox";
+    window.renderMessages();
+  }
 };
 
 window.renderFeedbacks = function(resetPage) {
@@ -1859,5 +1899,78 @@ window.openFeedbackModal = function(orderId) {
 
 window.closeFeedbackModal = function() {
   const modal = document.getElementById('feedbackDetailModal');
+  if (modal) modal.classList.remove('active');
+};
+
+// Messages list pagination state
+window._messagesPage = 0;
+const MESSAGES_PER_PAGE = 50;
+
+window.renderMessages = function(resetPage) {
+  const tbody = document.getElementById('messagesTableBody');
+  if (!tbody) return;
+
+  if (resetPage) window._messagesPage = 0;
+
+  const messages = JSON.parse(sessionStorage.getItem('lumiere_admin_messages') || '[]');
+
+  if (messages.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:32px; color:var(--text-muted);">No customer contact messages recorded in database.</td></tr>';
+    return;
+  }
+
+  const totalPages = Math.ceil(messages.length / MESSAGES_PER_PAGE);
+  window._messagesPage = Math.min(window._messagesPage, Math.max(0, totalPages - 1));
+  const currentPage = window._messagesPage;
+  const pageSlice = messages.slice(currentPage * MESSAGES_PER_PAGE, (currentPage + 1) * MESSAGES_PER_PAGE);
+
+  tbody.innerHTML = pageSlice.map(function(m) {
+    const escF = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    return '<tr style="cursor:pointer;" onclick="window.openMessageModal(\'' + m.id + '\')">' +
+      '<td style="font-weight:500;">' + escF(m.name || 'Anonymous') + '</td>' +
+      '<td>' + escF(m.email || '—') + '</td>' +
+      '<td style="font-weight:600;">' + escF(m.subject || '(No Subject)') + '</td>' +
+      '<td style="font-size:0.85rem; color:var(--text-muted);">' + new Date(m.date).toLocaleDateString() + '</td>' +
+      '<td style="text-align:center;">' +
+        '<button class="btn btn-secondary" style="padding:4px 10px; font-size:0.75rem; border-radius:4px;" onclick="event.stopPropagation(); window.openMessageModal(\'' + m.id + '\')">' +
+          'Read' +
+        '</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  if (totalPages > 1) {
+    const controlRow = document.createElement('tr');
+    controlRow.innerHTML = `<td colspan="5" style="padding:10px 0; text-align:center;">
+      <div style="display:inline-flex; align-items:center; gap:12px; font-size:0.8rem; color:var(--text-muted);">
+        <button onclick="window._messagesPage=Math.max(0,window._messagesPage-1); window.renderMessages();" 
+          style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
+          ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+        Page ${currentPage + 1} of ${totalPages} &nbsp;(${messages.length} loaded)
+        <button onclick="window._messagesPage=Math.min(${totalPages-1},window._messagesPage+1); window.renderMessages();"
+          style="padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:var(--bg-surface); cursor:pointer; color:var(--text-main); font-size:0.78rem;"
+          ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next →</button>
+      </div>
+    </td>`;
+    tbody.appendChild(controlRow);
+  }
+};
+
+window.openMessageModal = function(id) {
+  const messages = JSON.parse(sessionStorage.getItem('lumiere_admin_messages') || '[]');
+  const m = messages.find(item => String(item.id) === String(id));
+  if (!m) return;
+
+  document.getElementById('messageModalSenderName').textContent = m.name || 'Anonymous';
+  document.getElementById('messageModalSenderEmail').textContent = m.email || '—';
+  document.getElementById('messageModalSubject').textContent = m.subject || '(No Subject)';
+  document.getElementById('messageModalBody').textContent = m.message || '';
+
+  const modal = document.getElementById('messageDetailModal');
+  if (modal) modal.classList.add('active');
+};
+
+window.closeMessageModal = function() {
+  const modal = document.getElementById('messageDetailModal');
   if (modal) modal.classList.remove('active');
 };

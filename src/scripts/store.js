@@ -231,7 +231,8 @@ window.showToast = function(message, isError = false) {
   const icon = isError 
     ? window.__svg.error 
     : window.__svg.check_circle;
-  toast.innerHTML = `${icon} <span>${message}</span>`;
+  toast.innerHTML = `${icon} <span id="appToastMessage"></span>`;
+  toast.querySelector('#appToastMessage').textContent = message;
   toast.style.borderLeft = isError ? '3px solid var(--danger)' : '3px solid var(--gold)';
   if (window._toastTimeout) clearTimeout(window._toastTimeout);
   toast.offsetHeight; // Force reflow

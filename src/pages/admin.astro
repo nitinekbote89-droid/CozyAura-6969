@@ -74,7 +74,7 @@ import AdminModals from '../components/AdminModals.astro';
         </button>
         <div id="feedbackToggleContainer" style="display: none; background: var(--bg-surface); border: 1px solid var(--border); padding: 2px; border-radius: 30px; font-family: 'Jost', sans-serif; font-size: 0.78rem; font-weight: 500; position: relative; user-select: none; width: 220px; height: 32px; align-items: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
           <div id="feedbackTypeSlider" style="position: absolute; top: 2px; left: 3px; width: 107px; height: 26px; background: var(--brand); border-radius: 20px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.15);"></div>
-          <span id="toggleFeedbackOpt" onclick="window.switchFeedbackMode('feedback')" style="padding: 4px 0; border-radius: 20px; cursor: pointer; z-index: 2; width: 107px; text-align: center; color: white; transition: color 0.25s; font-weight: 600; line-height: 24px;">Feedback (0)</span>
+          <span id="toggleFeedbackOpt" onclick="window.switchFeedbackMode('feedback')" style="padding: 4px 0; border-radius: 20px; cursor: pointer; z-index: 2; width: 107px; text-align: center; color: var(--toggle-active-text); transition: color 0.25s; font-weight: 600; line-height: 24px;">Feedback (0)</span>
           <span id="toggleMessageOpt" onclick="window.switchFeedbackMode('message')" style="padding: 4px 0; border-radius: 20px; cursor: pointer; z-index: 2; width: 107px; text-align: center; color: var(--text-muted); transition: color 0.25s; font-weight: 500; line-height: 24px;">Messages (0)</span>
         </div>
       </div>

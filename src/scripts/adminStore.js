@@ -1801,7 +1801,7 @@ window.switchFeedbackMode = function(mode) {
   if (mode === 'feedback') {
     if (slider) slider.style.left = '3px';
     if (optFeedback) {
-      optFeedback.style.color = 'white';
+      optFeedback.style.color = 'var(--toggle-active-text)';
       optFeedback.style.fontWeight = '600';
     }
     if (optMessage) {
@@ -1819,7 +1819,7 @@ window.switchFeedbackMode = function(mode) {
       optFeedback.style.fontWeight = '500';
     }
     if (optMessage) {
-      optMessage.style.color = 'white';
+      optMessage.style.color = 'var(--toggle-active-text)';
       optMessage.style.fontWeight = '600';
     }
     if (feedbacksContainer) feedbacksContainer.style.display = 'none';

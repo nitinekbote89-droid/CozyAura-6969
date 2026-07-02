@@ -60,13 +60,45 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
   }
 }
 
+async function deleteFromCloudinary(publicIds) {
+  if (!publicIds || publicIds.length === 0) return;
+  try {
+    const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = import.meta.env.CLOUDINARY_API_KEY;
+    const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
+    if (!cloudName || !apiKey || !apiSecret) {
+      console.error("Cloudinary credentials missing for deletion.");
+      return;
+    }
+    const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
+    const bodyParams = new URLSearchParams();
+    publicIds.forEach(id => bodyParams.append('public_ids[]', id));
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: bodyParams.toString()
+    });
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("Failed to delete from Cloudinary:", errText);
+    } else {
+      console.log("Successfully deleted from Cloudinary:", publicIds);
+    }
+  } catch (err) {
+    console.error("Error deleting from Cloudinary:", err);
+  }
+}
+
 function extractPublicId(url) {
   if (!url || !url.includes('cloudinary.com')) return null;
   try {
     const parts = url.split('/image/upload/');
     if (parts.length < 2) return null;
     let subPath = parts[1];
-    subPath = subPath.replace(/^.*\/v\d+\//, '');
+    subPath = subPath.replace(/^(?:.*\/)?v\d+\//, '');
     const dotIdx = subPath.lastIndexOf('.');
     if (dotIdx !== -1) {
       subPath = subPath.substring(0, dotIdx);
@@ -89,9 +121,11 @@ function optimizeImageUrl(url, width) {
 
 async function executeCloudinaryCleanup() {
   try {
-    // 1. Fetch all products and product_variants to get active images
+    // 1. Fetch all products, product_variants, and storefront images to get active images
     const { data: dbProducts } = await supabase.from('products').select('cover_image');
     const { data: dbVariants } = await supabase.from('product_variants').select('image_url');
+    const { data: dbSettings } = await supabase.from('settings').select('value').eq('key', 'STOREFRONT_IMAGES').maybeSingle();
+    const storefrontImages = dbSettings?.value || {};
 
     const activePublicIds = new Set();
 
@@ -106,6 +140,15 @@ async function executeCloudinaryCleanup() {
       dbVariants.forEach(v => {
         const id = extractPublicId(v.image_url);
         if (id) activePublicIds.add(id);
+      });
+    }
+
+    if (storefrontImages) {
+      Object.values(storefrontImages).forEach(val => {
+        if (val && typeof val === 'string') {
+          const id = extractPublicId(val);
+          if (id) activePublicIds.add(id);
+        }
       });
     }
 
@@ -135,8 +178,8 @@ async function executeCloudinaryCleanup() {
 
     if (cloudData.resources) {
       for (const r of cloudData.resources) {
-        // Only check and delete images created by this store (starts with cover_ or var_) to be safe
-        if (r.public_id.startsWith('cover_') || r.public_id.startsWith('var_')) {
+        // Only check and delete images created by this store (starts with cover_, var_, or sf_) to be safe
+        if (r.public_id.startsWith('cover_') || r.public_id.startsWith('var_') || r.public_id.startsWith('sf_')) {
           if (!activePublicIds.has(r.public_id)) {
             unusedPublicIds.push(r.public_id);
           }
@@ -671,6 +714,9 @@ export async function POST({ request }) {
     }
 
     if (action === 'save_product') {
+      // Fetch existing product to identify if the cover image is replaced
+      const { data: oldProduct } = await supabase.from('products').select('cover_image').eq('id', data.product.id).maybeSingle();
+
       let liveCoverUrl = data.product.coverImage;
       if (liveCoverUrl && liveCoverUrl.startsWith("data:image")) {
         liveCoverUrl = await uploadToCloudinary(liveCoverUrl, `cover_${data.product.id}`);
@@ -706,6 +752,31 @@ export async function POST({ request }) {
             }
           }
         }
+      }
+
+      // Collect orphaned public IDs to delete from Cloudinary
+      const publicIdsToDelete = [];
+      if (oldProduct && oldProduct.cover_image && data.product.coverImage && data.product.coverImage.startsWith("data:image")) {
+        const oldCoverPid = extractPublicId(oldProduct.cover_image);
+        if (oldCoverPid) publicIdsToDelete.push(oldCoverPid);
+      }
+
+      if (existingVariants) {
+        existingVariants.forEach(ev => {
+          const fragName = ev.variant_name;
+          const willKeep = (fragName in submittedFragrances);
+          const newImg = submittedImages[fragName];
+          if (!willKeep || (ev.image_url && newImg && newImg.startsWith("data:image"))) {
+            const oldVarPid = extractPublicId(ev.image_url);
+            if (oldVarPid) {
+              publicIdsToDelete.push(oldVarPid);
+            }
+          }
+        });
+      }
+
+      if (publicIdsToDelete.length > 0) {
+        await deleteFromCloudinary(publicIdsToDelete);
       }
 
       // Upload variant images in parallel first
@@ -787,17 +858,7 @@ export async function POST({ request }) {
       if (pid) publicIds.push(pid);
       if (variants) variants.forEach(v => { const id = extractPublicId(v.image_url); if (id && !publicIds.includes(id)) publicIds.push(id); });
       if (publicIds.length > 0) {
-        const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME;
-        const apiKey = import.meta.env.CLOUDINARY_API_KEY;
-        const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
-        const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString('base64');
-        const bodyParams = new URLSearchParams();
-        publicIds.forEach(id => bodyParams.append('public_ids[]', id));
-        await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: bodyParams.toString()
-        });
+        await deleteFromCloudinary(publicIds);
       }
 
       const { error: refreshErr } = await supabase.rpc('refresh_sales_view');
@@ -878,6 +939,26 @@ export async function POST({ request }) {
     if (action === 'save_storefront_images') {
       const images = data.storefrontImages || {};
       const updatedImages = { ...images };
+
+      // Fetch current storefront images to find replaced or cleared ones
+      const { data: dbSettings } = await supabase.from('settings').select('value').eq('key', 'STOREFRONT_IMAGES').maybeSingle();
+      const oldStorefrontImages = dbSettings?.value || {};
+      const publicIdsToDelete = [];
+
+      Object.keys(oldStorefrontImages).forEach(key => {
+        const oldUrl = oldStorefrontImages[key];
+        const newUrl = images[key];
+        if (oldUrl && (!newUrl || newUrl.startsWith("data:image"))) {
+          const oldPid = extractPublicId(oldUrl);
+          if (oldPid) {
+            publicIdsToDelete.push(oldPid);
+          }
+        }
+      });
+
+      if (publicIdsToDelete.length > 0) {
+        await deleteFromCloudinary(publicIdsToDelete);
+      }
 
       await Promise.all(Object.keys(images).map(async (key) => {
         let val = images[key] || "";

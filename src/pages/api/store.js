@@ -367,13 +367,20 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'new_message') {
-      const { name, phone, subject, message } = body;
-      if (!name || !phone || !subject || !message) {
+      const { name, email, phone, subject, message } = body;
+      if (!name || !email || !phone || !subject || !message) {
         return new Response(JSON.stringify({ success: false, error: "All contact fields are required." }), { status: 400 });
+      }
+
+      const emailTrimmed = email.toLowerCase().trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailTrimmed)) {
+        return new Response(JSON.stringify({ success: false, error: "Invalid email address format." }), { status: 400 });
       }
 
       const { error: dbErr } = await supabase.from('messages').insert({
         name: name.trim(),
+        email: emailTrimmed,
         phone: phone.trim(),
         subject: subject.trim(),
         message: message.trim()

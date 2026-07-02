@@ -1680,6 +1680,7 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
         action: 'new_message',
         siteToken: 'LUMIERE_STORE_2026',
         name: document.getElementById('contactName').value,
+        email: document.getElementById('contactEmail').value,
         phone: document.getElementById('contactPhone').value,
         subject: document.getElementById('contactSubject').value,
         message: document.getElementById('contactMessage').value
@@ -2308,10 +2309,16 @@ window.checkoutGoogleLogin = function() {
 
 window.prefillContactForm = function() {
   const nameField = document.getElementById('contactName');
+  const emailField = document.getElementById('contactEmail');
   
   const loggedInName = window.getLoggedInName();
   if (nameField && loggedInName) {
     nameField.value = loggedInName;
+  }
+  const loggedInEmail = window.getLoggedInEmail();
+  if (emailField && loggedInEmail) {
+    emailField.value = loggedInEmail;
+    emailField.disabled = true;
   }
 };
 

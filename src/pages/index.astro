@@ -148,14 +148,24 @@ if (initialCatalog?.inventory) {
 if (initialCatalog?.fragrances && initialCatalog.fragrances.length > 0) {
   const colors = ['#F3E8DC,#EDE0D0', '#E8DDD0,#D4C4B0', '#F5EDE0,#EADCC8', '#F7F0E6,#EFE5D8', '#EDE5D8,#D4C4B0', '#F0E8DC,#E0D4C3'];
   const scentIcon = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--stone)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19h6a2 2 0 0 0 2-2v-3a5 5 0 0 0-10 0v3a2 2 0 0 0 2 2z"/><path d="M14 9h2v-2h-2z"/><path d="M13.5 7h3v-2h-3z"/><path d="M16.5 5.5h2.5"/><circle cx="20.5" cy="5.5" r="1.2" fill="var(--stone)"/><circle cx="9" cy="14.8" r="1.3" fill="var(--warm-white)"/><circle cx="9" cy="19.2" r="1.3" fill="var(--warm-white)"/><circle cx="11.2" cy="17" r="1.3" fill="var(--warm-white)"/><circle cx="6.8" cy="17" r="1.3" fill="var(--warm-white)"/><circle cx="10.6" cy="15.4" r="1.3" fill="var(--warm-white)"/><circle cx="10.6" cy="18.6" r="1.3" fill="var(--warm-white)"/><circle cx="7.4" cy="18.6" r="1.3" fill="var(--warm-white)"/><circle cx="7.4" cy="15.4" r="1.3" fill="var(--warm-white)"/><circle cx="9" cy="17" r="1" fill="var(--stone)"/></svg>';
+  const getScentDescription = (scentName) => {
+    const norm = (scentName || '').toLowerCase().trim();
+    if (norm === 'vanilla') return "Warm, creamy vanilla with soft comforting notes that make every evening feel cozy.";
+    if (norm === 'lavender') return "Fresh lavender designed to create a peaceful atmosphere perfect for relaxing evenings.";
+    if (norm === 'jasmine') return "A delicate floral fragrance that fills your home with elegance and freshness.";
+    if (norm === 't-rose' || norm === 'rose' || norm === 'trose') return "Romantic rose petals blended into a rich floral aroma that feels timeless.";
+    if (norm === 'ocean blue' || norm === 'ocean' || norm === 'oceanblue') return "Crisp aquatic notes inspired by cool ocean breezes and peaceful mornings.";
+    if (norm === 'roasted coffee' || norm === 'coffee' || norm === 'roastedcoffee') return "Rich roasted coffee aroma that brings warmth and café-like comfort into your space.";
+    return `Explore our ${scentName} scented candles — hand-poured with premium soy wax.`;
+  };
   scentGridHtml = initialCatalog.fragrances.map((f, i) =>
-    `<div class="scent-card" onclick="window.selectCategory('${encodeURIComponent(f)}')"><div class="scent-card-bg" style="background:linear-gradient(135deg,${colors[i % colors.length]});">${scentIcon}</div><h3>${f.charAt(0).toUpperCase() + f.slice(1)}</h3><p>Explore our ${f} scented candles — hand-poured with natural soya wax.</p></div>`
+    `<div class="scent-card" onclick="window.selectCategory('${encodeURIComponent(f)}')"><div class="scent-card-bg" style="background:linear-gradient(135deg,${colors[i % colors.length]});">${scentIcon}</div><h3>${f.charAt(0).toUpperCase() + f.slice(1)}</h3><p>${getScentDescription(f)}</p></div>`
   ).join('');
 }
 
 // SSR page state — only show the correct section to eliminate CLS from section transitions
 const initialPage = Astro.url.searchParams.get('page') || 'home';
-const pages_list = ['home', 'shop', 'cartPage', 'payment', 'about', 'contact', 'ordersPage', 'addressesPage'];
+const pages_list = ['home', 'shop', 'cartPage', 'payment', 'about', 'contact', 'ordersPage', 'addressesPage', 'shipping', 'returns', 'privacy', 'terms', 'faq', 'candleCare', 'giftCard', 'bulkWholesale'];
 
 const igPosts = Array.from({ length: 12 }, (_, i) => ({
   id: i + 1,
@@ -259,9 +269,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     <div class="glow-orb orb-3"></div>
     <div class="hero-inner">
       <div class="hero-text">
-        <span class="hero-subtitle">Meticulously Hand-Poured Soya Candles</span>
+        <span class="hero-subtitle">Meticulously Hand-Poured Soy Candles</span>
         <h1>Where<br><em>stillness</em><br>finds its flame.</h1>
-        <p>Hand-poured 100% natural soya candles, crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless.</p>
+        <p>Hand-poured soy wax candles crafted to bring warmth, comfort, and timeless fragrance into every space. Thoughtfully made in small batches for moments worth slowing down.</p>
         <div class="hero-btns">
           <button class="btn-primary" onclick="window.showPage('shop')">Explore the Collection</button>
         </div>
@@ -269,7 +279,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="hero-visual">
         <div class="hero-float-wrapper">
           <div class="hero-image-frame">
-            <img src={heroImageUrl || ''} id="storefrontHeroImg" alt="Lumière Luxury Soya Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" />
+            <img src={heroImageUrl || ''} id="storefrontHeroImg" alt="Cozy Aura Luxury Soy Candle" class="hero-img-element" width="380" height="480" fetchpriority="high" loading="eager" />
             <div class="hero-frame-glow"></div>
             <div class="hero-frame-border"></div>
           </div>
@@ -282,7 +292,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <div class="bestseller-sticky-header">
           <span class="bestseller-subtitle">Curated Favorites</span>
           <h2>Our<br><em>Bestsellers</em></h2>
-          <p>Discover our most loved hand-poured creations, ranked by our community. Each blend is meticulously crafted to bring stillness and warmth to your space.</p>
+          <p>Discover the candles our customers return for time and again. Each piece is hand-poured with premium soy wax and carefully selected fragrances designed to elevate everyday moments.</p>
           <button class="btn-primary" onclick="window.showPage('shop')">View All Collection</button>
         </div>
       </div>
@@ -297,17 +307,17 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <div class="value-card">
           <div class="value-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
           <h3>100% Natural Wax</h3>
-          <p>Pure soya wax grown without pesticides, bleaching agents, or GMOs. Clean-burning from first light to last.</p>
+          <p>Crafted using premium soy wax for a cleaner, longer-lasting burn without paraffin.</p>
         </div>
         <div class="value-card">
           <div class="value-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
           <h3>Hand-Poured in India</h3>
-          <p>Every candle is poured by hand in small batches in our Koregaon Park studio. Never mass-produced — always intentional.</p>
+          <p>Every candle is carefully hand-poured in small batches, ensuring quality and consistency in every piece.</p>
         </div>
         <div class="value-card">
           <div class="value-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg></div>
           <h3>Botanical Fragrances</h3>
-          <p>Essential oil and botanical-based scents free of phthalates, parabens, and synthetic dyes. Made for mindful spaces.</p>
+          <p>Blended with premium fragrance oils to create elegant scents that transform every room into a calming retreat.</p>
         </div>
       </div>
     </div>
@@ -859,21 +869,20 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <h2>Our <em>Story</em></h2>
     </div>
     <div class="about-intro">
-      <p>Lumière began with a simple belief: a candle should do more than scent a room — it should slow you down. Every jar we pour is made in small batches at our studio in India, using 100% natural soya wax and botanically sourced fragrance oils.</p>
-      <p>We never use paraffin, phthalates, or synthetic dyes. What you light is clean-burning, conscious, and designed to feel timeless — the kind of glow you reach for at the end of a long day.</p>
+      <p>Cozy Aura Candle was created with one simple idea — every home deserves moments of warmth, comfort, and calm. We believe a candle is more than fragrance; it's an experience that transforms everyday routines into meaningful rituals. Every candle is hand-poured in small batches using premium soy wax and carefully selected fragrances to bring lasting comfort into your space.</p>
     </div>
     <div class="about-values">
       <div class="about-value-card">
         <h3>Natural Wax</h3>
-        <p>Pure soya wax that burns evenly and slowly, releasing fragrance without petroleum byproducts or soot-heavy smoke.</p>
+        <p>Premium soy wax chosen for its clean burn, long-lasting performance, and environmentally conscious nature.</p>
       </div>
       <div class="about-value-card">
         <h3>Small Batch</h3>
-        <p>Each collection is hand-poured in limited runs. When a scent sells out, we restock thoughtfully — never at the cost of quality.</p>
+        <p>Every candle is hand-poured in limited batches, allowing us to maintain exceptional quality and attention to detail.</p>
       </div>
       <div class="about-value-card">
         <h3>Conscious Craft</h3>
-        <p>Recyclable glass vessels, cotton wicks, and fragrances drawn from botanical sources. Minimal packaging, maximum intention.</p>
+        <p>From reusable containers to thoughtfully selected materials, every product is designed with sustainability and elegance in mind.</p>
       </div>
     </div>
     <div class="about-process">
@@ -886,7 +895,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <path d="M140 118 C132 106 130 92 140 82 C150 92 148 106 140 118Z" fill="#D4B07A" opacity="0.75"/>
           <path d="M140 115 C136 106 135 98 140 91 C145 98 144 106 140 115Z" fill="#F9EDD0"/>
           <text x="140" y="210" text-anchor="middle" font-family="'Cormorant Garamond', serif" font-size="10" fill="#2A2420" letter-spacing="2">HAND POURED</text>
-          <text x="140" y="228" text-anchor="middle" font-family="'Jost', sans-serif" font-size="7" fill="#8C7D6E" letter-spacing="1.5">SOYA WAX</text>
+          <text x="140" y="228" text-anchor="middle" font-family="'Jost', sans-serif" font-size="7" fill="#8C7D6E" letter-spacing="1.5">SOY WAX</text>
         </svg>
       </div>
       <div class="about-process-steps">
@@ -914,14 +923,14 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       </div>
     </div>
     <div class="about-quote">
-      <blockquote>"We make candles for the in-between moments — when the day quiets and you need something warm, honest, and still."</blockquote>
-      <cite>— The Lumière Studio</cite>
+      <blockquote>"We believe every candle should create more than fragrance—it should create a feeling of home."</blockquote>
+      <cite>— Cozy Aura Studio</cite>
     </div>
   </section>
 
   <section id="contact" class={initialPage === 'contact' ? 'active' : ''}>
     <!-- Floating WhatsApp Contact Button -->
-    <a href="https://api.whatsapp.com/send?phone=917517318391&text=Hi%20Lumi%C3%A8re%20Soya%20Candles%21%20I%20have%20a%20question%20about%20your%20candles." target="_blank" rel="noopener noreferrer" class="whatsapp-float-btn" aria-label="Chat on WhatsApp">
+    <a href="https://api.whatsapp.com/send?phone=917517318391&text=Hi%20Cozy%20Aura%20Candle%21%20I%20have%20a%20question%20about%20your%20candles." target="_blank" rel="noopener noreferrer" class="whatsapp-float-btn" aria-label="Chat on WhatsApp">
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.003 5.291 5.292.002 11.771.002c3.14.001 6.094 1.22 8.313 3.44 2.218 2.219 3.437 5.174 3.435 8.312-.004 6.479-5.293 11.768-11.77 11.768-2.001-.001-3.963-.51-5.717-1.488L0 24zm6.49-4.22c1.652.98 3.272 1.498 4.965 1.5c5.385.002 9.768-4.38 9.77-9.766.002-2.607-1.011-5.059-2.855-6.903-1.844-1.843-4.298-2.855-6.908-2.856-5.388 0-9.77 4.381-9.772 9.768a9.66 9.66 0 0 0 1.498 4.921l-.989 3.614 3.701-.972zm11.554-6.845c-.244-.122-1.442-.712-1.666-.793-.223-.081-.385-.122-.547.122-.162.244-.63.793-.772.955-.143.162-.285.183-.528.061-.244-.122-.982-.362-1.87-1.154-.69-.616-1.157-1.378-1.293-1.621-.135-.243-.014-.375.107-.496.11-.11.244-.285.366-.427.122-.142.162-.244.244-.406.082-.162.041-.305-.021-.427-.061-.122-.547-1.32-.75-1.81-.197-.477-.397-.412-.547-.42-.141-.008-.305-.009-.468-.009-.163 0-.427.061-.65.305-.224.244-.854.834-.854 2.032s.874 2.358.996 2.521c.122.163 1.72 2.628 4.167 3.683.582.251 1.036.402 1.39.514.585.187 1.118.16 1.54.097.47-.071 1.442-.589 1.645-1.159.203-.569.203-1.057.142-1.159-.06-.102-.223-.163-.467-.285z"/>
       </svg>
@@ -933,7 +942,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     <div class="contact-layout">
       <div class="contact-form-wrap">
         <h3>Send us a message</h3>
-        <p>Questions about an order, a scent, or wholesale? We'd love to hear from you. We typically reply within one business day.</p>
+        <p>Have a question about your order, fragrances, gifting, or wholesale? We'd love to hear from you. Our team usually responds within one business day.</p>
         <div class="contact-success" id="contactSuccessMsg">
           Thank you — your message has been received. We'll get back to you shortly.
         </div>
@@ -971,15 +980,20 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <h3>Studio Details</h3>
         <div class="contact-detail">
           <div class="contact-detail-label">Email</div>
-          <div class="contact-detail-value"><a href="mailto:hello@cozyaura.in">hello@cozyaura.in</a></div>
+          <div class="contact-detail-value"><a href="mailto:cozyauracandle@gmail.com">cozyauracandle@gmail.com</a></div>
         </div>
         <div class="contact-detail">
-          <div class="contact-detail-label">Phone</div>
-          <div class="contact-detail-value"><a href="tel:+919876543210">+91 98765 43210</a></div>
+          <div class="contact-detail-label">Phone / WhatsApp</div>
+          <div class="contact-detail-value"><a href="tel:+917517318391">+91 75173 18391</a></div>
         </div>
         <div class="contact-detail">
           <div class="contact-detail-label">Studio Address</div>
-          <div class="contact-detail-value">India</div>
+          <div class="contact-detail-value">
+            Cozy Aura Studio (2nd floor),<br>
+            above vikrant agencies, subhash chowk,<br>
+            gunj golai, Latur - 413512,<br>
+            Maharashtra, India
+          </div>
         </div>
         <div class="contact-detail">
           <div class="contact-detail-label">Hours</div>
@@ -1006,13 +1020,240 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       </div>
     </div>
   </section>
+
+  <section id="shipping" class="active-page-section" style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Shipping & <em>Delivery</em></h2>
+    </div>
+    <div class="policy-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: var(--charcoal); font-family: 'Jost', sans-serif;">
+      <p style="font-size: 1.05rem; margin-bottom: 1.5rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.2rem;">At Cozy Aura Candle, every order is carefully packed to ensure it reaches you safely and in perfect condition.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Order Processing</h3>
+      <p>Orders are usually packed and dispatched within 1 business day after successful payment confirmation.</p>
+      <p>Orders placed on Sundays or India Post public holidays will be processed on the next working day.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Payment</h3>
+      <p>We currently accept secure online payments through Razorpay.</p>
+      <p>Supported payment methods include: UPI, Credit Cards, Debit Cards, Net Banking, and popular Digital Wallets. Cash on Delivery (COD) is currently not available.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Delivery Timeline</h3>
+      <p>We primarily ship through India Post Speed Post.</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; margin-bottom: 1.5rem; background: var(--cream); border: 1px solid var(--sand);">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--sand); text-align: left; background: var(--sand); opacity: 0.7;">
+            <th style="padding: 12px; font-weight: 500; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Location</th>
+            <th style="padding: 12px; font-weight: 500; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Estimated Delivery</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid rgba(196, 181, 160, 0.2);">
+            <td style="padding: 12px;">Most locations across India</td>
+            <td style="padding: 12px;">3–5 Business Days</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px;">North-East India & Remote Areas</td>
+            <td style="padding: 12px;">5–8 Business Days</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 0.85rem; color: var(--stone); font-style: italic;">Note: Delivery timelines are estimates and may occasionally vary due to weather conditions, public holidays, operational delays, or other unforeseen circumstances beyond our control.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Order Tracking</h3>
+      <p>Once your order has been dispatched, tracking information will automatically become available in your <strong>Your Orders</strong> section.</p>
+      <p>Simply open <strong>Your Orders</strong>, select your order, and click <strong>Track Package</strong>. You'll be redirected to the official India Post Speed Post Tracking page where you can view the latest delivery updates using your tracking ID.</p>
+    </div>
+  </section>
+
+  <section id="returns" class="active-page-section" style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Returns & <em>Replacement</em></h2>
+    </div>
+    <div class="policy-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: var(--charcoal); font-family: 'Jost', sans-serif;">
+      <p style="font-size: 1.05rem; margin-bottom: 1.5rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.2rem;">Every Cozy Aura Candle is carefully inspected before dispatch. As our products are handcrafted, we currently do not accept returns or offer refunds for change of mind.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Damaged Products</h3>
+      <p>If your order arrives damaged during transit, we'll gladly provide a replacement. To request a replacement, please:</p>
+      <ul style="margin: 1rem 0; padding-left: 1.5rem; list-style-type: disc;">
+        <li>Contact us within 24 hours of delivery at <a href="mailto:cozyauracandle@gmail.com" style="color: var(--gold-dark);">cozyauracandle@gmail.com</a>.</li>
+        <li>Share clear photographs of the damaged product.</li>
+        <li>Provide a complete continuous unboxing video, recorded from before opening the package until the product is fully removed, without any cuts or edits.</li>
+      </ul>
+      <p style="font-size: 0.9rem; color: var(--stone); background: var(--cream); padding: 1rem; border-left: 2px solid var(--gold); margin-bottom: 1.5rem;">The unboxing video helps us verify transit damage and process your replacement quickly. Requests submitted without an unedited unboxing video may not be eligible for replacement.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Replacement Approval</h3>
+      <p>Once your claim has been verified, we'll ship a replacement product at no additional cost.</p>
+    </div>
+  </section>
+
+  <section id="privacy" class="active-page-section" style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Privacy <em>Policy</em></h2>
+    </div>
+    <div class="policy-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: var(--charcoal); font-family: 'Jost', sans-serif;">
+      <p style="font-size: 1.05rem; margin-bottom: 1.5rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.2rem;">At Cozy Aura Candle, we respect your privacy and are committed to protecting the personal data you share with us.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Information We Collect</h3>
+      <p>When you make a purchase or register an account, we collect the details necessary to process your order, including your name, email address, phone number, shipping address, and billing details.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">How We Use Your Data</h3>
+      <p>We use your information exclusively to process transactions, dispatch packages, provide tracking links, and communicate order updates. We will never sell, rent, or lease your personal data to third parties.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Secure Processing</h3>
+      <p>All online payments are securely processed through Razorpay. We do not store credit card or bank account details on our servers.</p>
+    </div>
+  </section>
+
+  <section id="terms" class="active-page-section" style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Terms of <em>Service</em></h2>
+    </div>
+    <div class="policy-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: var(--charcoal); font-family: 'Jost', sans-serif;">
+      <p style="font-size: 1.05rem; margin-bottom: 1.5rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.2rem;">Welcome to Cozy Aura Candle. By accessing our website and purchasing our products, you agree to the following terms.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Handcrafted Variation</h3>
+      <p>Every candle is individually hand-poured in Latur, Maharashtra. Slight variations in color, texture, frosting, or finish are a natural part of the handcrafted process and make every candle unique. These are not defects.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Pricing and Inventory</h3>
+      <p>We reserve the right to modify prices and fragrance offerings at any time. In the rare event that an item becomes unavailable after payment, we will notify you immediately to process a replacement or refund.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Governing Law</h3>
+      <p>These terms are governed by the laws of India, and any disputes will be subject to the exclusive jurisdiction of the courts in Latur, Maharashtra.</p>
+    </div>
+  </section>
+
+  <section id="faq" class="active-page-section" style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Frequently Asked <em>Questions</em></h2>
+    </div>
+    <div class="policy-content" style="max-width: 800px; margin: 0 auto; color: var(--charcoal); font-family: 'Jost', sans-serif;">
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Are your candles made from soy wax?</h4>
+        <p style="line-height: 1.6;">Yes. Every Cozy Aura Candle is hand-poured using premium soy wax for a cleaner, longer-lasting burn.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Are your candles handmade?</h4>
+        <p style="line-height: 1.6;">Yes. Every candle is individually hand-poured in small batches with attention to detail.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Which fragrances are currently available?</h4>
+        <p style="line-height: 1.6;">Our current collection includes: Vanilla, Lavender, Jasmine, T-Rose, Ocean Blue, and Roasted Coffee. New fragrances may be introduced seasonally.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">How long do your candles burn?</h4>
+        <p style="line-height: 1.6;">Approximate burn times: 30g (8–10 Hours), 60g (15–20 Hours), 100g (25–30 Hours). Burn time may vary depending on usage and surrounding conditions.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Do you offer personalized gift messages?</h4>
+        <p style="line-height: 1.6;">Yes. You can select one of our premium gift card designs during checkout and add your own personalized message.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Can I send an order directly to someone as a gift?</h4>
+        <p style="line-height: 1.6;">Absolutely. Simply enter the recipient's shipping address during checkout and include a personalized gift message if you'd like.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Do you offer Cash on Delivery (COD)?</h4>
+        <p style="line-height: 1.6;">No. We currently accept secure online payments only through Razorpay.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">How can I track my order?</h4>
+        <p style="line-height: 1.6;">After your order has been dispatched: Open <strong>Your Orders</strong>, select the order you'd like to track, and click <strong>Track Package</strong>. You'll be redirected to the official India Post Speed Post tracking page using your tracking ID.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Can I cancel my order?</h4>
+        <p style="line-height: 1.6;">Orders can only be cancelled before they have been packed and dispatched. Please contact us as soon as possible if you wish to cancel your order.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Do you accept bulk or wholesale orders?</h4>
+        <p style="line-height: 1.6;">Yes. We welcome wholesale orders, corporate gifting, weddings, events, festive gifting, and retail partnerships. Simply visit our Contact page and send us your requirements.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Are your candles safe for indoor use?</h4>
+        <p style="line-height: 1.6;">Yes. When used according to the included candle care instructions, our candles are safe for indoor use. Never leave a burning candle unattended, and always keep it away from children, pets, and flammable objects.</p>
+      </div>
+      
+      <div style="margin-bottom: 1.8rem;">
+        <h4 style="font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; color: var(--black); margin-bottom: 0.4rem; font-weight: 600;">Why does my candle look slightly different from the product photos?</h4>
+        <p style="line-height: 1.6;">Each Cozy Aura Candle is individually hand-poured. Slight variations in colour, texture, or finish are a natural part of the handcrafted process and make every candle unique.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="candleCare" class="active-page-section" style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Candle <em>Care</em></h2>
+    </div>
+    <div class="policy-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: var(--charcoal); font-family: 'Jost', sans-serif;">
+      <p style="font-size: 1.05rem; margin-bottom: 1.5rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.2rem;">Follow these simple guidelines to ensure a clean, safe, and long-lasting burn for your Cozy Aura Candles.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">1. Trim the Wick</h3>
+      <p>Always trim the cotton wick to 1/4 inch (approx. 6mm) before every single light. This controls the flame size, prevents soot, and prevents the glass container from overheating.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">2. The First Burn is Key</h3>
+      <p>When lighting your candle for the first time, allow it to burn until the wax melts completely to the outer glass edges (usually 2–3 hours). This establishes a "burn memory" and prevents the candle from tunneling down the center on future burns.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">3. Limit Burn Time</h3>
+      <p>Do not burn your candle for more than 4 hours at a time. Extinguish the flame, let the wax cool completely, trim the wick, and relight if desired.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">4. Safety First</h3>
+      <p>Never leave a burning candle unattended. Always burn on a flat, heat-resistant surface away from drafts, ceiling fans, children, pets, and flammable objects.</p>
+    </div>
+  </section>
+
+  <section id="giftCard" class="active-page-section" style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Gift <em>Cards</em></h2>
+    </div>
+    <div class="policy-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: var(--charcoal); font-family: 'Jost', sans-serif;">
+      <p style="font-size: 1.05rem; margin-bottom: 1.5rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.2rem;">Share the warmth of Cozy Aura with your loved ones through our personalized gift card collections.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Personalized Touches</h3>
+      <p>During the checkout process, you can choose to mark your order as a gift. We offer multiple premium physical gift card templates (such as Birthday, Anniversary, Congratulatory, and Festive cards) that can be personalized with a printed message from you.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Direct Shipping</h3>
+      <p>You can input the recipient's shipping details directly. We'll pack the order premium-style with our natural kraft wraps and include the physical gift card inside the parcel.</p>
+    </div>
+  </section>
+
+  <section id="bulkWholesale" class="active-page-section" style="display: none;">
+    <div class="section-header" style="margin-bottom: 2rem;">
+      <h2>Bulk & <em>Wholesale</em></h2>
+    </div>
+    <div class="policy-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: var(--charcoal); font-family: 'Jost', sans-serif;">
+      <p style="font-size: 1.05rem; margin-bottom: 1.5rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.2rem;">Whether you're planning a wedding, corporate event, festive celebration, or looking to stock Cozy Aura products in your store, we'd love to work with you.</p>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Custom and Bulk Orders</h3>
+      <p>We offer bulk custom branding and pricing for:</p>
+      <ul style="margin: 1rem 0; padding-left: 1.5rem; list-style-type: disc;">
+        <li>Corporate Gifting</li>
+        <li>Wedding Favours</li>
+        <li>Return Gifts</li>
+        <li>Festive Gifting</li>
+        <li>Events & Celebrations</li>
+        <li>Retail Stores & Boutiques</li>
+      </ul>
+      
+      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Get in Touch</h3>
+      <p>For catalog details, minimum order quantities, and custom pricing, please head over to our <a href="#" onclick="event.preventDefault(); window.showPage('contact')" style="color: var(--gold-dark); text-decoration: underline;">Contact Page</a> and submit an inquiry with your details, or email us at <a href="mailto:cozyauracandle@gmail.com" style="color: var(--gold-dark);">cozyauracandle@gmail.com</a>.</p>
+    </div>
+  </section>
   </main>
 
   <footer id="siteFooter">
     <div class="footer-inner">
       <div class="footer-brand">
         <a href="#" class="footer-logo" onclick="event.preventDefault(); window.showPage('home')">Cozy<span>Aura</span></a>
-        <p>Hand-poured soya candles, crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless.</p>
+        <p>Hand-poured soy wax candles crafted with premium fragrances to bring warmth, comfort, and timeless elegance into every home.</p>
         <div class="footer-social">
           <a href="https://www.instagram.com/cozy_aura_candle/" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -1023,39 +1264,52 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <a href="#" onclick="event.preventDefault();" title="Facebook" aria-label="Facebook">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
           </a>
-          <a href="mailto:hello@cozyaura.in" title="Email" aria-label="Email">
+          <a href="mailto:cozyauracandle@gmail.com" title="Email" aria-label="Email">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           </a>
         </div>
       </div>
       <div class="footer-col">
-        <h3 class="footer-heading">Explore</h3>
+        <h3 class="footer-heading">Shop</h3>
         <ul>
           <li><a href="#" onclick="event.preventDefault(); window.showPage('home')">Home</a></li>
-          <li><a href="#" onclick="event.preventDefault(); window.showPage('shop')">Shop Collection</a></li>
-          <li><a href="#" onclick="event.preventDefault(); window.showPage('about')">Our Story</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('shop')">Shop</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('about')">About</a></li>
           <li><a href="#" onclick="event.preventDefault(); window.showPage('contact')">Contact</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h3 class="footer-heading">Account</h3>
-        <ul>
           <li><a href="#" onclick="event.preventDefault(); window.showPage('wishlistPage')">Wishlist</a></li>
           <li><a href="#" onclick="event.preventDefault(); window.showPage('ordersPage')">Your Orders</a></li>
-          <li><a href="#" onclick="event.preventDefault(); window.showPage('cartPage')">Cart &amp; Checkout</a></li>
         </ul>
       </div>
       <div class="footer-col">
-        <h3 class="footer-heading">Support</h3>
+        <h3 class="footer-heading">Customer Care</h3>
         <ul>
-          <li><a href="mailto:hello@cozyaura.in">hello@cozyaura.in</a></li>
-          <li><a href="tel:+919876543210">+91 98765 43210</a></li>
-          <li><a href="#" onclick="event.preventDefault(); window.showPage('contact')">Shipping &amp; Returns</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('shipping')">Shipping &amp; Delivery</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('returns')">Returns &amp; Replacement</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('privacy')">Privacy Policy</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('terms')">Terms of Service</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('faq')">FAQs</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('candleCare')">Candle Care</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3 class="footer-heading">Gifting</h3>
+        <ul>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('giftCard')">Personalized Gift Cards</a></li>
+          <li><a href="#" onclick="event.preventDefault(); window.showPage('bulkWholesale')">Bulk &amp; Wholesale</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3 class="footer-heading">Connect</h3>
+        <ul>
+          <li><a href="https://www.instagram.com/cozy_aura_candle/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li><a href="https://api.whatsapp.com/send?phone=917517318391&text=Hi%20Cozy%20Aura%20Candle%21%20I%20have%20a%20question%20about%20your%20candles." target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+          <li><a href="mailto:cozyauracandle@gmail.com">Email</a></li>
+          <li><a href="tel:+917517318391">Phone</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2026 CozyAura Soya Candles. All rights reserved.</p>
+      <p>&copy; 2026 Cozy Aura Candle. All Rights Reserved. Crafted with Care in India.</p>
       <p><a href="#" onclick="event.preventDefault(); window.showPage('about')">Crafted in India</a></p>
     </div>
   </footer>
@@ -1063,7 +1317,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
   <div class="processing-overlay active" id="globalBootLoader" style="z-index: 999999;">
     <div class="spinner-gold"></div>
-    <div class="processing-text" style="font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; letter-spacing: 0.05em;">Lumière</div>
+    <div class="processing-text" style="font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; letter-spacing: 0.05em;">Cozy Aura</div>
     <div class="processing-subtext" style="font-family: 'Jost', sans-serif; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;">Initializing secure session...</div>
   </div>
 

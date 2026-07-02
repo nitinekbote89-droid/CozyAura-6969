@@ -30,7 +30,7 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
     const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
 
     const timestamp = Math.round(new Date().getTime() / 1000);
-    const signatureContextString = `public_id=${identifierToken}&signature_algorithm=sha256&timestamp=${timestamp}${apiSecret}`;
+    const signatureContextString = `public_id=${identifierToken}&timestamp=${timestamp}${apiSecret}`;
 
     const crypto = await import('crypto');
     const signature = crypto.createHash('sha256').update(signatureContextString).digest('hex');

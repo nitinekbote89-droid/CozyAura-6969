@@ -213,7 +213,7 @@ window.currentProduct = null;
 window.selectedVariant = null;
 window.activeCategory = 'all';
 window.PROMOS = [];
-let pages = ['home', 'shop', 'cartPage', 'payment', 'trackPage', 'about', 'contact', 'ordersPage', 'addressesPage', 'wishlistPage'];
+let pages = ['home', 'shop', 'cartPage', 'payment', 'trackPage', 'about', 'contact', 'ordersPage', 'addressesPage', 'wishlistPage', 'shipping', 'returns', 'privacy', 'terms', 'faq', 'candleCare', 'giftCard', 'bulkWholesale'];
 let categories = ['all'];
 
 function toTitleCase(str) {
@@ -359,15 +359,23 @@ async function syncCatalogDataset() {
 }
 
 window.PAGE_META = {
-  home:         { title: 'Lumière — Hand-Poured Soya Candles',                 desc: 'Hand-poured 100% natural soya candles crafted in small batches with botanically sourced fragrances. Clean, conscious, timeless — from our studio in India.' },
-  shop:         { title: 'Shop All Candles — Lumière',                         desc: 'Browse our collection of hand-poured soya candles. Available in a variety of exquisite fragrances. 100% natural soy wax, lead-free cotton wicks.' },
-  cartPage:     { title: 'Your Cart — Lumière',                                desc: 'Review your hand-poured soya candle selections before checkout.' },
-  payment:      { title: 'Checkout — Lumière',                                 desc: 'Complete your purchase of hand-poured soya candles. Secure payment via Razorpay.' },
-  ordersPage:   { title: 'My Orders — Lumière',                                desc: 'Track and manage your Lumière candle orders.' },
-  addressesPage:{ title: 'My Addresses — Lumière',                             desc: 'Manage your shipping addresses for Lumière orders.' },
-  about:        { title: 'About Us — Lumière',                                 desc: 'Lumière crafts hand-poured soya candles from our studio in India. 100% natural soy wax, ethically sourced fragrances, sustainable practices.' },
-  contact:      { title: 'Contact Us — Lumière',                               desc: 'Get in touch with Lumière. We love hearing from our candle community.' },
-  trackPage:    { title: 'Track Order — Lumière',                              desc: 'Track your Lumière candle order by your order ID.' },
+  home:          { title: 'Cozy Aura Candle | Premium Hand-Poured Soy Wax Candles', desc: 'Discover premium hand-poured soy wax candles by Cozy Aura Candle. Thoughtfully crafted with elegant fragrances to create warmth, comfort, and timeless moments in every home.' },
+  shop:          { title: 'Shop All Candles — Cozy Aura Candle',                     desc: 'Browse our collection of hand-poured soy wax candles. Available in a variety of exquisite fragrances. 100% natural soy wax, lead-free cotton wicks.' },
+  cartPage:      { title: 'Your Cart — Cozy Aura Candle',                            desc: 'Review your hand-poured soy wax candle selections before checkout.' },
+  payment:       { title: 'Checkout — Cozy Aura Candle',                             desc: 'Complete your purchase of hand-poured soy wax candles. Secure payment via Razorpay.' },
+  ordersPage:    { title: 'My Orders — Cozy Aura Candle',                            desc: 'Track and manage your Cozy Aura Candle orders.' },
+  addressesPage: { title: 'My Addresses — Cozy Aura Candle',                         desc: 'Manage your shipping addresses for Cozy Aura Candle orders.' },
+  about:         { title: 'About Us — Cozy Aura Candle',                             desc: 'Cozy Aura Candle was created with one simple idea — every home deserves moments of warmth, comfort, and calm. Hand-poured in Latur, Maharashtra.' },
+  contact:       { title: 'Contact Us — Cozy Aura Candle',                           desc: 'Get in touch with Cozy Aura Candle. We love hearing from our candle community.' },
+  trackPage:     { title: 'Track Order — Cozy Aura Candle',                          desc: 'Track your Cozy Aura Candle order by your order ID.' },
+  shipping:      { title: 'Shipping & Delivery — Cozy Aura Candle',                  desc: 'Learn about shipping timelines, payment methods, delivery status, and tracking for Cozy Aura Candle.' },
+  returns:       { title: 'Returns & Replacement — Cozy Aura Candle',                desc: 'Read our returns and transit damage replacement guidelines for Cozy Aura Candle.' },
+  privacy:       { title: 'Privacy Policy — Cozy Aura Candle',                       desc: 'Review our secure privacy policy regarding personal data and payment safety.' },
+  terms:         { title: 'Terms of Service — Cozy Aura Candle',                     desc: 'Read our terms of service regarding handcrafted variation, pricing, and licensing.' },
+  faq:           { title: 'Frequently Asked Questions — Cozy Aura Candle',           desc: 'Find answers about wax, burn times, custom messages, shipping, and wholesale for Cozy Aura Candle.' },
+  candleCare:    { title: 'Candle Care Guide — Cozy Aura Candle',                    desc: 'Maximize the burn time and safety of your Cozy Aura Candle with our care instructions.' },
+  giftCard:      { title: 'Personalized Gift Cards — Cozy Aura Candle',              desc: 'Select custom premium card designs and custom messages during checkout.' },
+  bulkWholesale: { title: 'Bulk & Wholesale — Cozy Aura Candle',                     desc: 'Enquire about corporate gifting, wedding favours, events, custom packaging, and wholesale partnerships.' }
 };
 
 window.updatePageMeta = function(pageId) {
@@ -674,13 +682,24 @@ window.renderHomeScentGuide = function() {
     </svg>`;
   };
 
+  const getScentDescription = (scentName) => {
+    const norm = (scentName || '').toLowerCase().trim();
+    if (norm === 'vanilla') return "Warm, creamy vanilla with soft comforting notes that make every evening feel cozy.";
+    if (norm === 'lavender') return "Fresh lavender designed to create a peaceful atmosphere perfect for relaxing evenings.";
+    if (norm === 'jasmine') return "A delicate floral fragrance that fills your home with elegance and freshness.";
+    if (norm === 't-rose' || norm === 'rose' || norm === 'trose') return "Romantic rose petals blended into a rich floral aroma that feels timeless.";
+    if (norm === 'ocean blue' || norm === 'ocean' || norm === 'oceanblue') return "Crisp aquatic notes inspired by cool ocean breezes and peaceful mornings.";
+    if (norm === 'roasted coffee' || norm === 'coffee' || norm === 'roastedcoffee') return "Rich roasted coffee aroma that brings warmth and café-like comfort into your space.";
+    return `Explore our ${scentName} scented candles — hand-poured with premium soy wax.`;
+  };
+
   grid.innerHTML = fragrances.map((f, i) =>
     `<div class="scent-card" onclick="window.selectCategory('${encodeURIComponent(f)}')">
       <div class="scent-card-bg" style="background:linear-gradient(135deg,${colors[i % colors.length]});">
         ${getScentIcon(f)}
       </div>
       <h3>${f.charAt(0).toUpperCase() + f.slice(1)}</h3>
-      <p>Explore our ${f} scented candles — hand-poured with natural soya wax.</p>
+      <p>${getScentDescription(f)}</p>
     </div>`
   ).join('');
   grid.dataset.ssr = '';

@@ -1699,6 +1699,36 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
   }
 });
 
+// Auto-prefix and format phone number in contact form
+document.getElementById('contactPhone')?.addEventListener('focus', function() {
+  if (!this.value.trim()) {
+    this.value = '+91 ';
+  }
+});
+document.getElementById('contactPhone')?.addEventListener('blur', function() {
+  if (this.value.trim() === '+91') {
+    this.value = '';
+  }
+});
+document.getElementById('contactPhone')?.addEventListener('input', function() {
+  let val = this.value;
+  let cleaned = val.replace(/[^\d+]/g, '');
+  
+  if (cleaned && !cleaned.startsWith('+')) {
+    if (cleaned.startsWith('91')) {
+      cleaned = '+' + cleaned;
+    } else {
+      cleaned = '+91' + cleaned;
+    }
+  }
+  
+  if (cleaned.startsWith('+91') && cleaned.length > 3) {
+    this.value = '+91 ' + cleaned.slice(3);
+  } else {
+    this.value = cleaned;
+  }
+});
+
 window.checkoutStep = 'shipping';
 
 window.goBackToCart = async function() {

@@ -1667,8 +1667,8 @@ document.querySelector('#contactForm button[type="submit"]')?.addEventListener('
     window.showConfirmModal({
       category: 'Authentication',
       title: 'Login Required',
-      text: 'Login required to send message. Please login first.',
-      confirmText: 'Login with Google',
+      text: 'You need to login with Google to send message.',
+      confirmText: 'LOGIN WITH GOOGLE',
       onConfirm: () => {
         localStorage.setItem('lumiere_login_redirect', 'contact');
         window.showLogin();
@@ -1685,8 +1685,8 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
     window.showConfirmModal({
       category: 'Authentication',
       title: 'Login Required',
-      text: 'Login required to send message. Please login first.',
-      confirmText: 'Login with Google',
+      text: 'You need to login with Google to send message.',
+      confirmText: 'LOGIN WITH GOOGLE',
       onConfirm: () => {
         localStorage.setItem('lumiere_login_redirect', 'contact');
         window.showLogin();

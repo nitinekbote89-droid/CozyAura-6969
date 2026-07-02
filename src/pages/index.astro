@@ -962,6 +962,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <div class="form-group">
             <label for="contactMessage">Message</label>
             <textarea id="contactMessage" rows="5" required style="background: var(--cream); border: 1px solid var(--sand); padding: 0.85rem 1rem; font-family: 'Jost', sans-serif; font-size: 0.9rem; outline: none; width: 100%; resize: vertical;"></textarea>
+            <div id="contactMessageWordCount" style="text-align: right; font-size: 0.75rem; color: var(--stone); margin-top: 4px; font-family: 'Jost', sans-serif;">0 / 200 words</div>
           </div>
           <button type="submit" class="btn-primary" style="align-self: flex-start; padding: 1rem 2.5rem;">Send Message</button>
         </form>

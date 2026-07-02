@@ -378,6 +378,11 @@ export async function POST({ request }) {
         return new Response(JSON.stringify({ success: false, error: "Invalid email address format." }), { status: 400 });
       }
 
+      const words = message.trim().split(/\s+/).filter(Boolean);
+      if (words.length > 200) {
+        return new Response(JSON.stringify({ success: false, error: "Message exceeds the maximum limit of 200 words." }), { status: 400 });
+      }
+
       const { error: dbErr } = await supabase.from('messages').insert({
         name: name.trim(),
         email: emailTrimmed,

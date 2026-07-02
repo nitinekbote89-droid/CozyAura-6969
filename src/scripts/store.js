@@ -1695,6 +1695,13 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
     return;
   }
 
+  const messageText = document.getElementById('contactMessage').value;
+  const words = messageText.trim().split(/\s+/).filter(Boolean);
+  if (words.length > 200) {
+    window.showToast("Message exceeds the maximum limit of 200 words.", true);
+    return;
+  }
+
   window.showLoadingOverlay("Sending message...", "Please wait a moment.");
   try {
     const res = await fetch('/api/store', {
@@ -1707,12 +1714,14 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
         email: window.getLoggedInEmail() || "",
         phone: document.getElementById('contactPhone').value,
         subject: document.getElementById('contactSubject').value,
-        message: document.getElementById('contactMessage').value
+        message: messageText
       })
     });
     const json = await res.json();
     if (json.success) {
       this.reset();
+      const countEl = document.getElementById('contactMessageWordCount');
+      if (countEl) countEl.textContent = '0 / 200 words';
       document.getElementById('contactSuccessMsg').classList.add('show');
     } else {
       window.showToast(json.error || 'Failed to send message.', true);
@@ -1753,6 +1762,22 @@ document.getElementById('contactPhone')?.addEventListener('input', function() {
     this.value = cleaned;
   }
 });
+
+// Max 200 words limit on contact message textarea
+const msgTextarea = document.getElementById('contactMessage');
+const msgCount = document.getElementById('contactMessageWordCount');
+if (msgTextarea && msgCount) {
+  msgTextarea.addEventListener('input', function() {
+    let val = this.value;
+    let words = val.trim().split(/\s+/).filter(Boolean);
+    if (words.length > 200) {
+      // Truncate to exactly 200 words
+      this.value = val.split(/\s+/).slice(0, 200).join(' ');
+      words = this.value.trim().split(/\s+/).filter(Boolean);
+    }
+    msgCount.textContent = `${words.length} / 200 words`;
+  });
+}
 
 window.checkoutStep = 'shipping';
 

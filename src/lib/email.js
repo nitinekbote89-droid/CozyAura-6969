@@ -1,8 +1,8 @@
 const SENDGRID_API = 'https://api.sendgrid.com/v3/mail/send';
 
 function getFrom() {
-  const name = import.meta.env.EMAIL_FROM_NAME || 'Lumière Soya Candles';
-  const email = import.meta.env.EMAIL_FROM || 'lumiere@sendgrid.net';
+  const name = import.meta.env.EMAIL_FROM_NAME || 'CozyAura Soya Candles';
+  const email = import.meta.env.EMAIL_FROM || 'cozyaura@sendgrid.net';
   return { email, name };
 }
 
@@ -33,7 +33,7 @@ function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipp
         <table role="presentation" width="560" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
           <tr>
             <td style="background:#1a1a2e;padding:32px 40px;text-align:center;">
-              <h1 style="margin:0;color:#b8975a;font-size:22px;letter-spacing:2px;">LUMIERE</h1>
+              <h1 style="margin:0;color:#b8975a;font-size:22px;letter-spacing:2px;">COZY<span style="font-style:italic;">AURA</span></h1>
               <p style="margin:4px 0 0;color:#a09080;font-size:13px;">Handcrafted Soya Candles</p>
             </td>
           </tr>
@@ -73,7 +73,7 @@ function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipp
           </tr>
           <tr>
             <td style="background:#f5f0eb;padding:20px 40px;text-align:center;">
-              <p style="margin:0;color:#8c7d6e;font-size:12px;">Lumiere — handcrafted with care</p>
+              <p style="margin:0;color:#8c7d6e;font-size:12px;">CozyAura — handcrafted with care</p>
             </td>
           </tr>
         </table>
@@ -86,7 +86,7 @@ function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipp
 
 function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink, deliveryMethod, siteOrigin }) {
   const isPickup = deliveryMethod === 'Pickup';
-  const base = siteOrigin || 'https://lumiere-candles.in';
+  const base = siteOrigin || 'https://cozyaura.in';
 
   if (isPickup) {
     return `
@@ -100,7 +100,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
         <table role="presentation" width="560" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
           <tr>
             <td style="background:#1a1a2e;padding:32px 40px;text-align:center;">
-              <h1 style="margin:0;color:#b8975a;font-size:22px;letter-spacing:2px;">LUMIERE</h1>
+              <h1 style="margin:0;color:#b8975a;font-size:22px;letter-spacing:2px;">COZY<span style="font-style:italic;">AURA</span></h1>
               <p style="margin:4px 0 0;color:#a09080;font-size:13px;">Handcrafted Soya Candles</p>
             </td>
           </tr>
@@ -113,7 +113,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
               <div style="background:#fcf9f5; border:1px solid #e8e0d6; padding:16px; border-radius:6px; margin-top:16px;">
                 <p style="margin:0 0 8px; color:#1a1a2e; font-size:14px; font-weight:bold;">Pickup Location:</p>
                 <p style="margin:0 0 16px; color:#6b5d53; font-size:14px; line-height:1.4;">
-                  Lumière Studio, Koregaon Park,<br>
+                  CozyAura Studio, Koregaon Park,<br>
                   Pune, Maharashtra - 411001
                 </p>
                 <p style="margin:0 0 8px; color:#1a1a2e; font-size:14px; font-weight:bold;">Pickup Hours:</p>
@@ -128,7 +128,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
           </tr>
           <tr>
             <td style="background:#f5f0eb;padding:20px 40px;text-align:center;">
-              <p style="margin:0;color:#8c7d6e;font-size:12px;">Lumiere — handcrafted with care</p>
+              <p style="margin:0;color:#8c7d6e;font-size:12px;">CozyAura — handcrafted with care</p>
             </td>
           </tr>
         </table>
@@ -156,7 +156,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
         <table role="presentation" width="560" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
           <tr>
             <td style="background:#1a1a2e;padding:32px 40px;text-align:center;">
-              <h1 style="margin:0;color:#b8975a;font-size:22px;letter-spacing:2px;">LUMIERE</h1>
+              <h1 style="margin:0;color:#b8975a;font-size:22px;letter-spacing:2px;">COZY<span style="font-style:italic;">AURA</span></h1>
               <p style="margin:4px 0 0;color:#a09080;font-size:13px;">Handcrafted Soya Candles</p>
             </td>
           </tr>
@@ -171,7 +171,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
           </tr>
           <tr>
             <td style="background:#f5f0eb;padding:20px 40px;text-align:center;">
-              <p style="margin:0;color:#8c7d6e;font-size:12px;">Lumiere — handcrafted with care</p>
+              <p style="margin:0;color:#8c7d6e;font-size:12px;">CozyAura — handcrafted with care</p>
             </td>
           </tr>
         </table>

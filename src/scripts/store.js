@@ -2278,31 +2278,11 @@ window.checkoutGoogleLogin = function() {
 
 window.prefillContactForm = function() {
   const nameField = document.getElementById('contactName');
-  const phoneField = document.getElementById('contactPhone');
-  const subjectField = document.getElementById('contactSubject');
-  const messageField = document.getElementById('contactMessage');
   
   const loggedInName = window.getLoggedInName();
   if (nameField && loggedInName) {
     nameField.value = loggedInName;
   }
-
-  // Setup click and focus triggers on all contact inputs to prompt login if not authenticated
-  const inputs = [nameField, phoneField, subjectField, messageField];
-  inputs.forEach(field => {
-    if (field && !field._hasLoginHandler) {
-      field._hasLoginHandler = true;
-      const triggerLogin = function(e) {
-        if (!window.isUserLoggedIn()) {
-          e.preventDefault();
-          localStorage.setItem('lumiere_login_redirect', 'contact');
-          window.showLogin();
-        }
-      };
-      field.addEventListener('click', triggerLogin);
-      field.addEventListener('focus', triggerLogin);
-    }
-  });
 };
 
 window.prefillCheckoutForm = async function() {

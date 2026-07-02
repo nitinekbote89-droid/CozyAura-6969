@@ -1933,9 +1933,10 @@ window.renderMessages = function(resetPage) {
 
   tbody.innerHTML = pageSlice.map(function(m) {
     const escF = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const emailVal = m.users?.email || m.user_email || '—';
     return '<tr style="cursor:pointer;" onclick="window.openMessageModal(\'' + m.id + '\')">' +
       '<td style="font-weight:500;">' + escF(m.name || 'Anonymous') + '</td>' +
-      '<td>' + escF(m.email || '—') + '</td>' +
+      '<td>' + escF(emailVal) + '</td>' +
       '<td>' + escF(m.phone || '—') + '</td>' +
       '<td style="font-weight:600;">' + escF(m.subject || '(No Subject)') + '</td>' +
       '<td style="font-size:0.85rem; color:var(--text-muted);">' + new Date(m.date).toLocaleDateString() + '</td>' +
@@ -1970,7 +1971,8 @@ window.openMessageModal = function(id) {
   if (!m) return;
 
   document.getElementById('messageModalSenderName').textContent = m.name || 'Anonymous';
-  document.getElementById('messageModalSenderEmail').textContent = m.email ? `(${m.email})` : '';
+  const emailVal = m.users?.email || m.user_email || '';
+  document.getElementById('messageModalSenderEmail').textContent = emailVal ? `(${emailVal})` : '';
   document.getElementById('messageModalSenderPhone').textContent = m.phone ? `| ${m.phone}` : '';
   document.getElementById('messageModalSubject').textContent = m.subject || '(No Subject)';
   document.getElementById('messageModalBody').textContent = m.message || '';

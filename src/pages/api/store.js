@@ -385,7 +385,7 @@ export async function POST({ request }) {
 
       const { error: dbErr } = await supabase.from('messages').insert({
         name: name.trim(),
-        email: emailTrimmed,
+        user_email: emailTrimmed,
         phone: phone.trim(),
         subject: subject.trim(),
         message: message.trim()

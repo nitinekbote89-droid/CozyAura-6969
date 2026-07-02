@@ -526,9 +526,9 @@ export async function GET({ request }) {
       feedbacksQuery = feedbacksQuery.range(feedbackPageStart, feedbackPageEnd);
       feedbacksPromiseIdx = promises.push(feedbacksQuery) - 1;
 
-      let messagesQuery = supabase.from('messages').select('*', { count: 'exact' }).order('id', { ascending: false });
+      let messagesQuery = supabase.from('messages').select('*, users(email)', { count: 'exact' }).order('id', { ascending: false });
       if (searchQuery.trim()) {
-        messagesQuery = messagesQuery.or(`name.ilike.%${searchQuery.trim()}%,email.ilike.%${searchQuery.trim()}%,phone.ilike.%${searchQuery.trim()}%,subject.ilike.%${searchQuery.trim()}%,message.ilike.%${searchQuery.trim()}%`);
+        messagesQuery = messagesQuery.or(`name.ilike.%${searchQuery.trim()}%,user_email.ilike.%${searchQuery.trim()}%,phone.ilike.%${searchQuery.trim()}%,subject.ilike.%${searchQuery.trim()}%,message.ilike.%${searchQuery.trim()}%`);
       }
       messagesQuery = messagesQuery.range(feedbackPageStart, feedbackPageEnd);
       messagesPromiseIdx = promises.push(messagesQuery) - 1;

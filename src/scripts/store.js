@@ -1660,6 +1660,16 @@ window.addEventListener('scroll', () => {
   }
 });
 
+// Intercept contact form submit button click to prompt login immediately before form validation
+document.querySelector('#contactForm button[type="submit"]')?.addEventListener('click', function(e) {
+  if (!window.isUserLoggedIn()) {
+    e.preventDefault();
+    localStorage.setItem('lumiere_login_redirect', 'contact');
+    window.showLogin();
+    window.showToast("Login required. Please login first.", true);
+  }
+});
+
 // Contact form handler
 document.getElementById('contactForm')?.addEventListener('submit', async function(e) {
   e.preventDefault();

@@ -448,7 +448,8 @@ import AdminModals from '../components/AdminModals.astro';
 
     if (tabId === 'dashboard') {
       if (pageTitle) pageTitle.textContent = "Dashboard Overview";
-      if (btnCleanImages) btnCleanImages.style.display = "flex";
+      // Keep btnCleanImages hidden (uncomment to show in UI)
+      // if (btnCleanImages) btnCleanImages.style.display = "flex";
       window.renderDashboard();
     } else if (tabId === 'inventory') {
       if (pageTitle) pageTitle.textContent = "Inventory Management";

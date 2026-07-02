@@ -35,13 +35,13 @@ async function handleAuth() {
   if (!session && code) {
     // CSRF state validation: compare URL state param against sessionStorage
     const state = params.get('state');
-    const expectedState = sessionStorage.getItem('lumiere_oauth_state');
+    const expectedState = sessionStorage.getItem('l_os');
     if (state && expectedState && state !== expectedState) {
       statusEl.textContent = 'Security check failed. Please try again.';
       setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent('State mismatch'); }, 2000);
       return;
     }
-    sessionStorage.removeItem('lumiere_oauth_state');
+    sessionStorage.removeItem('l_os');
 
     try {
       statusEl.textContent = 'Exchanging code for session...';

@@ -30,14 +30,15 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
     const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
 
     const timestamp = Math.round(new Date().getTime() / 1000);
-    const signatureContextString = `public_id=${identifierToken}&timestamp=${timestamp}${apiSecret}`;
+    const signatureContextString = `public_id=${identifierToken}&signature_algorithm=sha256&timestamp=${timestamp}${apiSecret}`;
 
     const crypto = await import('crypto');
-    const signature = crypto.createHash('sha1').update(signatureContextString).digest('hex');
+    const signature = crypto.createHash('sha256').update(signatureContextString).digest('hex');
 
     const formData = new URLSearchParams();
     formData.append('file', base64Payload);
     formData.append('public_id', identifierToken);
+    formData.append('signature_algorithm', 'sha256');
     formData.append('timestamp', timestamp.toString());
     formData.append('api_key', apiKey);
     formData.append('signature', signature);
@@ -93,8 +94,12 @@ async function deleteFromCloudinary(publicIds) {
 }
 
 function extractPublicId(url) {
-  if (!url || !url.includes('cloudinary.com')) return null;
+  if (!url) return null;
   try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'res.cloudinary.com' && !parsed.hostname.endsWith('.cloudinary.com')) {
+      return null;
+    }
     const parts = url.split('/image/upload/');
     if (parts.length < 2) return null;
     let subPath = parts[1];

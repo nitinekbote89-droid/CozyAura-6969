@@ -1,5 +1,11 @@
 const CORE_STORE_PROXY_ROUTE = "/api/store";
 
+function generateSecureToken() {
+  const array = new Uint32Array(4);
+  window.crypto.getRandomValues(array);
+  return Array.from(array, dec => dec.toString(36)).join('');
+}
+
 // Centralized Auth Store with module-private variables
 let _currentUser = null;
 const _authListeners = new Set();
@@ -1417,7 +1423,7 @@ window.setDeliveryMethod = function(method) {
 window.acquireCheckoutLocks = async function() {
   let sessionId = sessionStorage.getItem('lumiere_checkout_session');
   if (!sessionId) {
-    sessionId = 'sess_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    sessionId = 'sess_' + generateSecureToken();
     sessionStorage.setItem('lumiere_checkout_session', sessionId);
   }
 
@@ -2099,7 +2105,7 @@ window.executeSecurePayment = async function() {
   window.showLoadingOverlay("Processing your order...", "Please do not close the window or click back.");
   const prices = window.calculatePrices();
   const userEmail = window.getLoggedInEmail() || window.shippingInfo.email;
-  const sessionToken = sessionStorage.getItem('lumiere_checkout_session') || 'session_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  const sessionToken = sessionStorage.getItem('lumiere_checkout_session') || 'session_' + Date.now() + '_' + generateSecureToken();
   sessionStorage.setItem('lumiere_checkout_session', sessionToken);
 
   const isCOD = window.currentPaymentMethod === 'COD';
@@ -2325,17 +2331,17 @@ window.showLogin = function() {
 window.loginWithGoogle = async function() {
   window.showLoadingOverlay("Redirecting to Google...", "Please wait.");
   const supabase = await getSupabase();
-  const oauthState = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
-  sessionStorage.setItem('lumiere_oauth_state', oauthState);
+  const osRand = generateSecureToken();
+  sessionStorage.setItem('l_os', osRand);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
       redirectTo: window.location.origin + '/auth/callback',
-      state: oauthState
+      state: osRand
     }
   });
   if (error) {
-    sessionStorage.removeItem('lumiere_oauth_state');
+    sessionStorage.removeItem('l_os');
     window.hideLoadingOverlay();
     const errEl = document.getElementById('loginError');
     if (errEl) {

@@ -9,11 +9,11 @@
     </div>
     <form id="productForm" onsubmit="window.handleProductSubmit(event)">
       <div class="form-group">
-        <label>Product Name</label>
+        <label for="prodName">Product Name</label>
         <input type="text" id="prodName" required>
       </div>
       <div class="form-group">
-        <label>Product Cover Picture</label>
+        <label for="prodCoverImageInput">Product Cover Picture</label>
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
           <input type="file" id="prodCoverImageInput" accept="image/*" onchange="window.handleCoverImageSelection(event)" style="border:none; padding:0; margin-bottom:0; flex: 1;">
           <div id="prodCoverImagePreview" style="position: relative; width: 80px; height: 80px; border: 1px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-main); flex-shrink: 0;">
@@ -22,37 +22,37 @@
         </div>
       </div>
       <div class="form-group">
-        <label>Category</label>
+        <label for="prodCategory">Category</label>
         <select id="prodCategory" required onchange="window.handleCategoryChange(event)"></select>
       </div>
       <div class="form-group" id="customCategoryGroup" style="display: none;">
-        <label>New Category Name</label>
+        <label for="prodCategoryCustom">New Category Name</label>
         <input type="text" id="prodCategoryCustom" placeholder="e.g. Citrus">
       </div>
       
       <div class="form-group" style="border: 1px solid var(--border); padding: 16px; border-radius: 6px; background: var(--bg-main);">
-        <label style="font-weight: 600; color: var(--brand); margin-bottom: 4px;">Fragrance Stock & Media Allocations</label>
+        <span style="display: block; font-weight: 600; color: var(--brand); margin-bottom: 4px;">Fragrance Stock & Media Allocations</span>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Toggle checkboxes to include fragrance configurations, assign inventory levels, and upload dedicated images.</p>
         <div id="prodFragrancesStockMatrix" style="display: flex; flex-direction: column; gap: 14px;"></div>
       </div>
 
       <div class="form-group">
-        <label>Description</label>
+        <label for="prodDesc">Description</label>
         <textarea id="prodDesc" placeholder="Describe the scent notes..."></textarea>
       </div>
       <div class="form-group">
-        <label>Specifications</label>
+        <label for="prodSpecs">Specifications</label>
         <textarea id="prodSpecs" placeholder="e.g., Weight: 200g, Burn time: 40 hrs..."></textarea>
       </div>
       
       <!-- Flex Grid containing the Price and Actual Weight Fields -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
         <div class="form-group">
-          <label>Price (₹)</label>
+          <label for="prodPrice">Price (₹)</label>
           <input type="number" id="prodPrice" required min="0">
         </div>
         <div class="form-group">
-          <label>Actual Weight (grams)</label>
+          <label for="prodWeight">Actual Weight (grams)</label>
           <input type="number" id="prodWeight" required min="0" placeholder="e.g. 450">
         </div>
       </div>
@@ -76,11 +76,11 @@
     </div>
     <form id="couponForm" onsubmit="window.handleCouponSubmit(event)">
       <div class="form-group">
-        <label>Promo Code (Alphanumeric)</label>
+        <label for="cpCode">Promo Code (Alphanumeric)</label>
         <input type="text" id="cpCode" placeholder="e.g. SUMMER50" required style="text-transform: uppercase;">
       </div>
       <div class="form-group">
-        <label>Discount Type</label>
+        <label for="cpType">Discount Type</label>
         <select id="cpType" required onchange="window.handleCouponTypeChange(this.value)" style="background: var(--bg-surface); color: var(--text-main); width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; cursor: pointer;">
           <option value="percent">Percentage Off (%)</option>
           <option value="fixed">Flat Rs Off (₹)</option>
@@ -88,15 +88,15 @@
         </select>
       </div>
       <div class="form-group" id="cpDiscountGroup">
-        <label id="cpDiscountLabel">Discount Value (%)</label>
+        <label id="cpDiscountLabel" for="cpDiscount">Discount Value (%)</label>
         <input type="number" id="cpDiscount" min="1" max="100" placeholder="e.g. 15" required>
       </div>
       <div class="form-group">
-        <label>Minimum Order Value (₹)</label>
+        <label for="cpMinOrderValue">Minimum Order Value (₹)</label>
         <input type="number" id="cpMinOrderValue" min="0" value="0" placeholder="e.g. 500 (Optional)">
       </div>
       <div class="form-group">
-        <label>Scope / Visibility</label>
+        <label for="cpScope">Scope / Visibility</label>
         <select id="cpScope" required style="background: var(--bg-surface); color: var(--text-main); width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.95rem; outline: none; cursor: pointer;">
           <option value="public">Public (Visible to everyone)</option>
           <option value="private">Private (Targeted / Hidden)</option>
@@ -131,16 +131,16 @@
         <h4 style="font-weight:500; margin-bottom:12px; font-size:0.9rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Courier & Tracking Information</h4>
         <div id="modalTrackingFields" style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
           <div>
-            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Courier Name</label>
+            <label for="modalCourierInput" style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Courier Name</label>
             <input type="text" id="modalCourierInput" placeholder="e.g. BlueDart" style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
           </div>
           <div>
-            <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Tracking ID</label>
+            <label for="modalTrackingInput" style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Tracking ID</label>
             <input type="text" id="modalTrackingInput" placeholder="e.g. AW1294819" style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
           </div>
         </div>
         <div style="margin-bottom:12px;">
-          <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Tracking Link</label>
+          <label for="modalTrackingLinkInput" style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">Tracking Link</label>
           <input type="text" id="modalTrackingLinkInput" placeholder="e.g. https://delhivery.com/track/package/..." style="background:var(--bg-main); color:var(--text-main); width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
         </div>
         <div style="margin-top:16px;">
@@ -159,16 +159,16 @@
           <strong style="color:var(--brand); display:block; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">Order Logistics</strong>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block;">Purchase Date</label>
+              <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block;">Purchase Date</span>
               <p id="orderModalDate" style="font-weight:500;"></p>
             </div>
             <div>
-              <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block;">Payment Info</label>
+              <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block;">Payment Info</span>
               <p id="orderModalPayment" style="font-weight:500;">COD / Pay on Delivery</p>
             </div>
           </div>
           <div style="margin-top:10px;">
-            <label style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Fulfillment Status</label>
+            <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:4px;">Fulfillment Status</span>
             <span id="orderModalStatus"></span>
           </div>
         </div>

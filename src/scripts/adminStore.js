@@ -1773,6 +1773,10 @@ window.deleteCustomerProfileFromModal = async function(encodedEmail) {
   }
 };
 
+// Feedbacks list pagination state
+window._feedbacksPage = 0;
+const FEEDBACKS_PER_PAGE = 50;
+
 window.updateFeedbackCounts = function() {
   const feedbacks = JSON.parse(sessionStorage.getItem('lumiere_admin_feedbacks') || '[]');
   const messages = JSON.parse(sessionStorage.getItem('lumiere_admin_messages') || '[]');

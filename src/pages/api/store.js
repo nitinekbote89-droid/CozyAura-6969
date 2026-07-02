@@ -367,32 +367,21 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'new_message') {
-      const { name, email, subject, message } = body;
-      if (!name || !email || !subject || !message) {
+      const { name, phone, subject, message } = body;
+      if (!name || !phone || !subject || !message) {
         return new Response(JSON.stringify({ success: false, error: "All contact fields are required." }), { status: 400 });
       }
-      const emailTrimmed = email.toLowerCase().trim();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(emailTrimmed)) {
-        return new Response(JSON.stringify({ success: false, error: "Invalid email address format." }), { status: 400 });
-      }
-
-      await sendContactMessage({
-        name: name.trim(),
-        email: emailTrimmed,
-        subject: subject.trim(),
-        message: message.trim()
-      });
 
       const { error: dbErr } = await supabase.from('messages').insert({
         name: name.trim(),
-        email: emailTrimmed,
+        phone: phone.trim(),
         subject: subject.trim(),
         message: message.trim()
       });
 
       if (dbErr) {
         console.error("Failed to insert message into Supabase database:", dbErr);
+        return new Response(JSON.stringify({ success: false, error: "Database error: " + dbErr.message }), { status: 500 });
       }
 
       return new Response(JSON.stringify({ success: true, message: "Message sent! We'll get back to you soon." }), { status: 200 });

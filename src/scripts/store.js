@@ -1663,6 +1663,14 @@ window.addEventListener('scroll', () => {
 // Contact form handler
 document.getElementById('contactForm')?.addEventListener('submit', async function(e) {
   e.preventDefault();
+  
+  if (!window.isUserLoggedIn()) {
+    localStorage.setItem('lumiere_login_redirect', 'contact');
+    window.showLogin();
+    alert("Login required. Please login first.");
+    return;
+  }
+
   window.showLoadingOverlay("Sending message...", "Please wait a moment.");
   try {
     const res = await fetch('/api/store', {
@@ -1672,7 +1680,7 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
         action: 'new_message',
         siteToken: 'LUMIERE_STORE_2026',
         name: document.getElementById('contactName').value,
-        email: document.getElementById('contactEmail').value,
+        phone: document.getElementById('contactPhone').value,
         subject: document.getElementById('contactSubject').value,
         message: document.getElementById('contactMessage').value
       })
@@ -2269,37 +2277,32 @@ window.checkoutGoogleLogin = function() {
 };
 
 window.prefillContactForm = function() {
-  const loggedInEmail = window.getLoggedInEmail();
-  const loggedInName = window.getLoggedInName();
   const nameField = document.getElementById('contactName');
-  const emailField = document.getElementById('contactEmail');
-
-  if (loggedInEmail) {
-    if (emailField) {
-      emailField.value = loggedInEmail;
-      emailField.disabled = true;
-    }
-    if (nameField && loggedInName) {
-      nameField.value = loggedInName;
-    }
-  } else {
-    if (emailField) {
-      emailField.value = '';
-      emailField.disabled = false;
-      
-      if (!emailField._hasLoginHandler) {
-        emailField._hasLoginHandler = true;
-        const triggerLogin = function(e) {
-          if (!window.isUserLoggedIn()) {
-            e.preventDefault();
-            localStorage.setItem('lumiere_login_redirect', 'contact');
-            window.showLogin();
-          }
-        };
-        emailField.addEventListener('click', triggerLogin);
-      }
-    }
+  const phoneField = document.getElementById('contactPhone');
+  const subjectField = document.getElementById('contactSubject');
+  const messageField = document.getElementById('contactMessage');
+  
+  const loggedInName = window.getLoggedInName();
+  if (nameField && loggedInName) {
+    nameField.value = loggedInName;
   }
+
+  // Setup click and focus triggers on all contact inputs to prompt login if not authenticated
+  const inputs = [nameField, phoneField, subjectField, messageField];
+  inputs.forEach(field => {
+    if (field && !field._hasLoginHandler) {
+      field._hasLoginHandler = true;
+      const triggerLogin = function(e) {
+        if (!window.isUserLoggedIn()) {
+          e.preventDefault();
+          localStorage.setItem('lumiere_login_redirect', 'contact');
+          window.showLogin();
+        }
+      };
+      field.addEventListener('click', triggerLogin);
+      field.addEventListener('focus', triggerLogin);
+    }
+  });
 };
 
 window.prefillCheckoutForm = async function() {

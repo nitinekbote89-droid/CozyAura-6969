@@ -3291,7 +3291,7 @@ window.showOrderDetail = function(id, isAuto) {
           '<div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Pickup Location</div>' +
           '<div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">' +
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
-            'Lumière Studio, Koregaon Park, Pune' +
+            'CozyAura Studio, Koregaon Park, Pune' +
           '</div>' +
         '</div>' +
         '<div style="text-align:right;">' +

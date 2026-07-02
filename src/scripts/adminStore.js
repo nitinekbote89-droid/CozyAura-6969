@@ -1782,9 +1782,11 @@ window.updateFeedbackCounts = function() {
   const messages = JSON.parse(sessionStorage.getItem('lumiere_admin_messages') || '[]');
   const totalFeedbacks = parseInt(sessionStorage.getItem('lumiere_admin_total_feedbacks') || String(feedbacks.length), 10);
   const totalMessages = parseInt(sessionStorage.getItem('lumiere_admin_total_messages') || String(messages.length), 10);
-  const total = totalFeedbacks + totalMessages;
-  const sidebarCountEl = document.getElementById('sidebarFeedbackCount');
-  if (sidebarCountEl) sidebarCountEl.textContent = total;
+  
+  const optFeedback = document.getElementById('toggleFeedbackOpt');
+  const optMessage = document.getElementById('toggleMessageOpt');
+  if (optFeedback) optFeedback.textContent = `Feedback (${totalFeedbacks})`;
+  if (optMessage) optMessage.textContent = `Messages (${totalMessages})`;
 };
 
 window.switchFeedbackMode = function(mode) {
@@ -1811,7 +1813,7 @@ window.switchFeedbackMode = function(mode) {
     if (pageTitle) pageTitle.textContent = "Customer Feedback & Reviews";
     window.renderFeedbacks();
   } else {
-    if (slider) slider.style.left = '85px';
+    if (slider) slider.style.left = '110px';
     if (optFeedback) {
       optFeedback.style.color = 'var(--text-muted)';
       optFeedback.style.fontWeight = '500';

@@ -519,7 +519,7 @@ export async function GET({ request }) {
       ordersEmailsPromiseIdx = promises.push(supabase.from('orders').select('shipping_email')) - 1;
       wishlistEmailsPromiseIdx = promises.push(supabase.from('wishlist').select('user_email')) - 1;
     } else if (tab === 'feedback') {
-      let feedbacksQuery = supabase.from('feedbacks').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+      let feedbacksQuery = supabase.from('feedbacks').select('*, users(email)', { count: 'exact' }).order('created_at', { ascending: false });
       if (searchQuery.trim()) {
         feedbacksQuery = feedbacksQuery.or(`user_email.ilike.%${searchQuery.trim()}%,comment.ilike.%${searchQuery.trim()}%`);
       }

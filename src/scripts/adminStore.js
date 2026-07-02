@@ -1852,9 +1852,10 @@ window.renderFeedbacks = function(resetPage) {
     const escF = str => String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     const starsHtml = '<span style="color:#FFC107; font-size:1.1rem; letter-spacing:1px;">' + '★'.repeat(f.rating) + '</span>' + '<span style="color:var(--text-muted); opacity:0.25; font-size:1.1rem; letter-spacing:1px;">' + '★'.repeat(5 - f.rating) + '</span>';
     const hasComment = !!(f.comment || '').trim();
+    const emailVal = f.users?.email || f.user_email || '—';
     return '<tr style="cursor:pointer;" onclick="window.openFeedbackModal(\'' + f.order_id + '\')">' +
       '<td style="font-weight:500;">' + escF(f.customer_name || 'Anonymous') + '</td>' +
-      '<td>' + escF(f.user_email || '—') + '</td>' +
+      '<td>' + escF(emailVal) + '</td>' +
       '<td style="font-family:monospace; font-weight:600;">' + escF(f.order_id) + '</td>' +
       '<td>' + starsHtml + '</td>' +
       '<td style="text-align:center;">' +
@@ -1894,7 +1895,8 @@ window.openFeedbackModal = function(orderId) {
   const itemsSummary = matchedOrder ? (matchedOrder.itemsSummary || '(No details found)') : '(No details found)';
   
   document.getElementById('feedbackModalCustomerName').textContent = f.customer_name || 'Anonymous';
-  document.getElementById('feedbackModalCustomerEmail').textContent = f.user_email || '—';
+  const emailVal = f.users?.email || f.user_email || '—';
+  document.getElementById('feedbackModalCustomerEmail').textContent = emailVal;
   document.getElementById('feedbackModalOrderId').textContent = f.order_id;
   document.getElementById('feedbackModalRating').innerHTML = '<span style="color:#FFC107;">' + '★'.repeat(f.rating) + '</span>' + '<span style="color:var(--text-muted); opacity:0.25;">' + '★'.repeat(5 - f.rating) + '</span>';
   document.getElementById('feedbackModalPurchasedItems').textContent = itemsSummary;

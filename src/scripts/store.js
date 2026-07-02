@@ -1664,9 +1664,16 @@ window.addEventListener('scroll', () => {
 document.querySelector('#contactForm button[type="submit"]')?.addEventListener('click', function(e) {
   if (!window.isUserLoggedIn()) {
     e.preventDefault();
-    localStorage.setItem('lumiere_login_redirect', 'contact');
-    window.showLogin();
-    window.showToast("Login required. Please login first.", true);
+    window.showConfirmModal({
+      category: 'Authentication',
+      title: 'Login Required',
+      text: 'Login required to send message. Please login first.',
+      confirmText: 'Login with Google',
+      onConfirm: () => {
+        localStorage.setItem('lumiere_login_redirect', 'contact');
+        window.showLogin();
+      }
+    });
   }
 });
 
@@ -1675,9 +1682,16 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
   e.preventDefault();
   
   if (!window.isUserLoggedIn()) {
-    localStorage.setItem('lumiere_login_redirect', 'contact');
-    window.showLogin();
-    window.showToast("Login required. Please login first.", true);
+    window.showConfirmModal({
+      category: 'Authentication',
+      title: 'Login Required',
+      text: 'Login required to send message. Please login first.',
+      confirmText: 'Login with Google',
+      onConfirm: () => {
+        localStorage.setItem('lumiere_login_redirect', 'contact');
+        window.showLogin();
+      }
+    });
     return;
   }
 

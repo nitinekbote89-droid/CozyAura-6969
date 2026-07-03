@@ -856,6 +856,7 @@ window.handleCouponSubmit = async function(e) {
         });
         const json = await res.json();
         if (json.success) {
+            alert("Coupon activated successfully!");
             window.closeCouponModal();
             window.syncCloudInventory();
         } else {

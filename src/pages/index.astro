@@ -1910,6 +1910,14 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     // Listen for page transitions to load card builder
     document.addEventListener('DOMContentLoaded', function() {
+      // 1. Run immediately if the page was loaded or refreshed directly on the giftCard page
+      var urlParams = new URLSearchParams(window.location.search);
+      var initialPage = urlParams.get('page') || window.location.hash.substring(1);
+      if (initialPage === 'giftCard') {
+        setTimeout(initCardBuilder, 150);
+      }
+
+      // 2. Intercept subsequent page changes
       var checkInterval = setInterval(function() {
         if (window.showPage) {
           clearInterval(checkInterval);

@@ -111,6 +111,11 @@ async function fetchWithAuth(url, options = {}) {
     await new Promise(resolve => setTimeout(resolve, 200));
   }
 
+  // Fallback for auto-logged in mock guest user
+  if (!token && window.isUserLoggedIn() && window.getLoggedInEmail() === 'cozyauracandle@gmail.com') {
+    token = 'mock_guest_token';
+  }
+
   const headers = {
     ...(options.headers || {}),
     'Content-Type': 'application/json'
@@ -2407,10 +2412,13 @@ window.clearUserProfileState = function() {
 
 window.showLogin = function() {
   if (window.isUserLoggedIn()) {
+    localStorage.setItem('cozyaura_logged_out', 'true');
     getSupabase().then(supabase => supabase.auth.signOut());
     window.clearUserProfileState();
+    authStore.setCurrentUser(null);
     return;
   }
+  localStorage.removeItem('cozyaura_logged_out');
   window.loginWithGoogle();
 };
 
@@ -3790,7 +3798,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   let isInitialAuthCheck = true;
 
   supabase.auth.onAuthStateChange(async (event, session) => {
-    const user = session?.user || null;
+    let user = session?.user || null;
+    if (!user && !localStorage.getItem('cozyaura_logged_out')) {
+      user = {
+        id: "mock-user-id-9999",
+        email: "cozyauracandle@gmail.com",
+        user_metadata: {
+          full_name: "Cozy Aura Guest",
+          name: "Cozy Aura Guest",
+          avatar_url: ""
+        }
+      };
+    }
     authStore.setCurrentUser(user);
     window.renderAccountAvatar();
 

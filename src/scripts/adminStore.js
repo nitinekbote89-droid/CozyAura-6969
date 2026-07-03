@@ -615,7 +615,7 @@ window.downloadInvoiceBill = function() {
     // --- header ---
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text('LUMIÈRE SOYA CANDLES', 105, 25, { align: 'center' });
+    doc.text('COZY AURA CANDLE', 105, 25, { align: 'center' });
     doc.setFontSize(14);
     doc.text('INVOICE RECEIPT', 105, 33, { align: 'center' });
 

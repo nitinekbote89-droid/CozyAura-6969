@@ -2320,7 +2320,7 @@ window.executeSecurePayment = async function() {
         key: json.razorpayKeyId,
         amount: Math.round(json.expectedTotal * 100),
         currency: "INR",
-        name: "Lumière Soya Candles",
+        name: "Cozy Aura Candle",
         description: "Order Checkout",
         order_id: json.razorpayOrderId,
         handler: async function (response) {

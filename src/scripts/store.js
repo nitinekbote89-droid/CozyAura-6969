@@ -4373,3 +4373,63 @@ window.addEventListener('DOMContentLoaded', () => {
     offlineOverlay.style.display = 'flex';
   }
 });
+
+// Global fetch interceptor to handle silent network failures (e.g. database sync error: Failed to fetch)
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+  try {
+    const res = await originalFetch(...args);
+    // If the server was reached successfully, hide offline screen if it was active
+    const offlineOverlay = document.getElementById('offlineOverlay');
+    if (offlineOverlay && offlineOverlay.style.display === 'flex') {
+      offlineOverlay.style.display = 'none';
+      window.showToast("Connection restored. You are back online!", false);
+    }
+    return res;
+  } catch (err) {
+    console.error("Fetch intercepted network error:", err);
+    // Identify connection loss errors (Failed to fetch, load failed, NetworkError)
+    const isNetworkErr = err instanceof TypeError || 
+                         (err.message && (
+                           err.message.includes('Failed to fetch') || 
+                           err.message.includes('NetworkError') ||
+                           err.message.includes('load failed')
+                         ));
+    if (isNetworkErr) {
+      const offlineOverlay = document.getElementById('offlineOverlay');
+      if (offlineOverlay) {
+        offlineOverlay.style.display = 'flex';
+      }
+    }
+    throw err;
+  }
+};
+
+// Retry connection check manually
+window.retryConnection = async function() {
+  const btn = document.getElementById('retryConnBtn');
+  if (btn) {
+    btn.textContent = 'Checking...';
+    btn.disabled = true;
+  }
+  try {
+    const testRes = await originalFetch('/');
+    if (testRes.status >= 200 && testRes.status < 400) {
+      const offlineOverlay = document.getElementById('offlineOverlay');
+      if (offlineOverlay) {
+        offlineOverlay.style.display = 'none';
+        window.showToast("Connection restored. You are back online!", false);
+      }
+      window.location.reload();
+    } else {
+      throw new Error();
+    }
+  } catch (e) {
+    window.showToast("Connection test failed. Still offline.", true);
+  } finally {
+    if (btn) {
+      btn.textContent = 'Retry Connection';
+      btn.disabled = false;
+    }
+  }
+};

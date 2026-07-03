@@ -1333,9 +1333,10 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       </svg>
     </div>
     <div class="processing-text" style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 400; letter-spacing: 0.05em; color: var(--cream); margin-bottom: 0.5rem;">Connection Lost</div>
-    <div class="processing-subtext" style="font-family: 'Jost', sans-serif; font-size: 0.82rem; letter-spacing: 0.1em; color: var(--taupe); max-width: 320px; text-align: center; line-height: 1.6;">
+    <div class="processing-subtext" style="font-family: 'Jost', sans-serif; font-size: 0.82rem; letter-spacing: 0.1em; color: var(--taupe); max-width: 320px; text-align: center; line-height: 1.6; margin-bottom: 1.5rem;">
       Please check your network. We'll automatically reconnect you once you are back online.
     </div>
+    <button class="btn-primary" id="retryConnBtn" onclick="window.retryConnection()" style="padding: 0.65rem 1.8rem; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;">Retry Connection</button>
   </div>
 
   <Modals />

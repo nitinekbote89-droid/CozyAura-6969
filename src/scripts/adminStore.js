@@ -812,6 +812,8 @@ window.handleCouponTypeChange = function(type) {
     if (type === 'freeship') {
         group.style.display = 'none';
         input.removeAttribute('required');
+        input.removeAttribute('min');
+        input.removeAttribute('max');
         input.value = '0';
     } else {
         group.style.display = 'block';

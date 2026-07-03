@@ -5,8 +5,8 @@ window.fetch = async function(...args) {
     const res = await originalFetch(...args);
     // If the server was reached successfully, hide offline screen if it was active
     const offlineOverlay = document.getElementById('offlineOverlay');
-    if (offlineOverlay && offlineOverlay.style.display === 'flex') {
-      offlineOverlay.style.display = 'none';
+    if (offlineOverlay && offlineOverlay.classList.contains('active')) {
+      offlineOverlay.classList.remove('active');
       window.showToast("Connection restored. You are back online!", false);
     }
     return res;
@@ -14,7 +14,7 @@ window.fetch = async function(...args) {
     console.error("Fetch intercepted network error:", err);
     const offlineOverlay = document.getElementById('offlineOverlay');
     if (offlineOverlay) {
-      offlineOverlay.style.display = 'flex';
+      offlineOverlay.classList.add('active');
     }
     throw err;
   }
@@ -4376,7 +4376,7 @@ window.submitFeedbackToDatabase = async function(orderId) {
 window.addEventListener('online', () => {
   const offlineOverlay = document.getElementById('offlineOverlay');
   if (offlineOverlay) {
-    offlineOverlay.style.display = 'none';
+    offlineOverlay.classList.remove('active');
   }
   window.showToast("Connection restored. You are back online!", false);
 });
@@ -4384,7 +4384,7 @@ window.addEventListener('online', () => {
 window.addEventListener('offline', () => {
   const offlineOverlay = document.getElementById('offlineOverlay');
   if (offlineOverlay) {
-    offlineOverlay.style.display = 'flex';
+    offlineOverlay.classList.add('active');
   }
 });
 
@@ -4392,7 +4392,7 @@ window.addEventListener('offline', () => {
 window.addEventListener('DOMContentLoaded', () => {
   const offlineOverlay = document.getElementById('offlineOverlay');
   if (offlineOverlay && !navigator.onLine) {
-    offlineOverlay.style.display = 'flex';
+    offlineOverlay.classList.add('active');
   }
 });
 
@@ -4409,7 +4409,7 @@ window.retryConnection = async function() {
     if (testRes.status >= 200 && testRes.status < 400) {
       const offlineOverlay = document.getElementById('offlineOverlay');
       if (offlineOverlay) {
-        offlineOverlay.style.display = 'none';
+        offlineOverlay.classList.remove('active');
         window.showToast("Connection restored. You are back online!", false);
       }
       window.location.reload();

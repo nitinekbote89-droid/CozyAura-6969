@@ -623,13 +623,13 @@ export async function POST({ request }) {
 
       }
       let recalculated;
-      if (isCOD) {
-        try {
-          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode, deliveryMethod);
-        } catch (err) {
-          return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
-        }
+      try {
+        recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode, deliveryMethod);
+      } catch (err) {
+        return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
+      }
 
+      if (isCOD) {
         const clientTotalNum = parseFloat(String(total).replace(/[^0-9.]/g, ''));
         if (Math.abs(clientTotalNum - recalculated.total) > 0.01) {
           return new Response(JSON.stringify({ success: false, error: "COD total mismatch. Cart total verification failed." }), { status: 400 });

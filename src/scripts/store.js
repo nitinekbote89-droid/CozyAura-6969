@@ -1690,6 +1690,18 @@ window.addEventListener('scroll', () => {
 document.querySelector('#contactForm button[type="submit"]')?.addEventListener('click', function(e) {
   if (!window.isUserLoggedIn()) {
     e.preventDefault();
+    
+    // Save contact form fields to cache
+    const nameVal = document.getElementById('contactName')?.value || '';
+    const phoneVal = document.getElementById('contactPhone')?.value || '';
+    const subjectVal = document.getElementById('contactSubject')?.value || '';
+    const messageVal = document.getElementById('contactMessage')?.value || '';
+    
+    localStorage.setItem('lumiere_contact_name', nameVal);
+    localStorage.setItem('lumiere_contact_phone', phoneVal);
+    localStorage.setItem('lumiere_contact_subject', subjectVal);
+    localStorage.setItem('lumiere_contact_message', messageVal);
+    
     window.showConfirmModal({
       category: 'Authentication',
       title: 'Login Required',
@@ -1708,6 +1720,17 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
   e.preventDefault();
   
   if (!window.isUserLoggedIn()) {
+    // Save contact form fields to cache
+    const nameVal = document.getElementById('contactName')?.value || '';
+    const phoneVal = document.getElementById('contactPhone')?.value || '';
+    const subjectVal = document.getElementById('contactSubject')?.value || '';
+    const messageVal = document.getElementById('contactMessage')?.value || '';
+    
+    localStorage.setItem('lumiere_contact_name', nameVal);
+    localStorage.setItem('lumiere_contact_phone', phoneVal);
+    localStorage.setItem('lumiere_contact_subject', subjectVal);
+    localStorage.setItem('lumiere_contact_message', messageVal);
+
     window.showConfirmModal({
       category: 'Authentication',
       title: 'Login Required',
@@ -1749,6 +1772,12 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
       const countEl = document.getElementById('contactMessageWordCount');
       if (countEl) countEl.textContent = '0 / 200 words';
       document.getElementById('contactSuccessMsg').classList.add('show');
+      
+      // Clean browser cache
+      localStorage.removeItem('lumiere_contact_name');
+      localStorage.removeItem('lumiere_contact_phone');
+      localStorage.removeItem('lumiere_contact_subject');
+      localStorage.removeItem('lumiere_contact_message');
     } else {
       window.showToast(json.error || 'Failed to send message.', true);
     }
@@ -1758,6 +1787,43 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
     window.hideLoadingOverlay();
   }
 });
+
+window.checkAndAutoSendContactForm = function() {
+  const savedMessage = localStorage.getItem('lumiere_contact_message');
+  if (savedMessage && window.isUserLoggedIn()) {
+    const contactForm = document.getElementById('contactForm');
+    const nameField = document.getElementById('contactName');
+    const phoneField = document.getElementById('contactPhone');
+    const subjectField = document.getElementById('contactSubject');
+    const messageField = document.getElementById('contactMessage');
+    
+    if (contactForm && nameField && phoneField && subjectField && messageField) {
+      nameField.value = localStorage.getItem('lumiere_contact_name') || window.getLoggedInName() || '';
+      phoneField.value = localStorage.getItem('lumiere_contact_phone') || '';
+      subjectField.value = localStorage.getItem('lumiere_contact_subject') || '';
+      messageField.value = savedMessage;
+      
+      // Update word count display
+      const countEl = document.getElementById('contactMessageWordCount');
+      if (countEl) {
+        const words = savedMessage.trim().split(/\s+/).filter(Boolean);
+        countEl.textContent = `${words.length} / 200 words`;
+      }
+      
+      // Clear cached values immediately to keep browser clean
+      localStorage.removeItem('lumiere_contact_name');
+      localStorage.removeItem('lumiere_contact_phone');
+      localStorage.removeItem('lumiere_contact_subject');
+      localStorage.removeItem('lumiere_contact_message');
+      
+      // Navigate to contact tab
+      window.showPage('contact');
+      
+      // Auto-submit the form
+      contactForm.dispatchEvent(new Event('submit'));
+    }
+  }
+};
 
 // Auto-prefix and format phone number in contact form
 document.getElementById('contactPhone')?.addEventListener('focus', function() {
@@ -3739,6 +3805,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (activePage === 'contact') {
           window.prefillContactForm();
         }
+        
+        // Auto-restore and send cached contact form message
+        window.checkAndAutoSendContactForm();
       });
       window.fetchMyOrders();
     } else {

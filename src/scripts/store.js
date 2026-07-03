@@ -1825,6 +1825,15 @@ window.checkAndAutoSendContactForm = function() {
   }
 };
 
+// Show toast alert on input field focus if user is not logged in
+['contactName', 'contactPhone', 'contactSubject', 'contactMessage'].forEach(fieldId => {
+  document.getElementById(fieldId)?.addEventListener('focus', function() {
+    if (!window.isUserLoggedIn()) {
+      window.showToast("Login required to send a message.", true);
+    }
+  });
+});
+
 // Auto-prefix and format phone number in contact form
 document.getElementById('contactPhone')?.addEventListener('focus', function() {
   if (!this.value.trim()) {

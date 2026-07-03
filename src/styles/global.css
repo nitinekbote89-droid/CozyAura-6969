@@ -220,8 +220,8 @@ section.active {
 .value-card p { font-size: 0.88rem; line-height: 1.8; color: var(--stone); font-weight: 300; }
 
 /* Scent Guide */
-.scent-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-top: 3rem; }
-.scent-card { cursor: pointer; text-align: center; padding: 3rem 1.5rem; border: 1px solid rgba(196,181,160,0.25); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); background: var(--warm-white); border-radius: 8px; }
+.scent-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-top: 3rem; }
+.scent-card { flex: 0 1 calc(25% - 1.5rem); min-width: 250px; cursor: pointer; text-align: center; padding: 3rem 1.5rem; border: 1px solid rgba(196,181,160,0.25); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); background: var(--warm-white); border-radius: 8px; }
 .scent-card:hover { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 12px 30px rgba(42,36,32,0.05); }
 .scent-card-bg { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
 .scent-card:hover .scent-card-bg { transform: scale(1.08) rotate(5deg); }
@@ -349,7 +349,7 @@ section.active {
 }
 @media (max-width: 960px) {
   .home-products-grid, .values-grid, .testimonial-grid { grid-template-columns: 1fr 1fr; }
-  .scent-grid { grid-template-columns: 1fr 1fr; }
+  .scent-card { flex: 0 1 calc(50% - 1rem); }
 }
 @media (max-width: 768px) {
   :root {
@@ -359,7 +359,7 @@ section.active {
 }
 @media (max-width: 600px) {
   .home-products-grid, .values-grid, .testimonial-grid { grid-template-columns: 1fr; }
-  .scent-grid { grid-template-columns: 1fr 1fr; }
+  .scent-card { flex: 0 1 calc(50% - 0.5rem); }
   .home-section { padding: 4rem 1.5rem; }
 }
 .candle-illustration svg { filter: drop-shadow(0 8px 24px rgba(184,151,90,0.1)); }
@@ -2690,9 +2690,8 @@ section.active {
     grid-template-columns: repeat(4, 1fr); /* 4 columns look far better on wide screens */
     gap: 3rem;
   }
-  .scent-grid {
-    grid-template-columns: repeat(5, 1fr); /* 5 scents look excellent on ultra-wide screens */
-    gap: 2.5rem;
+  .scent-card {
+    flex: 0 1 calc(20% - 2rem);
   }
   .cart-inner {
     max-width: 1600px;

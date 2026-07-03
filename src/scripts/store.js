@@ -2207,17 +2207,6 @@ window.renderCheckoutSidebarItems = function() {
 window.executeSecurePayment = async function() {
   if (window._submittingOrder) return;
 
-  // Double check inventory before sending transaction
-  for (const item of window.cart) {
-    const prod = window.PRODUCTS.find(p => p.id === item.product.id);
-    const vr = prod ? prod.variants.find(v => v.id === item.variant.id) : null;
-    const maxStock = vr ? vr.maxStock : 0;
-    if (item.quantity > maxStock) {
-      window.showToast(`Insufficient stock for ${item.product.name} (${item.variant.name}). Only ${maxStock} items are available in stock.`, true);
-      return;
-    }
-  }
-
   window._submittingOrder = true;
   window.showLoadingOverlay("Processing your order...", "Please do not close the window or click back.");
   const prices = window.calculatePrices();

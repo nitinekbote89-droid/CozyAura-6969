@@ -1476,19 +1476,12 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <!-- 3. Sticker Panel -->
         <div class="builder-section">
           <h3>3. Choose Stickers</h3>
-          <div class="sticker-grid">
-            <div class="sticker-item" onclick="window.addCardSticker('⭐')">⭐</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🚀')">🚀</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🎨')">🎨</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🕯️')">🕯️</div>
-            <div class="sticker-item" onclick="window.addCardSticker('💖')">💖</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🌸')">🌸</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🎁')">🎁</div>
-            <div class="sticker-item" onclick="window.addCardSticker('✨')">✨</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🌿')">🌿</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🧸')">🧸</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🍰')">🍰</div>
-            <div class="sticker-item" onclick="window.addCardSticker('🎈')">🎈</div>
+          <div class="sticker-grid" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <img class="sticker-item" src="/images/sticker_1.png" onclick="window.addCardSticker('/images/sticker_1.png')" alt="Butterfly" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
+            <img class="sticker-item" src="/images/sticker_2.png" onclick="window.addCardSticker('/images/sticker_2.png')" alt="Flower" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
+            <img class="sticker-item" src="/images/sticker_3.png" onclick="window.addCardSticker('/images/sticker_3.png')" alt="Gift Box" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
+            <img class="sticker-item" src="/images/sticker_4.png" onclick="window.addCardSticker('/images/sticker_4.png')" alt="Seeds" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
+            <img class="sticker-item" src="/images/sticker_5.png" onclick="window.addCardSticker('/images/sticker_5.png')" alt="Ocean Wave" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
           </div>
         </div>
 
@@ -1582,10 +1575,21 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       for (var i = 0; i < cardElements.length; i++) {
         var el = cardElements[i];
         if (el.type === 'sticker') {
-          cardCtx.font = el.size + "px Arial";
-          cardCtx.textBaseline = 'middle';
-          cardCtx.textAlign = 'center';
-          cardCtx.fillText(el.content, el.x, el.y);
+          if (!el.imgObj) {
+            el.imgObj = new Image();
+            el.imgObj.src = el.content;
+            el.imgObj.onload = function() {
+              drawCardCanvas();
+            };
+          }
+          if (el.imgObj.complete && el.imgObj.naturalWidth > 0) {
+            var size = el.size || 70;
+            cardCtx.drawImage(el.imgObj, el.x - size/2, el.y - size/2, size, size);
+          } else {
+            cardCtx.strokeStyle = '#e6dfd5';
+            cardCtx.lineWidth = 1;
+            cardCtx.strokeRect(el.x - 35, el.y - 35, 70, 70);
+          }
         } else if (el.type === 'text') {
           var fontStr = (el.isItalic ? 'italic ' : '') + (el.isBold ? 'bold ' : '') + el.size + "px " + cardFonts[el.fontFamily || 'cormorant'];
           cardCtx.font = fontStr;
@@ -1782,16 +1786,25 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       if (thumbEl) thumbEl.classList.add('active');
     };
 
-    window.addCardSticker = function(emoji) {
+    window.addCardSticker = function(stickerPath) {
+      var img = new Image();
+      img.src = stickerPath;
+      
       var newSticker = {
         type: 'sticker',
-        content: emoji,
+        content: stickerPath,
+        imgObj: img,
         x: 150,
         y: 300,
-        size: 48,
-        width: 48,
-        height: 48
+        size: 70,
+        width: 70,
+        height: 70
       };
+      
+      img.onload = function() {
+        drawCardCanvas();
+      };
+      
       cardElements.push(newSticker);
       cardSelectedElement = newSticker;
       drawCardCanvas();

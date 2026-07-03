@@ -111,11 +111,6 @@ async function fetchWithAuth(url, options = {}) {
     await new Promise(resolve => setTimeout(resolve, 200));
   }
 
-  // Fallback for auto-logged in mock guest user
-  if (!token && window.isUserLoggedIn() && window.getLoggedInEmail() === 'cozyauracandle@gmail.com') {
-    token = 'mock_guest_token';
-  }
-
   const headers = {
     ...(options.headers || {}),
     'Content-Type': 'application/json'
@@ -424,8 +419,8 @@ window.showPage = function(pageId, updateHistory = true) {
     return;
   }
 
-  // Payment page requires a real Google login — if not logged in or logged in as mock guest, send to cart instead
-  if (pageId === 'payment' && (!window.isUserLoggedIn() || window.getLoggedInEmail() === 'cozyauracandle@gmail.com')) {
+  // Payment page requires login — if not logged in, send to cart instead
+  if (pageId === 'payment' && !window.isUserLoggedIn()) {
     pageId = 'cartPage';
   }
 
@@ -1893,9 +1888,9 @@ window.goToCheckout = async function() {
     return;
   }
 
-  // Require real Google login for checking out
+  // Require Google login for checking out
   const email = window.getLoggedInEmail();
-  if (!email || email === 'cozyauracandle@gmail.com') {
+  if (!email) {
     window.showConfirmModal({
       category: 'Authentication',
       title: 'Login Required',
@@ -2412,20 +2407,10 @@ window.clearUserProfileState = function() {
 
 window.showLogin = function() {
   if (window.isUserLoggedIn()) {
-    if (window.getLoggedInEmail() === 'cozyauracandle@gmail.com') {
-      localStorage.setItem('cozyaura_logged_out', 'true');
-      window.clearUserProfileState();
-      authStore.setCurrentUser(null);
-      window.loginWithGoogle();
-      return;
-    }
-    localStorage.setItem('cozyaura_logged_out', 'true');
     getSupabase().then(supabase => supabase.auth.signOut());
     window.clearUserProfileState();
-    authStore.setCurrentUser(null);
     return;
   }
-  localStorage.removeItem('cozyaura_logged_out');
   window.loginWithGoogle();
 };
 
@@ -3805,18 +3790,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   let isInitialAuthCheck = true;
 
   supabase.auth.onAuthStateChange(async (event, session) => {
-    let user = session?.user || null;
-    if (!user && !localStorage.getItem('cozyaura_logged_out')) {
-      user = {
-        id: "mock-user-id-9999",
-        email: "cozyauracandle@gmail.com",
-        user_metadata: {
-          full_name: "Cozy Aura Guest",
-          name: "Cozy Aura Guest",
-          avatar_url: ""
-        }
-      };
-    }
+    const user = session?.user || null;
     authStore.setCurrentUser(user);
     window.renderAccountAvatar();
 

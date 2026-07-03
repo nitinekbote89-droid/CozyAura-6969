@@ -1326,6 +1326,18 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     <div class="processing-subtext">Please do not close the window or click back.</div>
   </div>
 
+  <div class="processing-overlay" id="offlineOverlay" style="z-index: 9999999; display: none; backdrop-filter: blur(8px); background: rgba(26,22,19,0.96); flex-direction: column; align-items: center; justify-content: center;">
+    <div class="offline-icon" style="margin-bottom: 1.5rem; animation: pulseGlow 2s ease-in-out infinite;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.5M5 12.5a10.94 10.94 0 0 1 5.83-2.84M8.53 16.11a6 6 0 0 1 6.95 0M12 19.5v.01"/>
+      </svg>
+    </div>
+    <div class="processing-text" style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 400; letter-spacing: 0.05em; color: var(--cream); margin-bottom: 0.5rem;">Connection Lost</div>
+    <div class="processing-subtext" style="font-family: 'Jost', sans-serif; font-size: 0.82rem; letter-spacing: 0.1em; color: var(--taupe); max-width: 320px; text-align: center; line-height: 1.6;">
+      Please check your network. We'll automatically reconnect you once you are back online.
+    </div>
+  </div>
+
   <Modals />
 
   <div class="cart-toast" id="cartToast"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Added to cart</div>

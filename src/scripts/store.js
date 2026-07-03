@@ -4349,3 +4349,27 @@ window.submitFeedbackToDatabase = async function(orderId) {
     q.forEach(function(args) { window.showPage(args[0], args[1]); });
   }
 })();
+
+// Monitor Internet Connection Status
+window.addEventListener('online', () => {
+  const offlineOverlay = document.getElementById('offlineOverlay');
+  if (offlineOverlay) {
+    offlineOverlay.style.display = 'none';
+  }
+  window.showToast("Connection restored. You are back online!", false);
+});
+
+window.addEventListener('offline', () => {
+  const offlineOverlay = document.getElementById('offlineOverlay');
+  if (offlineOverlay) {
+    offlineOverlay.style.display = 'flex';
+  }
+});
+
+// Run initial check on load
+window.addEventListener('DOMContentLoaded', () => {
+  const offlineOverlay = document.getElementById('offlineOverlay');
+  if (offlineOverlay && !navigator.onLine) {
+    offlineOverlay.style.display = 'flex';
+  }
+});

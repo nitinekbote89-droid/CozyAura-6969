@@ -3285,3 +3285,8 @@ section.active {
 .star-rating-item:hover ~ .star-rating-item {
   color: var(--gold-dark);
 }
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.02); }
+}

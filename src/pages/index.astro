@@ -1211,18 +1211,706 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
   <section id="giftCard" class="active-page-section" style="display: none;">
     <div class="section-header" style="margin-bottom: 2rem;">
-      <h2>Gift <em>Cards</em></h2>
+      <h2>Personalized <em>Gift Cards</em></h2>
     </div>
-    <div class="policy-content" style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: var(--charcoal); font-family: 'Jost', sans-serif;">
-      <p style="font-size: 1.05rem; margin-bottom: 1.5rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.2rem;">Share the warmth of Cozy Aura with your loved ones through our personalized gift card collections.</p>
-      
-      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Personalized Touches</h3>
-      <p>During the checkout process, you can choose to mark your order as a gift. We offer multiple premium physical gift card templates (such as Birthday, Anniversary, Congratulatory, and Festive cards) that can be personalized with a printed message from you.</p>
-      
-      <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Direct Shipping</h3>
-      <p>You can input the recipient's shipping details directly. We'll pack the order premium-style with our natural kraft wraps and include the physical gift card inside the parcel.</p>
+    
+    <p style="text-align: center; max-width: 600px; margin: -1rem auto 2rem; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.25rem; color: var(--charcoal);">
+      Design your own greeting card card to accompany your Cozy Aura order. Pick a template, add a personalized message, drag decorations, and download your creation!
+    </p>
+
+    <style is:global>
+      .card-builder-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        margin: 2rem auto;
+        max-width: 1000px;
+        justify-content: center;
+        align-items: flex-start;
+        font-family: 'Jost', sans-serif;
+      }
+      .builder-sidebar {
+        flex: 1;
+        min-width: 320px;
+        max-width: 440px;
+        background: #faf7f2;
+        border: 1px solid #e6dfd5;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+      }
+      .builder-section {
+        margin-bottom: 24px;
+      }
+      .builder-section h3 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.25rem;
+        color: var(--black);
+        margin-bottom: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #e6dfd5;
+        padding-bottom: 6px;
+      }
+      .template-grid {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 6px 0;
+        scrollbar-width: thin;
+      }
+      .template-thumb {
+        width: 64px;
+        height: 128px;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+        object-fit: cover;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      }
+      .template-thumb:hover, .template-thumb.active {
+        border-color: var(--gold-dark);
+        transform: translateY(-2px);
+      }
+      .sticker-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .sticker-item {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        border: 1px solid #e6dfd5;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+      }
+      .sticker-item:hover {
+        background: #fbf9f6;
+        border-color: var(--gold-dark);
+        transform: scale(1.1);
+      }
+      .builder-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 12px;
+      }
+      .builder-input-group label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--charcoal);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .builder-input-group textarea, .builder-input-group select {
+        padding: 10px;
+        border: 1px solid #e6dfd5;
+        border-radius: 8px;
+        background: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+      }
+      .builder-input-group textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+      .text-style-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .style-btn {
+        flex: 1;
+        padding: 8px;
+        background: #fff;
+        border: 1px solid #e6dfd5;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      .style-btn.active {
+        background: var(--black);
+        color: #fff;
+        border-color: var(--black);
+      }
+      .color-size-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .color-size-row .builder-input-group {
+        margin-bottom: 0;
+        flex: 1;
+      }
+      .builder-canvas-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+      .canvas-frame {
+        background: #f0ede6;
+        padding: 16px;
+        border-radius: 20px;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.03), 0 15px 40px rgba(0,0,0,0.06);
+        position: relative;
+      }
+      canvas#cardCanvas {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        cursor: crosshair;
+        touch-action: none;
+      }
+      .canvas-hint {
+        font-size: 0.85rem;
+        color: #8c8275;
+        font-style: italic;
+        text-align: center;
+        max-width: 300px;
+      }
+      .builder-actions-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+      }
+      .builder-btn {
+        width: 100%;
+        padding: 11px;
+        border-radius: 8px;
+        font-weight: 500;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        font-size: 0.95rem;
+      }
+      .builder-btn.btn-solid {
+        background: var(--gold-dark);
+        color: #fff;
+      }
+      .builder-btn.btn-solid:hover {
+        background: #b3956d;
+      }
+      .builder-btn.btn-outline {
+        background: transparent;
+        border: 1px solid var(--gold-dark);
+        color: var(--gold-dark);
+      }
+      .builder-btn.btn-outline:hover {
+        background: #faf7f2;
+      }
+      .builder-btn.btn-danger {
+        background: #faf2f2;
+        border: 1px solid #e3c4c4;
+        color: #b84d4d;
+      }
+      .builder-btn.btn-danger:hover {
+        background: #f6e6e6;
+      }
+    </style>
+
+    <div class="card-builder-container">
+      <!-- Control Sidebar -->
+      <div class="builder-sidebar">
+        <!-- 1. Templates Selection -->
+        <div class="builder-section">
+          <h3>1. Choose Card Template</h3>
+          <div class="template-grid">
+            <img class="template-thumb active" src="/images/card_1.png" onclick="window.changeCardTemplate('/images/card_1.png', this)" alt="Vintage Envelope">
+            <img class="template-thumb" src="/images/card_2.png" onclick="window.changeCardTemplate('/images/card_2.png', this)" alt="Starry Sky">
+            <img class="template-thumb" src="/images/card_3.png" onclick="window.changeCardTemplate('/images/card_3.png', this)" alt="Classic Cream">
+            <img class="template-thumb" src="/images/card_4.png" onclick="window.changeCardTemplate('/images/card_4.png', this)" alt="Abstract Shapes">
+            <img class="template-thumb" src="/images/card_5.png" onclick="window.changeCardTemplate('/images/card_5.png', this)" alt="Pink Hearts">
+          </div>
+        </div>
+
+        <!-- 2. Text Input & Styling -->
+        <div class="builder-section">
+          <h3>2. Add Custom Text</h3>
+          <div class="builder-input-group">
+            <label for="cardTextInput">Your Greeting Message</label>
+            <textarea id="cardTextInput" placeholder="Type your message here..." oninput="window.addOrUpdateCardText()"></textarea>
+          </div>
+
+          <div class="text-style-row">
+            <button id="cardTextBold" class="style-btn" onclick="window.toggleTextStyle('bold')"><b>B</b></button>
+            <button id="cardTextItalic" class="style-btn" onclick="window.toggleTextStyle('italic')"><i>I</i></button>
+          </div>
+
+          <div class="color-size-row">
+            <div class="builder-input-group">
+              <label for="cardTextColor">Color</label>
+              <input type="color" id="cardTextColor" value="#5c5246" style="width: 100%; height: 38px; border: 1px solid #e6dfd5; border-radius: 6px; padding: 2px; cursor: pointer;" oninput="window.addOrUpdateCardText()">
+            </div>
+            <div class="builder-input-group">
+              <label for="cardFontFamily">Font</label>
+              <select id="cardFontFamily" onchange="window.addOrUpdateCardText()">
+                <option value="cormorant">Classic Serif</option>
+                <option value="jost">Modern Sans</option>
+              </select>
+            </div>
+            <div class="builder-input-group">
+              <label for="cardFontSize">Size</label>
+              <input type="range" id="cardFontSize" min="14" max="36" value="20" style="width: 100%;" oninput="window.addOrUpdateCardText()">
+            </div>
+          </div>
+
+          <button class="builder-btn btn-solid" style="padding: 9px;" onclick="window.addOrUpdateCardText()">Add / Update Text Box</button>
+        </div>
+
+        <!-- 3. Sticker Panel -->
+        <div class="builder-section">
+          <h3>3. Choose Stickers</h3>
+          <div class="sticker-grid">
+            <div class="sticker-item" onclick="window.addCardSticker('⭐')">⭐</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🚀')">🚀</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🎨')">🎨</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🕯️')">🕯️</div>
+            <div class="sticker-item" onclick="window.addCardSticker('💖')">💖</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🌸')">🌸</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🎁')">🎁</div>
+            <div class="sticker-item" onclick="window.addCardSticker('✨')">✨</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🌿')">🌿</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🧸')">🧸</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🍰')">🍰</div>
+            <div class="sticker-item" onclick="window.addCardSticker('🎈')">🎈</div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="builder-actions-grid">
+          <button class="builder-btn btn-outline btn-danger" onclick="window.deleteSelectedCardElement()">Delete Selected Item</button>
+          <button class="builder-btn btn-outline" onclick="window.clearCardCanvas()">Reset Canvas</button>
+          <button class="builder-btn btn-solid" style="background: var(--black);" onclick="window.downloadCardImage()">Download Card (PNG)</button>
+        </div>
+      </div>
+
+      <!-- Canvas Frame -->
+      <div class="builder-canvas-area">
+        <div class="canvas-frame">
+          <canvas id="cardCanvas" width="300" height="600"></canvas>
+        </div>
+        <p class="canvas-hint">
+          Click and drag stickers or text to position them on your card. Click an item to select it.
+        </p>
+      </div>
     </div>
   </section>
+
+  <script is:inline>
+    // Canvas elements state
+    var cardCanvas = null;
+    var cardCtx = null;
+    var cardBgImage = new Image();
+    var cardElements = [];
+    var cardSelectedElement = null;
+    var cardIsDragging = false;
+    var cardDragStartX = 0;
+    var cardDragStartY = 0;
+    var cardActiveTemplate = '/images/card_1.png';
+
+    // Fonts
+    var cardFonts = {
+      'cormorant': "'Cormorant Garamond', serif",
+      'jost': "'Jost', sans-serif"
+    };
+
+    function initCardBuilder() {
+      cardCanvas = document.getElementById('cardCanvas');
+      if (!cardCanvas) return;
+      cardCtx = cardCanvas.getContext('2d');
+
+      // Register interaction listeners
+      cardCanvas.removeEventListener('mousedown', onCardMouseDown);
+      cardCanvas.removeEventListener('mousemove', onCardMouseMove);
+      cardCanvas.removeEventListener('mouseup', onCardMouseUp);
+      cardCanvas.removeEventListener('mouseleave', onCardMouseUp);
+      cardCanvas.addEventListener('mousedown', onCardMouseDown);
+      cardCanvas.addEventListener('mousemove', onCardMouseMove);
+      cardCanvas.addEventListener('mouseup', onCardMouseUp);
+      cardCanvas.addEventListener('mouseleave', onCardMouseUp);
+
+      cardCanvas.removeEventListener('touchstart', onCardTouchStart);
+      cardCanvas.removeEventListener('touchmove', onCardTouchMove);
+      cardCanvas.removeEventListener('touchend', onCardTouchEnd);
+      cardCanvas.addEventListener('touchstart', onCardTouchStart, { passive: false });
+      cardCanvas.addEventListener('touchmove', onCardTouchMove, { passive: false });
+      cardCanvas.addEventListener('touchend', onCardTouchEnd, { passive: false });
+
+      // Handle template changes
+      cardBgImage.onload = function() {
+        drawCardCanvas();
+      };
+      cardBgImage.src = cardActiveTemplate;
+
+      // Set initial text controls values
+      var colorPicker = document.getElementById('cardTextColor');
+      if (colorPicker) colorPicker.value = '#5c5246';
+      
+      drawCardCanvas();
+    }
+
+    // Draw loop
+    function drawCardCanvas() {
+      if (!cardCtx || !cardCanvas) return;
+      cardCtx.clearRect(0, 0, cardCanvas.width, cardCanvas.height);
+
+      // 1. Draw template image background
+      if (cardBgImage.complete && cardBgImage.naturalWidth > 0) {
+        cardCtx.drawImage(cardBgImage, 0, 0, cardCanvas.width, cardCanvas.height);
+      } else {
+        cardCtx.fillStyle = '#faf7f2';
+        cardCtx.fillRect(0, 0, cardCanvas.width, cardCanvas.height);
+      }
+
+      // 2. Draw all elements
+      for (var i = 0; i < cardElements.length; i++) {
+        var el = cardElements[i];
+        if (el.type === 'sticker') {
+          cardCtx.font = el.size + "px Arial";
+          cardCtx.textBaseline = 'middle';
+          cardCtx.textAlign = 'center';
+          cardCtx.fillText(el.content, el.x, el.y);
+        } else if (el.type === 'text') {
+          var fontStr = (el.isItalic ? 'italic ' : '') + (el.isBold ? 'bold ' : '') + el.size + "px " + cardFonts[el.fontFamily || 'cormorant'];
+          cardCtx.font = fontStr;
+          cardCtx.fillStyle = el.color || '#5c5246';
+          cardCtx.textAlign = el.align || 'center';
+          cardCtx.textBaseline = 'top';
+
+          var lines = wrapCardText(cardCtx, el.content, el.maxWidth || 260);
+          var currentY = el.y;
+          for (var j = 0; j < lines.length; j++) {
+            cardCtx.fillText(lines[j], el.x, currentY);
+            currentY += el.size * 1.25;
+          }
+        }
+
+        // Draw bounding box if selected
+        if (el === cardSelectedElement) {
+          cardCtx.strokeStyle = '#c5a880';
+          cardCtx.lineWidth = 1.5;
+          cardCtx.setLineDash([4, 4]);
+          
+          var boxWidth = el.width + 12;
+          var boxHeight = el.height + 12;
+          cardCtx.strokeRect(el.x - boxWidth/2, el.y - (el.type === 'sticker' ? boxHeight/2 : 0) - 6, boxWidth, boxHeight);
+          cardCtx.setLineDash([]);
+        }
+      }
+    }
+
+    // wrapText helper
+    function wrapCardText(context, text, maxWidth) {
+      if (!text) return [];
+      var words = text.split(/\s+/);
+      var lines = [];
+      var currentLine = '';
+
+      for (var n = 0; n < words.length; n++) {
+        var testLine = currentLine + words[n] + ' ';
+        var metrics = context.measureText(testLine);
+        var testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+          lines.push(currentLine.trim());
+          currentLine = words[n] + ' ';
+        } else {
+          currentLine = testLine;
+        }
+      }
+      lines.push(currentLine.trim());
+      return lines;
+    }
+
+    // Calculate bounding box for hit-testing
+    function measureElement(el) {
+      if (!cardCtx) return;
+      if (el.type === 'sticker') {
+        el.width = el.size;
+        el.height = el.size;
+      } else if (el.type === 'text') {
+        var fontStr = (el.isItalic ? 'italic ' : '') + (el.isBold ? 'bold ' : '') + el.size + "px " + cardFonts[el.fontFamily || 'cormorant'];
+        cardCtx.font = fontStr;
+        var lines = wrapCardText(cardCtx, el.content, el.maxWidth || 260);
+        el.height = lines.length * (el.size * 1.25);
+        
+        var maxW = 0;
+        for (var i = 0; i < lines.length; i++) {
+          var w = cardCtx.measureText(lines[i]).width;
+          if (w > maxW) maxW = w;
+        }
+        el.width = Math.max(maxW, 40);
+      }
+    }
+
+    // Hit-testing
+    function getElementAt(x, y) {
+      for (var i = cardElements.length - 1; i >= 0; i--) {
+        var el = cardElements[i];
+        measureElement(el);
+        if (el.type === 'sticker') {
+          var radius = el.size / 2;
+          if (x >= el.x - radius - 6 && x <= el.x + radius + 6 && y >= el.y - radius - 6 && y <= el.y + radius + 6) {
+            return el;
+          }
+        } else if (el.type === 'text') {
+          var minX = el.x - el.width / 2 - 6;
+          var maxX = el.x + el.width / 2 + 6;
+          var minY = el.y - 6;
+          var maxY = el.y + el.height + 6;
+          if (x >= minX && x <= maxX && y >= minY && y <= maxY) {
+            return el;
+          }
+        }
+      }
+      return null;
+    }
+
+    // Interaction Handlers
+    function onCardMouseDown(e) {
+      var rect = cardCanvas.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+
+      var clicked = getElementAt(x, y);
+      if (clicked) {
+        cardSelectedElement = clicked;
+        cardIsDragging = true;
+        cardDragStartX = x - clicked.x;
+        cardDragStartY = y - clicked.y;
+        
+        // Update sidebar UI with values of selected element
+        if (clicked.type === 'text') {
+          document.getElementById('cardTextInput').value = clicked.content;
+          document.getElementById('cardTextColor').value = clicked.color || '#5c5246';
+          document.getElementById('cardFontSize').value = clicked.size;
+          document.getElementById('cardFontFamily').value = clicked.fontFamily || 'cormorant';
+          document.getElementById('cardTextBold').classList.toggle('active', !!clicked.isBold);
+          document.getElementById('cardTextItalic').classList.toggle('active', !!clicked.isItalic);
+        }
+      } else {
+        cardSelectedElement = null;
+      }
+      drawCardCanvas();
+    }
+
+    function onCardMouseMove(e) {
+      if (!cardIsDragging || !cardSelectedElement) return;
+      var rect = cardCanvas.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+
+      cardSelectedElement.x = x - cardDragStartX;
+      cardSelectedElement.y = y - cardDragStartY;
+      
+      // Bounds clamping
+      cardSelectedElement.x = Math.max(10, Math.min(cardCanvas.width - 10, cardSelectedElement.x));
+      cardSelectedElement.y = Math.max(10, Math.min(cardCanvas.height - 10, cardSelectedElement.y));
+
+      drawCardCanvas();
+    }
+
+    function onCardMouseUp() {
+      cardIsDragging = false;
+    }
+
+    // Touch handlers
+    function onCardTouchStart(e) {
+      if (e.touches.length === 0) return;
+      var touch = e.touches[0];
+      var rect = cardCanvas.getBoundingClientRect();
+      var x = touch.clientX - rect.left;
+      var y = touch.clientY - rect.top;
+
+      var clicked = getElementAt(x, y);
+      if (clicked) {
+        e.preventDefault(); // Prevent scrolling when dragging elements
+        cardSelectedElement = clicked;
+        cardIsDragging = true;
+        cardDragStartX = x - clicked.x;
+        cardDragStartY = y - clicked.y;
+      } else {
+        cardSelectedElement = null;
+      }
+      drawCardCanvas();
+    }
+
+    function onCardTouchMove(e) {
+      if (!cardIsDragging || !cardSelectedElement || e.touches.length === 0) return;
+      e.preventDefault();
+      var touch = e.touches[0];
+      var rect = cardCanvas.getBoundingClientRect();
+      var x = touch.clientX - rect.left;
+      var y = touch.clientY - rect.top;
+
+      cardSelectedElement.x = x - cardDragStartX;
+      cardSelectedElement.y = y - cardDragStartY;
+
+      cardSelectedElement.x = Math.max(10, Math.min(cardCanvas.width - 10, cardSelectedElement.x));
+      cardSelectedElement.y = Math.max(10, Math.min(cardCanvas.height - 10, cardSelectedElement.y));
+
+      drawCardCanvas();
+    }
+
+    function onCardTouchEnd() {
+      cardIsDragging = false;
+    }
+
+    // External Action APIs
+    window.changeCardTemplate = function(templatePath, thumbEl) {
+      cardActiveTemplate = templatePath;
+      cardBgImage.src = templatePath;
+      
+      // Manage active classes
+      var thumbs = document.querySelectorAll('.template-thumb');
+      thumbs.forEach(t => t.classList.remove('active'));
+      if (thumbEl) thumbEl.classList.add('active');
+    };
+
+    window.addCardSticker = function(emoji) {
+      var newSticker = {
+        type: 'sticker',
+        content: emoji,
+        x: 150,
+        y: 300,
+        size: 48,
+        width: 48,
+        height: 48
+      };
+      cardElements.push(newSticker);
+      cardSelectedElement = newSticker;
+      drawCardCanvas();
+    };
+
+    window.addOrUpdateCardText = function() {
+      var textInput = document.getElementById('cardTextInput');
+      var textVal = textInput ? textInput.value.trim() : '';
+      if (!textVal) return;
+
+      var colorVal = document.getElementById('cardTextColor').value;
+      var sizeVal = parseInt(document.getElementById('cardFontSize').value, 10) || 18;
+      var familyVal = document.getElementById('cardFontFamily').value;
+      var isBold = document.getElementById('cardTextBold').classList.contains('active');
+      var isItalic = document.getElementById('cardTextItalic').classList.contains('active');
+
+      if (cardSelectedElement && cardSelectedElement.type === 'text') {
+        // Update active text
+        cardSelectedElement.content = textVal;
+        cardSelectedElement.color = colorVal;
+        cardSelectedElement.size = sizeVal;
+        cardSelectedElement.fontFamily = familyVal;
+        cardSelectedElement.isBold = isBold;
+        cardSelectedElement.isItalic = isItalic;
+        measureElement(cardSelectedElement);
+      } else {
+        // Create new text
+        var newText = {
+          type: 'text',
+          content: textVal,
+          x: 150,
+          y: 200,
+          color: colorVal,
+          size: sizeVal,
+          fontFamily: familyVal,
+          isBold: isBold,
+          isItalic: isItalic,
+          maxWidth: 260
+        };
+        measureElement(newText);
+        cardElements.push(newText);
+        cardSelectedElement = newText;
+      }
+      
+      drawCardCanvas();
+    };
+
+    window.toggleTextStyle = function(styleType) {
+      var btn = document.getElementById('cardText' + styleType.charAt(0).toUpperCase() + styleType.slice(1));
+      if (btn) btn.classList.toggle('active');
+      
+      // If text element is active, apply instantly
+      if (cardSelectedElement && cardSelectedElement.type === 'text') {
+        if (styleType === 'bold') cardSelectedElement.isBold = btn.classList.contains('active');
+        if (styleType === 'italic') cardSelectedElement.isItalic = btn.classList.contains('active');
+        measureElement(cardSelectedElement);
+        drawCardCanvas();
+      }
+    };
+
+    window.deleteSelectedCardElement = function() {
+      if (!cardSelectedElement) return;
+      var idx = cardElements.indexOf(cardSelectedElement);
+      if (idx !== -1) {
+        cardElements.splice(idx, 1);
+        cardSelectedElement = null;
+        drawCardCanvas();
+      }
+    };
+
+    window.clearCardCanvas = function() {
+      if (confirm("Are you sure you want to clear your designs?")) {
+        cardElements = [];
+        cardSelectedElement = null;
+        drawCardCanvas();
+      }
+    };
+
+    window.downloadCardImage = function() {
+      // Clear selection border first
+      var prevSelection = cardSelectedElement;
+      cardSelectedElement = null;
+      drawCardCanvas();
+
+      setTimeout(function() {
+        try {
+          var dataUrl = cardCanvas.toDataURL('image/png');
+          var link = document.createElement('a');
+          link.download = 'cozy-aura-greeting-card.png';
+          link.href = dataUrl;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (err) {
+          alert("Unable to download image: " + err.message);
+        }
+        
+        // Restore selection
+        cardSelectedElement = prevSelection;
+        drawCardCanvas();
+      }, 100);
+    };
+
+    // Listen for page transitions to load card builder
+    document.addEventListener('DOMContentLoaded', function() {
+      var checkInterval = setInterval(function() {
+        if (window.showPage) {
+          clearInterval(checkInterval);
+          var _origShowPage = window.showPage;
+          window.showPage = function(pageId, updateHistory) {
+            _origShowPage(pageId, updateHistory);
+            if (pageId === 'giftCard') {
+              setTimeout(initCardBuilder, 100);
+            }
+          };
+        }
+      }, 50);
+    });
+  </script>
 
   <section id="bulkWholesale" class="active-page-section" style="display: none;">
     <div class="section-header" style="margin-bottom: 2rem;">

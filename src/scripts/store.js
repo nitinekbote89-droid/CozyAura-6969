@@ -424,8 +424,8 @@ window.showPage = function(pageId, updateHistory = true) {
     return;
   }
 
-  // Payment page requires login — if not logged in, send to cart instead
-  if (pageId === 'payment' && !window.isUserLoggedIn()) {
+  // Payment page requires a real Google login — if not logged in or logged in as mock guest, send to cart instead
+  if (pageId === 'payment' && (!window.isUserLoggedIn() || window.getLoggedInEmail() === 'cozyauracandle@gmail.com')) {
     pageId = 'cartPage';
   }
 
@@ -1893,9 +1893,9 @@ window.goToCheckout = async function() {
     return;
   }
 
-  // Require Google login for checking out
+  // Require real Google login for checking out
   const email = window.getLoggedInEmail();
-  if (!email) {
+  if (!email || email === 'cozyauracandle@gmail.com') {
     window.showConfirmModal({
       category: 'Authentication',
       title: 'Login Required',
@@ -2412,6 +2412,13 @@ window.clearUserProfileState = function() {
 
 window.showLogin = function() {
   if (window.isUserLoggedIn()) {
+    if (window.getLoggedInEmail() === 'cozyauracandle@gmail.com') {
+      localStorage.setItem('cozyaura_logged_out', 'true');
+      window.clearUserProfileState();
+      authStore.setCurrentUser(null);
+      window.loginWithGoogle();
+      return;
+    }
     localStorage.setItem('cozyaura_logged_out', 'true');
     getSupabase().then(supabase => supabase.auth.signOut());
     window.clearUserProfileState();

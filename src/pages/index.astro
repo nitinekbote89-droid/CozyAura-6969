@@ -1586,7 +1586,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <!-- Canvas Frame -->
       <div class="builder-canvas-area">
         <div class="canvas-frame">
-          <canvas id="cardCanvas" width="300" height="600"></canvas>
+          <canvas id="cardCanvas" width="900" height="1800"></canvas>
         </div>
         <p class="canvas-hint" style="margin: 0; font-size: 0.78rem;">
           Click and drag stickers or text to position them on your card. Click an item to select it.
@@ -1725,6 +1725,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       cardCanvas = document.getElementById('cardCanvas');
       if (!cardCanvas) return;
       cardCtx = cardCanvas.getContext('2d');
+      cardCtx.setTransform(1, 0, 0, 1, 0, 0);
+      cardCtx.scale(3, 3);
 
       // Register interaction listeners
       cardCanvas.removeEventListener('mousedown', onCardMouseDown);
@@ -1794,14 +1796,14 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     // Draw loop
     function drawCardCanvas() {
       if (!cardCtx || !cardCanvas) return;
-      cardCtx.clearRect(0, 0, cardCanvas.width, cardCanvas.height);
+      cardCtx.clearRect(0, 0, 300, 600);
 
       // 1. Draw template image background
       if (cardBgImage.complete && cardBgImage.naturalWidth > 0) {
-        cardCtx.drawImage(cardBgImage, 0, 0, cardCanvas.width, cardCanvas.height);
+        cardCtx.drawImage(cardBgImage, 0, 0, 300, 600);
       } else {
         cardCtx.fillStyle = '#faf7f2';
-        cardCtx.fillRect(0, 0, cardCanvas.width, cardCanvas.height);
+        cardCtx.fillRect(0, 0, 300, 600);
       }
 
       // 2. Draw all elements

@@ -1146,6 +1146,7 @@ function drawAdminOrderCard(layout) {
   const ctx = canvas.getContext('2d');
   
   const bgImg = new Image();
+  bgImg.crossOrigin = 'anonymous';
   bgImg.src = layout.template_path;
   
   const elements = layout.elements || [];
@@ -1153,6 +1154,7 @@ function drawAdminOrderCard(layout) {
   elements.forEach(el => {
     if (el.type === 'sticker') {
       const img = new Image();
+      img.crossOrigin = 'anonymous';
       img.src = el.content;
       el.imgObj = img;
       imagesToLoad.push(img);

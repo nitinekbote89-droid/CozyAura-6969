@@ -1522,6 +1522,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     var cardCanvas = null;
     var cardCtx = null;
     var cardBgImage = new Image();
+    cardBgImage.crossOrigin = 'anonymous';
     var cardElements = [];
     var cardSelectedElement = null;
     var cardIsDragging = false;
@@ -1620,6 +1621,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
             cardElements = saved.elements.map(function(el) {
               if (el.type === 'sticker') {
                 var img = new Image();
+                img.crossOrigin = 'anonymous';
                 img.src = el.content;
                 img.onload = function() { drawCardCanvas(); };
                 el.imgObj = img;
@@ -1664,6 +1666,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         if (el.type === 'sticker') {
           if (!el.imgObj) {
             el.imgObj = new Image();
+            el.imgObj.crossOrigin = 'anonymous';
             el.imgObj.src = el.content;
             el.imgObj.onload = function() {
               drawCardCanvas();
@@ -1878,6 +1881,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     window.addCardSticker = function(stickerPath) {
       var img = new Image();
+      img.crossOrigin = 'anonymous';
       img.src = stickerPath;
       
       var newSticker = {

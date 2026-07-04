@@ -2187,6 +2187,35 @@ function fileToBase64(file) {
   });
 }
 
+function fileToWebPBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target.result);
+          return;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/webp', 0.85);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => {
+        resolve(e.target.result);
+      };
+    };
+    reader.onerror = (err) => reject(err);
+  });
+}
+
 window.submitNewTemplate = async function() {
   const nameInput = document.getElementById('newTemplateName');
   const fileInput = document.getElementById('newTemplateFile');
@@ -2203,7 +2232,7 @@ window.submitNewTemplate = async function() {
   if (syncIndicator) syncIndicator.classList.add('active');
   
   try {
-    const base64Image = await fileToBase64(file);
+    const base64Image = await fileToWebPBase64(file);
     const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -2277,7 +2306,7 @@ window.submitNewSticker = async function() {
   if (syncIndicator) syncIndicator.classList.add('active');
 
   try {
-    const base64Image = await fileToBase64(file);
+    const base64Image = await fileToWebPBase64(file);
     const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

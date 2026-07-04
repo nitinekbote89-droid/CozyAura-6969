@@ -2231,6 +2231,16 @@ window.renderCheckoutSidebarItems = function() {
 
 window.executeSecurePayment = async function() {
   if (window._submittingOrder) return;
+  if (!navigator.onLine) {
+    const offlineOverlay = document.getElementById('offlineOverlay');
+    if (offlineOverlay) {
+      offlineOverlay.classList.add('active');
+    }
+    if (window.showToast) {
+      window.showToast("Cannot place order while offline. Please check your internet connection.", true);
+    }
+    return;
+  }
 
   window._submittingOrder = true;
   window.showLoadingOverlay("Processing your order...", "Please do not close the window or click back.");
@@ -2315,6 +2325,8 @@ window.executeSecurePayment = async function() {
         window.stopCheckoutTimer();
         sessionStorage.removeItem('lumiere_checkout_session');
         sessionStorage.removeItem('lumiere_applied_promo');
+        sessionStorage.removeItem('lumiere_gift_card_layout');
+        sessionStorage.removeItem('lumiere_cart_type');
         document.getElementById('celebrationOrderId').textContent = json.orderId;
         document.getElementById('successCustomerName').textContent = `${window.shippingInfo.fname} ${window.shippingInfo.lname}`;
         document.getElementById('celebrationModal').classList.add('active');
@@ -2412,6 +2424,8 @@ window.executeSecurePayment = async function() {
               window.stopCheckoutTimer();
               sessionStorage.removeItem('lumiere_checkout_session');
               sessionStorage.removeItem('lumiere_applied_promo');
+              sessionStorage.removeItem('lumiere_gift_card_layout');
+              sessionStorage.removeItem('lumiere_cart_type');
               document.getElementById('celebrationOrderId').textContent = orderJson.orderId;
               document.getElementById('successCustomerName').textContent = `${window.shippingInfo.fname} ${window.shippingInfo.lname}`;
               document.getElementById('celebrationModal').classList.add('active');

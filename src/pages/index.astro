@@ -1577,6 +1577,20 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       sessionStorage.setItem('lumiere_gift_card_layout', JSON.stringify(layoutPayload));
     }
 
+    function checkOfflineStatusAndBlock() {
+      if (!navigator.onLine) {
+        var overlay = document.getElementById('offlineOverlay');
+        if (overlay) {
+          overlay.classList.add('active');
+        }
+        if (window.showToast) {
+          window.showToast("You are offline. Please reconnect to customize your card.", true);
+        }
+        return true;
+      }
+      return false;
+    }
+
     function initCardBuilder() {
       cardCanvas = document.getElementById('cardCanvas');
       if (!cardCanvas) return;
@@ -1777,6 +1791,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     // Interaction Handlers
     function onCardMouseDown(e) {
+      if (checkOfflineStatusAndBlock()) return;
       var rect = cardCanvas.getBoundingClientRect();
       var x = e.clientX - rect.left;
       var y = e.clientY - rect.top;
@@ -1826,6 +1841,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     // Touch handlers
     function onCardTouchStart(e) {
+      if (checkOfflineStatusAndBlock()) return;
       if (e.touches.length === 0) return;
       var touch = e.touches[0];
       var rect = cardCanvas.getBoundingClientRect();
@@ -1869,6 +1885,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     // External Action APIs
     window.changeCardTemplate = function(templatePath, thumbEl) {
+      if (checkOfflineStatusAndBlock()) return;
       cardActiveTemplate = templatePath;
       cardBgImage.src = templatePath;
       
@@ -1880,6 +1897,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     };
 
     window.addCardSticker = function(stickerPath) {
+      if (checkOfflineStatusAndBlock()) return;
       var img = new Image();
       img.crossOrigin = 'anonymous';
       img.src = stickerPath;
@@ -1906,6 +1924,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     };
 
     window.addOrUpdateCardText = function() {
+      if (checkOfflineStatusAndBlock()) return;
       var textInput = document.getElementById('cardTextInput');
       var textVal = textInput ? textInput.value.trim() : '';
       if (!textVal) return;
@@ -1949,6 +1968,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     };
 
     window.toggleTextStyle = function(styleType) {
+      if (checkOfflineStatusAndBlock()) return;
       var btn = document.getElementById('cardText' + styleType.charAt(0).toUpperCase() + styleType.slice(1));
       if (btn) btn.classList.toggle('active');
       
@@ -1963,6 +1983,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     };
 
     window.deleteSelectedCardElement = function() {
+      if (checkOfflineStatusAndBlock()) return;
       if (!cardSelectedElement) return;
       var idx = cardElements.indexOf(cardSelectedElement);
       if (idx !== -1) {
@@ -1974,6 +1995,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     };
 
     window.clearCardCanvas = function() {
+      if (checkOfflineStatusAndBlock()) return;
       if (confirm("Are you sure you want to clear your designs?")) {
         cardElements = [];
         cardSelectedElement = null;

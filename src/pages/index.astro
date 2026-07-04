@@ -1486,76 +1486,88 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     <div class="card-builder-container">
       <!-- Control Sidebar -->
       <div class="builder-sidebar">
-        <!-- 1. Templates Selection -->
-        <div class="builder-section">
-          <h3>1. Choose Card Template</h3>
-           <div class="template-grid">
-            {initialCatalog?.cardTemplates && initialCatalog.cardTemplates.length > 0 ? (
-              initialCatalog.cardTemplates.map((t, idx) => (
-                <img 
-                  class={`template-thumb ${idx === 0 ? 'active' : ''}`} 
-                  src={t.image_url} 
-                  onclick={`window.changeCardTemplate('${t.image_url}', this)`} 
-                  alt={t.name}
-                />
-              ))
-            ) : (
-              <p style="grid-column: span 3; font-size: 0.85rem; color: var(--text-muted); text-align: center; margin: 8px 0;">No templates uploaded yet. Add them in the Admin Portal.</p>
-            )}
+        <!-- Sidebar Tabs -->
+        <div class="sidebar-tabs" style="display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(196,181,160,0.2); padding-bottom: 8px;">
+          <button type="button" id="tabBtnDesign" class="sidebar-tab-btn" onclick="window.switchSidebarTab('design')" style="flex: 1; padding: 6px; border: none; background: transparent; font-family: 'Jost', sans-serif; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid var(--gold-dark); color: var(--gold-dark); outline: none;">Design</button>
+          <button type="button" id="tabBtnText" class="sidebar-tab-btn" onclick="window.switchSidebarTab('text')" style="flex: 1; padding: 6px; border: none; background: transparent; font-family: 'Jost', sans-serif; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; color: var(--stone); outline: none;">Text Message</button>
+        </div>
+
+        <!-- Design Tab Content -->
+        <div id="sidebarTabDesign">
+          <!-- 1. Templates Selection -->
+          <div class="builder-section">
+            <h3>1. Choose Card Template</h3>
+             <div class="template-grid">
+              {initialCatalog?.cardTemplates && initialCatalog.cardTemplates.length > 0 ? (
+                initialCatalog.cardTemplates.map((t, idx) => (
+                  <img 
+                    class={`template-thumb ${idx === 0 ? 'active' : ''}`} 
+                    src={t.image_url} 
+                    onclick={`window.changeCardTemplate('${t.image_url}', this)`} 
+                    alt={t.name}
+                  />
+                ))
+              ) : (
+                <p style="grid-column: span 3; font-size: 0.85rem; color: var(--text-muted); text-align: center; margin: 8px 0;">No templates uploaded yet. Add them in the Admin Portal.</p>
+              )}
+            </div>
+          </div>
+
+          <!-- 3. Sticker Panel -->
+          <div class="builder-section" style="margin-bottom: 0;">
+            <h3>2. Choose Stickers</h3>
+            <div class="sticker-grid" style="display: flex; gap: 10px; flex-wrap: wrap;">
+              {initialCatalog?.stickers && initialCatalog.stickers.length > 0 ? (
+                initialCatalog.stickers.map((s) => (
+                  <img 
+                    class="sticker-item" 
+                    src={s.image_url} 
+                    onclick={`window.addCardSticker('${s.image_url}')`} 
+                    alt={s.name} 
+                    style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;"
+                  />
+                ))
+              ) : (
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 8px 0;">No stickers uploaded yet. Add them in the Admin Portal.</p>
+              )}
+            </div>
           </div>
         </div>
 
-        <!-- 2. Text Input & Styling -->
-        <div class="builder-section">
-          <h3>2. Add Custom Text</h3>
-          <div class="builder-input-group">
-            <label for="cardTextInput">Your Greeting Message</label>
-            <textarea id="cardTextInput" placeholder="Type your message here..." oninput="window.addOrUpdateCardText()"></textarea>
-          </div>
-
-          <div class="text-style-row">
-            <button id="cardTextBold" class="style-btn" onclick="window.toggleTextStyle('bold')"><b>B</b></button>
-            <button id="cardTextItalic" class="style-btn" onclick="window.toggleTextStyle('italic')"><i>I</i></button>
-          </div>
-
-          <div class="color-size-row">
+        <!-- Text Tab Content -->
+        <div id="sidebarTabContentText" style="display: none;">
+          <!-- 2. Text Input & Styling -->
+          <div class="builder-section" style="margin-bottom: 0;">
+            <h3>Add Custom Text</h3>
             <div class="builder-input-group">
-              <label for="cardTextColor">Color</label>
-              <input type="color" id="cardTextColor" value="#5c5246" style="width: 100%; height: 38px; border: 1px solid #e6dfd5; border-radius: 6px; padding: 2px; cursor: pointer;" oninput="window.addOrUpdateCardText()">
+              <label for="cardTextInput">Your Greeting Message</label>
+              <textarea id="cardTextInput" placeholder="Type your message here..." oninput="window.addOrUpdateCardText()"></textarea>
             </div>
-            <div class="builder-input-group">
-              <label for="cardFontFamily">Font</label>
-              <select id="cardFontFamily" onchange="window.addOrUpdateCardText()">
-                <option value="cormorant">Classic Serif</option>
-                <option value="jost">Modern Sans</option>
-              </select>
-            </div>
-            <div class="builder-input-group">
-              <label for="cardFontSize">Size</label>
-              <input type="range" id="cardFontSize" min="14" max="36" value="20" style="width: 100%;" oninput="window.addOrUpdateCardText()">
-            </div>
-          </div>
 
-          <button class="builder-btn btn-solid" style="padding: 9px;" onclick="window.addOrUpdateCardText()">Add / Update Text Box</button>
-        </div>
+            <div class="text-style-row">
+              <button id="cardTextBold" class="style-btn" onclick="window.toggleTextStyle('bold')"><b>B</b></button>
+              <button id="cardTextItalic" class="style-btn" onclick="window.toggleTextStyle('italic')"><i>I</i></button>
+            </div>
 
-        <!-- 3. Sticker Panel -->
-        <div class="builder-section">
-          <h3>3. Choose Stickers</h3>
-          <div class="sticker-grid" style="display: flex; gap: 10px; flex-wrap: wrap;">
-            {initialCatalog?.stickers && initialCatalog.stickers.length > 0 ? (
-              initialCatalog.stickers.map((s) => (
-                <img 
-                  class="sticker-item" 
-                  src={s.image_url} 
-                  onclick={`window.addCardSticker('${s.image_url}')`} 
-                  alt={s.name} 
-                  style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;"
-                />
-              ))
-            ) : (
-              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 8px 0;">No stickers uploaded yet. Add them in the Admin Portal.</p>
-            )}
+            <div class="color-size-row">
+              <div class="builder-input-group">
+                <label for="cardTextColor">Color</label>
+                <input type="color" id="cardTextColor" value="#5c5246" style="width: 100%; height: 38px; border: 1px solid #e6dfd5; border-radius: 6px; padding: 2px; cursor: pointer;" oninput="window.addOrUpdateCardText()">
+              </div>
+              <div class="builder-input-group">
+                <label for="cardFontFamily">Font</label>
+                <select id="cardFontFamily" onchange="window.addOrUpdateCardText()">
+                  <option value="cormorant">Classic Serif</option>
+                  <option value="jost">Modern Sans</option>
+                </select>
+              </div>
+              <div class="builder-input-group">
+                <label for="cardFontSize">Size</label>
+                <input type="range" id="cardFontSize" min="14" max="36" value="20" style="width: 100%;" oninput="window.addOrUpdateCardText()">
+              </div>
+            </div>
+
+            <button class="builder-btn btn-solid" style="padding: 9px;" onclick="window.addOrUpdateCardText()">Add / Update Text Box</button>
           </div>
         </div>
       </div>
@@ -1595,6 +1607,31 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       var modal = document.getElementById('giftCard');
       if (modal) {
         modal.classList.remove('active');
+      }
+    };
+    window.switchSidebarTab = function(tab) {
+      var designBtn = document.getElementById('tabBtnDesign');
+      var textBtn = document.getElementById('tabBtnText');
+      var designContent = document.getElementById('sidebarTabDesign');
+      var textContent = document.getElementById('sidebarTabContentText');
+      if (!designBtn || !textBtn || !designContent || !textContent) return;
+      
+      if (tab === 'design') {
+        designBtn.style.borderBottomColor = 'var(--gold-dark)';
+        designBtn.style.color = 'var(--gold-dark)';
+        textBtn.style.borderBottomColor = 'transparent';
+        textBtn.style.color = 'var(--stone)';
+        
+        designContent.style.display = 'block';
+        textContent.style.display = 'none';
+      } else {
+        textBtn.style.borderBottomColor = 'var(--gold-dark)';
+        textBtn.style.color = 'var(--gold-dark)';
+        designBtn.style.borderBottomColor = 'transparent';
+        designBtn.style.color = 'var(--stone)';
+        
+        textContent.style.display = 'block';
+        designContent.style.display = 'none';
       }
     };
 

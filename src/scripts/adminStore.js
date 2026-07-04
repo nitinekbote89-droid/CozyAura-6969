@@ -2101,3 +2101,205 @@ window.closeMessageModal = function() {
   const modal = document.getElementById('messageDetailModal');
   if (modal) modal.classList.remove('active');
 };
+
+// --- GREETING CARDS MANAGEMENT ---
+window.renderGreetingCardAssets = async function() {
+  const tBody = document.getElementById('cardTemplatesTableBody');
+  const sBody = document.getElementById('cardStickersTableBody');
+  if (!tBody || !sBody) return;
+
+  try {
+    const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=get_greeting_card_assets&t=${Date.now()}`, {
+      headers: {
+        'x-admin-secret': sessionStorage.getItem('lumiere_admin_token') || ''
+      }
+    });
+    const json = await res.json();
+    if (!json.success) {
+      tBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--danger);padding:16px;">Error: ${json.error}</td></tr>`;
+      sBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--danger);padding:16px;">Error: ${json.error}</td></tr>`;
+      return;
+    }
+
+    const { templates, stickers } = json;
+    
+    // Render templates
+    if (templates.length === 0) {
+      tBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:16px;">No background templates uploaded yet.</td></tr>`;
+    } else {
+      tBody.innerHTML = templates.map(t => {
+        return `<tr>
+          <td><img src="${t.image_url}" style="width:50px; height:80px; object-fit:cover; border-radius:4px; border:1px solid var(--border);"></td>
+          <td style="font-weight:500; vertical-align:middle;">${t.name}</td>
+          <td style="text-align:right; vertical-align:middle;">
+            <button class="btn-icon btn-icon-delete" onclick="window.deleteCardTemplate(${t.id})" title="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Render stickers
+    if (stickers.length === 0) {
+      sBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:16px;">No stamp stickers uploaded yet.</td></tr>`;
+    } else {
+      sBody.innerHTML = stickers.map(s => {
+        return `<tr>
+          <td><img src="${s.image_url}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid var(--border);"></td>
+          <td style="font-weight:500; vertical-align:middle;">${s.name}</td>
+          <td style="text-align:right; vertical-align:middle;">
+            <button class="btn-icon btn-icon-delete" onclick="window.deleteSticker(${s.id})" title="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+  } catch (err) {
+    tBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--danger);padding:16px;">Connection error.</td></tr>`;
+    sBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--danger);padding:16px;">Connection error.</td></tr>`;
+  }
+};
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+window.submitNewTemplate = async function() {
+  const nameInput = document.getElementById('newTemplateName');
+  const fileInput = document.getElementById('newTemplateFile');
+  if (!nameInput || !fileInput) return;
+
+  const name = nameInput.value.trim();
+  const file = fileInput.files[0];
+  if (!name || !file) {
+    alert("Please enter a name and choose an image file.");
+    return;
+  }
+
+  window.showLoadingOverlay("Uploading card template...", "Uploading to Cloudinary and inserting record.");
+  try {
+    const base64Image = await fileToBase64(file);
+    const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "add_card_template",
+        adminSecret: sessionStorage.getItem('lumiere_admin_token') || '',
+        name,
+        base64Image
+      })
+    });
+    const json = await res.json();
+    window.hideLoadingOverlay();
+    if (json.success) {
+      document.getElementById('addTemplateModal').classList.remove('active');
+      nameInput.value = '';
+      fileInput.value = '';
+      window.renderGreetingCardAssets();
+    } else {
+      alert("Error: " + json.error);
+    }
+  } catch (e) {
+    window.hideLoadingOverlay();
+    alert("Upload failed. Check your connection.");
+  }
+};
+
+window.deleteCardTemplate = async function(id) {
+  if (!confirm("Are you sure you want to delete this template?")) return;
+
+  window.showLoadingOverlay("Deleting template...", "Removing record and Cloudinary asset.");
+  try {
+    const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "delete_card_template",
+        adminSecret: sessionStorage.getItem('lumiere_admin_token') || '',
+        id
+      })
+    });
+    const json = await res.json();
+    window.hideLoadingOverlay();
+    if (json.success) {
+      window.renderGreetingCardAssets();
+    } else {
+      alert("Error: " + json.error);
+    }
+  } catch (e) {
+    window.hideLoadingOverlay();
+    alert("Failed to delete. Check your connection.");
+  }
+};
+
+window.submitNewSticker = async function() {
+  const nameInput = document.getElementById('newStickerName');
+  const fileInput = document.getElementById('newStickerFile');
+  if (!nameInput || !fileInput) return;
+
+  const name = nameInput.value.trim();
+  const file = fileInput.files[0];
+  if (!name || !file) {
+    alert("Please enter a name and choose an image file.");
+    return;
+  }
+
+  window.showLoadingOverlay("Uploading sticker...", "Uploading to Cloudinary and inserting record.");
+  try {
+    const base64Image = await fileToBase64(file);
+    const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "add_sticker",
+        adminSecret: sessionStorage.getItem('lumiere_admin_token') || '',
+        name,
+        base64Image
+      })
+    });
+    const json = await res.json();
+    window.hideLoadingOverlay();
+    if (json.success) {
+      document.getElementById('addStickerModal').classList.remove('active');
+      nameInput.value = '';
+      fileInput.value = '';
+      window.renderGreetingCardAssets();
+    } else {
+      alert("Error: " + json.error);
+    }
+  } catch (e) {
+    window.hideLoadingOverlay();
+    alert("Upload failed. Check your connection.");
+  }
+};
+
+window.deleteSticker = async function(id) {
+  if (!confirm("Are you sure you want to delete this sticker?")) return;
+
+  window.showLoadingOverlay("Deleting sticker...", "Removing record and Cloudinary asset.");
+  try {
+    const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "delete_sticker",
+        adminSecret: sessionStorage.getItem('lumiere_admin_token') || '',
+        id
+      })
+    });
+    const json = await res.json();
+    window.hideLoadingOverlay();
+    if (json.success) {
+      window.renderGreetingCardAssets();
+    } else {
+      alert("Error: " + json.error);
+    }
+  } catch (e) {
+    window.hideLoadingOverlay();
+    alert("Failed to delete. Check your connection.");
+  }
+};

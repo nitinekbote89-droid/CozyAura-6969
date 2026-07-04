@@ -277,6 +277,19 @@ export async function GET({ request }) {
       return await executeCloudinaryCleanup();
     }
 
+    // ─── GET GREETING CARD ASSETS ───────────────────────────────────────────
+    if (action === 'get_greeting_card_assets') {
+      const [{ data: templates, error: tErr }, { data: stickers, error: sErr }] = await Promise.all([
+        supabase.from('card_templates').select('*').order('created_at', { ascending: true }),
+        supabase.from('stickers').select('*').order('created_at', { ascending: true })
+      ]);
+      
+      if (tErr || sErr) {
+        return new Response(JSON.stringify({ success: false, error: (tErr?.message || sErr?.message) }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ success: true, templates: templates || [], stickers: stickers || [] }), { status: 200 });
+    }
+
     // ─── GET CUSTOMER PROFILE ────────────────────────────────────────────────
     if (action === 'get_customer_profile') {
       const email = (url.searchParams.get('email') || '').trim().toLowerCase();
@@ -754,6 +767,88 @@ export async function POST({ request }) {
 
     if (action === 'verify_secret') {
       return new Response(JSON.stringify({ success: true, message: "Access Authorized" }), { status: 200 });
+    }
+
+    if (action === 'add_card_template') {
+      const { name, base64Image } = data;
+      if (!name || !base64Image) {
+        return new Response(JSON.stringify({ success: false, error: "Missing required template fields." }), { status: 400 });
+      }
+      const publicId = `card_temp_${Date.now()}`;
+      const url = await uploadToCloudinary(base64Image, publicId);
+      const imageUrl = optimizeImageUrl(url, 800);
+      
+      const { data: newTemplate, error } = await supabase
+        .from('card_templates')
+        .insert([{ name, image_url: imageUrl }])
+        .select('*')
+        .single();
+        
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ success: true, template: newTemplate }), { status: 200 });
+    }
+
+    if (action === 'delete_card_template') {
+      const { id } = data;
+      if (!id) {
+        return new Response(JSON.stringify({ success: false, error: "Missing template ID." }), { status: 400 });
+      }
+      const { data: template } = await supabase.from('card_templates').select('image_url').eq('id', id).maybeSingle();
+      if (template && template.image_url) {
+        const publicId = extractPublicId(template.image_url);
+        if (publicId) {
+          await deleteFromCloudinary([publicId]);
+        }
+      }
+      
+      const { error } = await supabase.from('card_templates').delete().eq('id', id);
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (action === 'add_sticker') {
+      const { name, base64Image } = data;
+      if (!name || !base64Image) {
+        return new Response(JSON.stringify({ success: false, error: "Missing required sticker fields." }), { status: 400 });
+      }
+      const publicId = `sticker_${Date.now()}`;
+      const url = await uploadToCloudinary(base64Image, publicId);
+      const imageUrl = optimizeImageUrl(url, 200);
+      
+      const { data: newSticker, error } = await supabase
+        .from('stickers')
+        .insert([{ name, image_url: imageUrl }])
+        .select('*')
+        .single();
+        
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ success: true, sticker: newSticker }), { status: 200 });
+    }
+
+    if (action === 'delete_sticker') {
+      const { id } = data;
+      if (!id) {
+        return new Response(JSON.stringify({ success: false, error: "Missing sticker ID." }), { status: 400 });
+      }
+      const { data: sticker } = await supabase.from('stickers').select('image_url').eq('id', id).maybeSingle();
+      if (sticker && sticker.image_url) {
+        const publicId = extractPublicId(sticker.image_url);
+        if (publicId) {
+          await deleteFromCloudinary([publicId]);
+        }
+      }
+      
+      const { error } = await supabase.from('stickers').delete().eq('id', id);
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
     }
 
     if (action === 'save_product') {

@@ -36,6 +36,16 @@ async function fetchCatalogData() {
     dbVariants = data || [];
   } catch (e) {}
 
+  let cardTemplates = [], stickers = [];
+  try {
+    const [{ data: ct }, { data: st }] = await Promise.all([
+      supabase.from('card_templates').select('*').order('created_at', { ascending: true }),
+      supabase.from('stickers').select('*').order('created_at', { ascending: true })
+    ]);
+    cardTemplates = ct || [];
+    stickers = st || [];
+  } catch (e) {}
+
   const storefrontImages = sfRow?.value || null;
   let heroImageUrl = null;
   if (storefrontImages?.home_hero) {
@@ -65,7 +75,7 @@ async function fetchCatalogData() {
     };
   });
 
-  const initialCatalog = { inventory, fragrances: setRow?.value || [], coupons: dbCoupons || [], storefrontImages };
+  const initialCatalog = { inventory, fragrances: setRow?.value || [], coupons: dbCoupons || [], storefrontImages, cardTemplates, stickers };
   return { initialCatalog, heroImageUrl };
 }
 
@@ -1442,12 +1452,19 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <!-- 1. Templates Selection -->
         <div class="builder-section">
           <h3>1. Choose Card Template</h3>
-          <div class="template-grid">
-            <img class="template-thumb active" src="/images/card_1.png" onclick="window.changeCardTemplate('/images/card_1.png', this)" alt="Vintage Envelope">
-            <img class="template-thumb" src="/images/card_2.png" onclick="window.changeCardTemplate('/images/card_2.png', this)" alt="Starry Sky">
-            <img class="template-thumb" src="/images/card_3.png" onclick="window.changeCardTemplate('/images/card_3.png', this)" alt="Classic Cream">
-            <img class="template-thumb" src="/images/card_4.png" onclick="window.changeCardTemplate('/images/card_4.png', this)" alt="Abstract Shapes">
-            <img class="template-thumb" src="/images/card_5.png" onclick="window.changeCardTemplate('/images/card_5.png', this)" alt="Pink Hearts">
+           <div class="template-grid">
+            {initialCatalog?.cardTemplates && initialCatalog.cardTemplates.length > 0 ? (
+              initialCatalog.cardTemplates.map((t, idx) => (
+                <img 
+                  class={`template-thumb ${idx === 0 ? 'active' : ''}`} 
+                  src={t.image_url} 
+                  onclick={`window.changeCardTemplate('${t.image_url}', this)`} 
+                  alt={t.name}
+                />
+              ))
+            ) : (
+              <p style="grid-column: span 3; font-size: 0.85rem; color: var(--text-muted); text-align: center; margin: 8px 0;">No templates uploaded yet. Add them in the Admin Portal.</p>
+            )}
           </div>
         </div>
 
@@ -1489,11 +1506,19 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <div class="builder-section">
           <h3>3. Choose Stickers</h3>
           <div class="sticker-grid" style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <img class="sticker-item" src="/images/sticker_1.png" onclick="window.addCardSticker('/images/sticker_1.png')" alt="Butterfly" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
-            <img class="sticker-item" src="/images/sticker_2.png" onclick="window.addCardSticker('/images/sticker_2.png')" alt="Flower" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
-            <img class="sticker-item" src="/images/sticker_3.png" onclick="window.addCardSticker('/images/sticker_3.png')" alt="Gift Box" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
-            <img class="sticker-item" src="/images/sticker_4.png" onclick="window.addCardSticker('/images/sticker_4.png')" alt="Seeds" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
-            <img class="sticker-item" src="/images/sticker_5.png" onclick="window.addCardSticker('/images/sticker_5.png')" alt="Ocean Wave" style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;">
+            {initialCatalog?.stickers && initialCatalog.stickers.length > 0 ? (
+              initialCatalog.stickers.map((s) => (
+                <img 
+                  class="sticker-item" 
+                  src={s.image_url} 
+                  onclick={`window.addCardSticker('${s.image_url}')`} 
+                  alt={s.name} 
+                  style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;"
+                />
+              ))
+            ) : (
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 8px 0;">No stickers uploaded yet. Add them in the Admin Portal.</p>
+            )}
           </div>
         </div>
 
@@ -1528,7 +1553,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     var cardIsDragging = false;
     var cardDragStartX = 0;
     var cardDragStartY = 0;
-    var cardActiveTemplate = '/images/card_1.png';
+    var cardActiveTemplate = (window.__INITIAL_CATALOG__ && window.__INITIAL_CATALOG__.cardTemplates && window.__INITIAL_CATALOG__.cardTemplates.length > 0)
+      ? window.__INITIAL_CATALOG__.cardTemplates[0].image_url
+      : '';
 
     // Fonts
     var cardFonts = {

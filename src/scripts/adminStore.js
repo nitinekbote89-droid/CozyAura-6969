@@ -2180,7 +2180,9 @@ window.submitNewTemplate = async function() {
     return;
   }
 
-  window.showLoadingOverlay("Uploading card template...", "Uploading to Cloudinary and inserting record.");
+  const syncIndicator = document.getElementById('syncIndicator');
+  if (syncIndicator) syncIndicator.classList.add('active');
+  
   try {
     const base64Image = await fileToBase64(file);
     const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
@@ -2194,7 +2196,8 @@ window.submitNewTemplate = async function() {
       })
     });
     const json = await res.json();
-    window.hideLoadingOverlay();
+    if (syncIndicator) syncIndicator.classList.remove('active');
+    
     if (json.success) {
       document.getElementById('addTemplateModal').classList.remove('active');
       nameInput.value = '';
@@ -2204,7 +2207,7 @@ window.submitNewTemplate = async function() {
       alert("Error: " + json.error);
     }
   } catch (e) {
-    window.hideLoadingOverlay();
+    if (syncIndicator) syncIndicator.classList.remove('active');
     alert("Upload failed. Check your connection.");
   }
 };
@@ -2212,7 +2215,9 @@ window.submitNewTemplate = async function() {
 window.deleteCardTemplate = async function(id) {
   if (!confirm("Are you sure you want to delete this template?")) return;
 
-  window.showLoadingOverlay("Deleting template...", "Removing record and Cloudinary asset.");
+  const syncIndicator = document.getElementById('syncIndicator');
+  if (syncIndicator) syncIndicator.classList.add('active');
+
   try {
     const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
       method: "POST",
@@ -2224,14 +2229,15 @@ window.deleteCardTemplate = async function(id) {
       })
     });
     const json = await res.json();
-    window.hideLoadingOverlay();
+    if (syncIndicator) syncIndicator.classList.remove('active');
+    
     if (json.success) {
       window.renderGreetingCardAssets();
     } else {
       alert("Error: " + json.error);
     }
   } catch (e) {
-    window.hideLoadingOverlay();
+    if (syncIndicator) syncIndicator.classList.remove('active');
     alert("Failed to delete. Check your connection.");
   }
 };
@@ -2248,7 +2254,9 @@ window.submitNewSticker = async function() {
     return;
   }
 
-  window.showLoadingOverlay("Uploading sticker...", "Uploading to Cloudinary and inserting record.");
+  const syncIndicator = document.getElementById('syncIndicator');
+  if (syncIndicator) syncIndicator.classList.add('active');
+
   try {
     const base64Image = await fileToBase64(file);
     const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
@@ -2262,7 +2270,8 @@ window.submitNewSticker = async function() {
       })
     });
     const json = await res.json();
-    window.hideLoadingOverlay();
+    if (syncIndicator) syncIndicator.classList.remove('active');
+    
     if (json.success) {
       document.getElementById('addStickerModal').classList.remove('active');
       nameInput.value = '';
@@ -2272,7 +2281,7 @@ window.submitNewSticker = async function() {
       alert("Error: " + json.error);
     }
   } catch (e) {
-    window.hideLoadingOverlay();
+    if (syncIndicator) syncIndicator.classList.remove('active');
     alert("Upload failed. Check your connection.");
   }
 };
@@ -2280,7 +2289,9 @@ window.submitNewSticker = async function() {
 window.deleteSticker = async function(id) {
   if (!confirm("Are you sure you want to delete this sticker?")) return;
 
-  window.showLoadingOverlay("Deleting sticker...", "Removing record and Cloudinary asset.");
+  const syncIndicator = document.getElementById('syncIndicator');
+  if (syncIndicator) syncIndicator.classList.add('active');
+
   try {
     const res = await fetch(ADMINISTRATIVE_API_ROUTE, {
       method: "POST",
@@ -2292,14 +2303,15 @@ window.deleteSticker = async function(id) {
       })
     });
     const json = await res.json();
-    window.hideLoadingOverlay();
+    if (syncIndicator) syncIndicator.classList.remove('active');
+    
     if (json.success) {
       window.renderGreetingCardAssets();
     } else {
       alert("Error: " + json.error);
     }
   } catch (e) {
-    window.hideLoadingOverlay();
+    if (syncIndicator) syncIndicator.classList.remove('active');
     alert("Failed to delete. Check your connection.");
   }
 };

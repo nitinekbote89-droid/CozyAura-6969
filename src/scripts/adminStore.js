@@ -1120,7 +1120,7 @@ window.viewOrderDetails = async function(orderId) {
         try {
           const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=get_gift_card_layout&layoutId=${encodeURIComponent(order.giftCardLayoutId)}&t=${Date.now()}`, {
             headers: {
-              'Authorization': 'Bearer ' + sessionStorage.getItem('lumiere_admin_token')
+              'x-admin-secret': sessionStorage.getItem('lumiere_admin_secret') || ''
             }
           });
           const json = await res.json();
@@ -2111,7 +2111,7 @@ window.renderGreetingCardAssets = async function() {
   try {
     const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=get_greeting_card_assets&t=${Date.now()}`, {
       headers: {
-        'x-admin-secret': sessionStorage.getItem('lumiere_admin_token') || ''
+        'x-admin-secret': sessionStorage.getItem('lumiere_admin_secret') || ''
       }
     });
     const json = await res.json();
@@ -2188,7 +2188,7 @@ window.submitNewTemplate = async function() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "add_card_template",
-        adminSecret: sessionStorage.getItem('lumiere_admin_token') || '',
+        adminSecret: sessionStorage.getItem('lumiere_admin_secret') || '',
         name,
         base64Image
       })
@@ -2219,7 +2219,7 @@ window.deleteCardTemplate = async function(id) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "delete_card_template",
-        adminSecret: sessionStorage.getItem('lumiere_admin_token') || '',
+        adminSecret: sessionStorage.getItem('lumiere_admin_secret') || '',
         id
       })
     });
@@ -2256,7 +2256,7 @@ window.submitNewSticker = async function() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "add_sticker",
-        adminSecret: sessionStorage.getItem('lumiere_admin_token') || '',
+        adminSecret: sessionStorage.getItem('lumiere_admin_secret') || '',
         name,
         base64Image
       })
@@ -2287,7 +2287,7 @@ window.deleteSticker = async function(id) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "delete_sticker",
-        adminSecret: sessionStorage.getItem('lumiere_admin_token') || '',
+        adminSecret: sessionStorage.getItem('lumiere_admin_secret') || '',
         id
       })
     });

@@ -208,8 +208,11 @@
       <!-- Customized Gift Card Section -->
       <div id="orderModalGiftCardSection" style="display:none; margin-bottom:24px; padding:16px; border:1px solid var(--border); border-radius:6px; background:var(--bg-main);">
          <h4 style="margin:0 0 12px 0; font-size:0.85rem; color:var(--brand); text-transform:uppercase; letter-spacing:0.05em; font-weight:600;">Customized Greeting Card</h4>
-         <div style="display:flex; justify-content:center;">
-           <canvas id="adminOrderCardCanvas" width="300" height="600" style="max-width:200px; height:auto; border:1px solid var(--border); border-radius:8px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);"></canvas>
+         <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+           <canvas id="adminOrderCardCanvas" width="900" height="1800" style="max-width:200px; aspect-ratio:1/2; height:auto; border:1px solid var(--border); border-radius:8px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);"></canvas>
+           <button type="button" class="btn btn-secondary" onclick="window.downloadAttachedGiftCard()" style="padding:6px 12px; font-size:0.8rem; font-weight:600; display:flex; align-items:center; gap:6px;">
+             <span>📥</span> Download Gift Card (PNG)
+           </button>
          </div>
        </div>
 

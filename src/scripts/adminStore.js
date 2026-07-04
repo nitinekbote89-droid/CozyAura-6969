@@ -1144,6 +1144,8 @@ function drawAdminOrderCard(layout) {
   const canvas = document.getElementById('adminOrderCardCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(3, 3);
   
   const bgImg = new Image();
   bgImg.crossOrigin = 'anonymous';
@@ -1180,12 +1182,12 @@ function drawAdminOrderCard(layout) {
   });
   
   function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, 300, 600);
     if (bgImg.complete && bgImg.naturalWidth > 0) {
-      ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bgImg, 0, 0, 300, 600);
     } else {
       ctx.fillStyle = '#faf7f2';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, 300, 600);
     }
     
     elements.forEach(el => {
@@ -1226,6 +1228,23 @@ function drawAdminOrderCard(layout) {
     });
   }
 }
+
+window.downloadAttachedGiftCard = function() {
+  const canvas = document.getElementById('adminOrderCardCanvas');
+  if (!canvas) return;
+  try {
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `gift-card-order-${window.currentViewingOrderId || 'unknown'}.png`;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (err) {
+    console.error("Failed to download gift card:", err);
+    alert("Could not download gift card: " + err.message);
+  }
+};
 
 window.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('lumiere_admin_logged_in') === 'true') {

@@ -1596,7 +1596,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <button class="builder-btn btn-outline btn-danger" onclick="window.deleteSelectedCardElement()">Delete Selected Item</button>
           <button class="builder-btn btn-outline" onclick="window.clearCardCanvas()">Reset Canvas</button>
           <button class="builder-btn btn-solid" style="background: var(--black);" onclick="window.downloadCardImage()">Download Card (PNG)</button>
-          <button class="builder-btn btn-solid" style="background: var(--gold-dark); color: white;" onclick="window.closeGiftCardModal()">Save & Attach Card</button>
+          <button class="builder-btn btn-solid" style="background: var(--gold-dark); color: white;" onclick="if (typeof window.saveCardLayoutToSession === 'function') { window.saveCardLayoutToSession(); } window.closeGiftCardModal()">Save & Attach Card</button>
         </div>
       </div>
     </div>
@@ -1666,7 +1666,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       'jost': "'Jost', sans-serif"
     };
 
-    function saveCardLayoutToSession() {
+    window.saveCardLayoutToSession = function() {
       var elementsRecipe = cardElements.map(function(el) {
         var recipeEl = {
           type: el.type,

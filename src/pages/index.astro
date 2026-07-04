@@ -1286,6 +1286,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         border-radius: 8px;
         padding: 16px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        max-height: 60vh;
+        overflow-y: auto;
       }
       .builder-section {
         margin-bottom: 12px;
@@ -1436,20 +1438,25 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       }
       .builder-actions-grid {
         display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-top: 15px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+        width: 100%;
+        max-width: 320px;
+        justify-content: center;
       }
       .builder-btn {
-        width: 100%;
-        padding: 11px;
-        border-radius: 8px;
+        flex: 1;
+        min-width: 140px;
+        padding: 8px 10px;
+        border-radius: 6px;
         font-weight: 500;
         text-align: center;
         cursor: pointer;
         transition: all 0.2s;
         border: none;
-        font-size: 0.95rem;
+        font-size: 0.8rem;
       }
       .builder-btn.btn-solid {
         background: var(--gold-dark);
@@ -1551,14 +1558,6 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
             )}
           </div>
         </div>
-
-        <!-- Actions -->
-        <div class="builder-actions-grid">
-          <button class="builder-btn btn-outline btn-danger" onclick="window.deleteSelectedCardElement()">Delete Selected Item</button>
-          <button class="builder-btn btn-outline" onclick="window.clearCardCanvas()">Reset Canvas</button>
-          <button class="builder-btn btn-solid" style="background: var(--black);" onclick="window.downloadCardImage()">Download Card (PNG)</button>
-          <button class="builder-btn btn-solid" style="background: var(--gold-dark); color: white;" onclick="window.closeGiftCardModal()">Save & Attach Card</button>
-        </div>
       </div>
 
       <!-- Canvas Frame -->
@@ -1566,9 +1565,16 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <div class="canvas-frame">
           <canvas id="cardCanvas" width="300" height="600"></canvas>
         </div>
-        <p class="canvas-hint">
+        <p class="canvas-hint" style="margin: 0; font-size: 0.78rem;">
           Click and drag stickers or text to position them on your card. Click an item to select it.
         </p>
+        <!-- Actions -->
+        <div class="builder-actions-grid">
+          <button class="builder-btn btn-outline btn-danger" onclick="window.deleteSelectedCardElement()">Delete Selected Item</button>
+          <button class="builder-btn btn-outline" onclick="window.clearCardCanvas()">Reset Canvas</button>
+          <button class="builder-btn btn-solid" style="background: var(--black);" onclick="window.downloadCardImage()">Download Card (PNG)</button>
+          <button class="builder-btn btn-solid" style="background: var(--gold-dark); color: white;" onclick="window.closeGiftCardModal()">Save & Attach Card</button>
+        </div>
       </div>
     </div>
   </div>

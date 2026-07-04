@@ -1925,8 +1925,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     function onCardMouseDown(e) {
       if (checkOfflineStatusAndBlock()) return;
       var rect = cardCanvas.getBoundingClientRect();
-      var scaleX = cardCanvas.width / rect.width;
-      var scaleY = cardCanvas.height / rect.height;
+      var scaleX = 300 / rect.width;
+      var scaleY = 600 / rect.height;
       var x = (e.clientX - rect.left) * scaleX;
       var y = (e.clientY - rect.top) * scaleY;
 
@@ -1958,8 +1958,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     function onCardMouseMove(e) {
       if (!cardIsDragging || !cardSelectedElement) return;
       var rect = cardCanvas.getBoundingClientRect();
-      var scaleX = cardCanvas.width / rect.width;
-      var scaleY = cardCanvas.height / rect.height;
+      var scaleX = 300 / rect.width;
+      var scaleY = 600 / rect.height;
       var x = (e.clientX - rect.left) * scaleX;
       var y = (e.clientY - rect.top) * scaleY;
 
@@ -1967,8 +1967,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       cardSelectedElement.y = y - cardDragStartY;
       
       // Bounds clamping
-      cardSelectedElement.x = Math.max(10, Math.min(cardCanvas.width - 10, cardSelectedElement.x));
-      cardSelectedElement.y = Math.max(10, Math.min(cardCanvas.height - 10, cardSelectedElement.y));
+      cardSelectedElement.x = Math.max(10, Math.min(290, cardSelectedElement.x));
+      cardSelectedElement.y = Math.max(10, Math.min(590, cardSelectedElement.y));
 
       drawCardCanvas();
     }
@@ -1984,8 +1984,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       if (e.touches.length === 0) return;
       var touch = e.touches[0];
       var rect = cardCanvas.getBoundingClientRect();
-      var scaleX = cardCanvas.width / rect.width;
-      var scaleY = cardCanvas.height / rect.height;
+      var scaleX = 300 / rect.width;
+      var scaleY = 600 / rect.height;
       var x = (touch.clientX - rect.left) * scaleX;
       var y = (touch.clientY - rect.top) * scaleY;
 
@@ -2010,16 +2010,16 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       e.preventDefault();
       var touch = e.touches[0];
       var rect = cardCanvas.getBoundingClientRect();
-      var scaleX = cardCanvas.width / rect.width;
-      var scaleY = cardCanvas.height / rect.height;
+      var scaleX = 300 / rect.width;
+      var scaleY = 600 / rect.height;
       var x = (touch.clientX - rect.left) * scaleX;
       var y = (touch.clientY - rect.top) * scaleY;
 
       cardSelectedElement.x = x - cardDragStartX;
       cardSelectedElement.y = y - cardDragStartY;
 
-      cardSelectedElement.x = Math.max(10, Math.min(cardCanvas.width - 10, cardSelectedElement.x));
-      cardSelectedElement.y = Math.max(10, Math.min(cardCanvas.height - 10, cardSelectedElement.y));
+      cardSelectedElement.x = Math.max(10, Math.min(290, cardSelectedElement.x));
+      cardSelectedElement.y = Math.max(10, Math.min(590, cardSelectedElement.y));
 
       drawCardCanvas();
     }

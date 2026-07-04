@@ -1113,8 +1113,117 @@ window.viewOrderDetails = async function(orderId) {
       if (lockNotice) lockNotice.style.display = 'none';
     }
 
+    const cardSection = document.getElementById('orderModalGiftCardSection');
+    if (cardSection) {
+      if (order.giftCardLayoutId) {
+        cardSection.style.display = 'block';
+        try {
+          const res = await fetch(`${ADMINISTRATIVE_API_ROUTE}?action=get_gift_card_layout&layoutId=${encodeURIComponent(order.giftCardLayoutId)}&t=${Date.now()}`, {
+            headers: {
+              'Authorization': 'Bearer ' + sessionStorage.getItem('lumiere_admin_token')
+            }
+          });
+          const json = await res.json();
+          if (json.success && json.layout) {
+            drawAdminOrderCard(json.layout);
+          } else {
+            console.error("Failed to load layout:", json.error);
+          }
+        } catch (err) {
+          console.error("Error loading layout:", err);
+        }
+      } else {
+        cardSection.style.display = 'none';
+      }
+    }
+
     if (modal) modal.classList.add('active');
 };
+
+function drawAdminOrderCard(layout) {
+  const canvas = document.getElementById('adminOrderCardCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  const bgImg = new Image();
+  bgImg.src = layout.template_path;
+  
+  const elements = layout.elements || [];
+  const imagesToLoad = [];
+  elements.forEach(el => {
+    if (el.type === 'sticker') {
+      const img = new Image();
+      img.src = el.content;
+      el.imgObj = img;
+      imagesToLoad.push(img);
+    }
+  });
+  imagesToLoad.push(bgImg);
+  
+  let loadedCount = 0;
+  function onImageLoaded() {
+    loadedCount++;
+    if (loadedCount === imagesToLoad.length) {
+      render();
+    }
+  }
+  
+  imagesToLoad.forEach(img => {
+    if (img.complete) {
+      onImageLoaded();
+    } else {
+      img.onload = onImageLoaded;
+      img.onerror = onImageLoaded;
+    }
+  });
+  
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (bgImg.complete && bgImg.naturalWidth > 0) {
+      ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.fillStyle = '#faf7f2';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    elements.forEach(el => {
+      if (el.type === 'sticker') {
+        if (el.imgObj && el.imgObj.complete && el.imgObj.naturalWidth > 0) {
+          const size = el.size || 70;
+          ctx.drawImage(el.imgObj, el.x - size/2, el.y - size/2, size, size);
+        }
+      } else if (el.type === 'text') {
+        const fontStr = (el.isItalic ? 'italic ' : '') + (el.isBold ? 'bold ' : '') + el.size + "px " + (el.fontFamily === 'jost' ? "'Jost', sans-serif" : "'Cormorant Garamond', serif");
+        ctx.font = fontStr;
+        ctx.fillStyle = el.color || '#5c5246';
+        ctx.textAlign = el.align || 'center';
+        ctx.textBaseline = 'top';
+
+        const words = el.content.split(' ');
+        const lines = [];
+        let currentLine = words[0] || '';
+
+        for (let i = 1; i < words.length; i++) {
+          const word = words[i];
+          const width = ctx.measureText(currentLine + " " + word).width;
+          if (width < (el.maxWidth || 260)) {
+            currentLine += " " + word;
+          } else {
+            lines.push(currentLine);
+            currentLine = word;
+          }
+        }
+        lines.push(currentLine);
+
+        let currentY = el.y;
+        lines.forEach(line => {
+          ctx.fillText(line, el.x, currentY);
+          currentY += el.size * 1.25;
+        });
+      }
+    });
+  }
+}
 
 window.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('lumiere_admin_logged_in') === 'true') {

@@ -400,7 +400,7 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'create_payment_intent') {
-      const { items, couponCode, email, name, phone, addressId, shippingAddress, city, state, pincode, addressLabel, sessionId, deliveryMethod } = body;
+      const { items, couponCode, email, name, phone, addressId, shippingAddress, city, state, pincode, addressLabel, sessionId, deliveryMethod, giftCardLayoutId } = body;
       
       if (!items || !email || !name) {
         return new Response(JSON.stringify({ success: false, error: "Missing required fields for payment intent." }), { status: 400 });
@@ -476,7 +476,8 @@ export async function POST({ request }) {
         items_summary: itemsSummary,
         raw_items: formattedRawItems,
         // M17: Do not use email as session ID fallback — causes multi-tab lock conflicts
-        session_id: sessionId || ('sess_' + Date.now().toString(36))
+        session_id: sessionId || ('sess_' + Date.now().toString(36)),
+        gift_card_layout_id: giftCardLayoutId || null
       }]);
 
       if (intentErr) {
@@ -512,7 +513,8 @@ export async function POST({ request }) {
         addressLabel, 
         sessionId,
         couponCode,
-        deliveryMethod
+        deliveryMethod,
+        giftCardLayoutId
       } = body;
 
       // H2: Null-guard paymentId BEFORE calling .startsWith()
@@ -636,6 +638,19 @@ export async function POST({ request }) {
         }
       }
 
+      // Resolve giftCardLayoutId from payment intent if not supplied in body (for online payments)
+      let finalLayoutId = giftCardLayoutId || null;
+      if (!isCOD && razorpayOrderId && !finalLayoutId) {
+        const { data: intent } = await supabase
+          .from('payment_intents')
+          .select('gift_card_layout_id')
+          .eq('razorpay_order_id', razorpayOrderId)
+          .maybeSingle();
+        if (intent && intent.gift_card_layout_id) {
+          finalLayoutId = intent.gift_card_layout_id;
+        }
+      }
+
       const { data: orderNumber, error: rpcErr } = await supabase.rpc('place_order_securely', {
         p_payment_id: paymentId,
         p_order_id: null,
@@ -654,7 +669,8 @@ export async function POST({ request }) {
         p_items_summary: items,
         p_raw_items: formattedRawItems,
         p_session_id: lockSessionId,
-        p_razorpay_order_id: isCOD ? null : razorpayOrderId
+        p_razorpay_order_id: isCOD ? null : razorpayOrderId,
+        p_gift_card_layout_id: finalLayoutId
       });
 
       if (rpcErr) {
@@ -963,6 +979,27 @@ export async function POST({ request }) {
           customer_name: customerName,
           rating: rating, 
           comment: comment 
+        }]);
+
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    }
+
+    if (body.action === 'save_gift_card_layout') {
+      const { id, templatePath, elements } = body;
+      if (!id || !templatePath || !elements) {
+        return new Response(JSON.stringify({ success: false, error: "Missing required layout fields." }), { status: 400 });
+      }
+      
+      const { error } = await supabase
+        .from('gift_card_layouts')
+        .upsert([{
+          id,
+          template_path: templatePath,
+          elements
         }]);
 
       if (error) {

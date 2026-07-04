@@ -685,6 +685,18 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
             </div>
           </div>
 
+          <!-- Gift Card Attachment -->
+          <div class="checkout-section" id="checkoutGiftSection" style="margin-top:1.5rem; display:none;">
+            <h3 class="checkout-section-title" style="margin-bottom:0.5rem; font-family:'Jost',sans-serif; font-size:0.88rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--black); font-weight:500;">Gift Card Attachment</h3>
+            <div style="background:#faf7f2; border:1px solid #e6dfd5; padding:12px; border-radius:6px; display:flex; align-items:center; gap:12px;">
+              <div id="checkoutGiftCardIcon" style="width:40px; height:80px; border-radius:4px; border:1px solid #e6dfd5; background:#fff; background-size:cover; background-position:center; flex-shrink:0;"></div>
+              <div style="flex:1;">
+                <p id="checkoutGiftCardTitle" style="margin:0 0 4px 0; font-family:'Jost',sans-serif; font-size:0.9rem; font-weight:600; color:var(--black);">No card designed yet</p>
+                <a href="#" onclick="event.preventDefault(); window.showPage('giftCard')" style="font-size:0.8rem; color:var(--gold-dark); text-decoration:underline;">Design a Card</a>
+              </div>
+            </div>
+          </div>
+
           <!-- Shipping Method Section -->
           <div class="checkout-section" style="display: none !important;">
             <h3 class="checkout-section-title" id="shippingMethodSectionTitle">Shipping method</h3>
@@ -1523,6 +1535,47 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       'jost': "'Jost', sans-serif"
     };
 
+    function saveCardLayoutToSession() {
+      var elementsRecipe = cardElements.map(function(el) {
+        var recipeEl = {
+          type: el.type,
+          content: el.content,
+          x: el.x,
+          y: el.y,
+          size: el.size
+        };
+        if (el.type === 'text') {
+          recipeEl.color = el.color;
+          recipeEl.fontFamily = el.fontFamily;
+          recipeEl.isBold = el.isBold;
+          recipeEl.isItalic = el.isItalic;
+          recipeEl.align = el.align;
+          recipeEl.maxWidth = el.maxWidth;
+        }
+        return recipeEl;
+      });
+      
+      var currentLayoutStr = sessionStorage.getItem('lumiere_gift_card_layout');
+      var layoutId = null;
+      if (currentLayoutStr) {
+        try {
+          var parsed = JSON.parse(currentLayoutStr);
+          layoutId = parsed.id;
+        } catch (e) {}
+      }
+      if (!layoutId) {
+        layoutId = 'layout_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+      }
+      
+      var layoutPayload = {
+        id: layoutId,
+        templatePath: cardActiveTemplate,
+        elements: elementsRecipe
+      };
+      
+      sessionStorage.setItem('lumiere_gift_card_layout', JSON.stringify(layoutPayload));
+    }
+
     function initCardBuilder() {
       cardCanvas = document.getElementById('cardCanvas');
       if (!cardCanvas) return;
@@ -1544,6 +1597,40 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       cardCanvas.addEventListener('touchstart', onCardTouchStart, { passive: false });
       cardCanvas.addEventListener('touchmove', onCardTouchMove, { passive: false });
       cardCanvas.addEventListener('touchend', onCardTouchEnd, { passive: false });
+
+      // Restore layout from sessionStorage if any
+      var savedLayoutStr = sessionStorage.getItem('lumiere_gift_card_layout');
+      if (savedLayoutStr) {
+        try {
+          var saved = JSON.parse(savedLayoutStr);
+          if (saved && saved.templatePath) {
+            cardActiveTemplate = saved.templatePath;
+            
+            // Set thumbnail active class
+            var thumbs = document.querySelectorAll('.template-thumb');
+            thumbs.forEach(t => {
+              if (t.getAttribute('src') === cardActiveTemplate) {
+                t.classList.add('active');
+              } else {
+                t.classList.remove('active');
+              }
+            });
+          }
+          if (saved && Array.isArray(saved.elements)) {
+            cardElements = saved.elements.map(function(el) {
+              if (el.type === 'sticker') {
+                var img = new Image();
+                img.src = el.content;
+                img.onload = function() { drawCardCanvas(); };
+                el.imgObj = img;
+              }
+              return el;
+            });
+          }
+        } catch (e) {
+          console.error("Failed to parse saved layout from sessionStorage:", e);
+        }
+      }
 
       // Handle template changes
       cardBgImage.onload = function() {
@@ -1731,6 +1818,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     function onCardMouseUp() {
       cardIsDragging = false;
+      saveCardLayoutToSession();
     }
 
     // Touch handlers
@@ -1773,6 +1861,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     function onCardTouchEnd() {
       cardIsDragging = false;
+      saveCardLayoutToSession();
     }
 
     // External Action APIs
@@ -1784,6 +1873,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       var thumbs = document.querySelectorAll('.template-thumb');
       thumbs.forEach(t => t.classList.remove('active'));
       if (thumbEl) thumbEl.classList.add('active');
+      saveCardLayoutToSession();
     };
 
     window.addCardSticker = function(stickerPath) {
@@ -1808,6 +1898,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       cardElements.push(newSticker);
       cardSelectedElement = newSticker;
       drawCardCanvas();
+      saveCardLayoutToSession();
     };
 
     window.addOrUpdateCardText = function() {
@@ -1850,6 +1941,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       }
       
       drawCardCanvas();
+      saveCardLayoutToSession();
     };
 
     window.toggleTextStyle = function(styleType) {
@@ -1862,6 +1954,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         if (styleType === 'italic') cardSelectedElement.isItalic = btn.classList.contains('active');
         measureElement(cardSelectedElement);
         drawCardCanvas();
+        saveCardLayoutToSession();
       }
     };
 
@@ -1872,6 +1965,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         cardElements.splice(idx, 1);
         cardSelectedElement = null;
         drawCardCanvas();
+        saveCardLayoutToSession();
       }
     };
 
@@ -1880,6 +1974,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         cardElements = [];
         cardSelectedElement = null;
         drawCardCanvas();
+        saveCardLayoutToSession();
       }
     };
 

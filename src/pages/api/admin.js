@@ -322,6 +322,29 @@ export async function GET({ request }) {
       return new Response(JSON.stringify({ success: true, customer }), { status: 200 });
     }
 
+    // ─── GET GIFT CARD LAYOUT ───────────────────────────────────────────────
+    if (action === 'get_gift_card_layout') {
+      const layoutId = (url.searchParams.get('layoutId') || '').trim();
+      if (!layoutId) {
+        return new Response(JSON.stringify({ success: false, error: 'Layout ID required.' }), { status: 400 });
+      }
+
+      const { data: layout, error } = await supabase
+        .from('gift_card_layouts')
+        .select('*')
+        .eq('id', layoutId)
+        .maybeSingle();
+
+      if (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+      }
+      if (!layout) {
+        return new Response(JSON.stringify({ success: false, error: 'Layout not found.' }), { status: 404 });
+      }
+
+      return new Response(JSON.stringify({ success: true, layout }), { status: 200 });
+    }
+
     // ─── GET ORDER DETAILS ──────────────────────────────────────────────────
     if (action === 'get_order_details') {
       const orderId = (url.searchParams.get('orderId') || '').trim();
@@ -350,6 +373,7 @@ export async function GET({ request }) {
         trackingNumber: o.tracking_number, courier: o.courier,
         trackingLink: o.tracking_link || '',
         itemsSummary: o.items_summary || '',
+        giftCardLayoutId: o.gift_card_layout_id || null,
         shippingInfo: {
           fname: o.shipping_fname || '',
           lname: o.shipping_lname || '',
@@ -652,6 +676,7 @@ export async function GET({ request }) {
         trackingNumber: o.tracking_number, courier: o.courier,
         trackingLink: o.tracking_link || '',
         itemsSummary: o.items_summary || '',
+        giftCardLayoutId: o.gift_card_layout_id || null,
         shippingInfo: {
           fname: o.shipping_fname || '',
           lname: o.shipping_lname || '',

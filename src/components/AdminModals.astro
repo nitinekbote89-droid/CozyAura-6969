@@ -204,6 +204,15 @@
         Gross Total: <span id="orderModalTotal"></span>
          </div>
       </div>
+      
+      <!-- Customized Gift Card Section -->
+      <div id="orderModalGiftCardSection" style="display:none; margin-bottom:24px; padding:16px; border:1px solid var(--border); border-radius:6px; background:var(--bg-main);">
+         <h4 style="margin:0 0 12px 0; font-size:0.85rem; color:var(--brand); text-transform:uppercase; letter-spacing:0.05em; font-weight:600;">Customized Greeting Card</h4>
+         <div style="display:flex; justify-content:center;">
+           <canvas id="adminOrderCardCanvas" width="300" height="600" style="max-width:200px; height:auto; border:1px solid var(--border); border-radius:8px; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.05);"></canvas>
+         </div>
+       </div>
+
       <div class="modal-footer" style="padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
         <button type="button" class="btn btn-primary" onclick="window.downloadInvoiceBill()">Download Bill</button>
         <button type="button" class="btn btn-secondary" onclick="window.closeOrderModal()">Dismiss Window</button>

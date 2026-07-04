@@ -2046,6 +2046,31 @@ window.proceedToPayment = async function() {
   window.checkoutStep = 'payment';
   document.getElementById('deliveryFormContainer').style.display = 'none';
   document.getElementById('paymentScreenContainer').style.display = 'block';
+
+  const isGift = sessionStorage.getItem('lumiere_cart_type') === 'gift';
+  const giftSection = document.getElementById('checkoutGiftSection');
+  if (giftSection) {
+    if (isGift) {
+      giftSection.style.display = 'block';
+      const savedLayoutStr = sessionStorage.getItem('lumiere_gift_card_layout');
+      if (savedLayoutStr) {
+        try {
+          const layout = JSON.parse(savedLayoutStr);
+          document.getElementById('checkoutGiftCardIcon').style.backgroundImage = `url(${layout.templatePath})`;
+          document.getElementById('checkoutGiftCardTitle').textContent = "Customized Gift Card Attached";
+        } catch (e) {
+          document.getElementById('checkoutGiftCardIcon').style.backgroundImage = 'none';
+          document.getElementById('checkoutGiftCardTitle').textContent = "No card designed yet";
+        }
+      } else {
+        document.getElementById('checkoutGiftCardIcon').style.backgroundImage = 'none';
+        document.getElementById('checkoutGiftCardTitle').textContent = "No card designed yet";
+      }
+    } else {
+      giftSection.style.display = 'none';
+    }
+  }
+
   window.calculatePrices();
 };
 
@@ -2209,6 +2234,39 @@ window.executeSecurePayment = async function() {
 
   window._submittingOrder = true;
   window.showLoadingOverlay("Processing your order...", "Please do not close the window or click back.");
+
+  // Save the custom card layout to the database first if cart is marked as a gift
+  let giftCardLayoutId = null;
+  const isGift = sessionStorage.getItem('lumiere_cart_type') === 'gift';
+  const savedLayoutStr = sessionStorage.getItem('lumiere_gift_card_layout');
+  if (isGift && savedLayoutStr) {
+    try {
+      const layoutData = JSON.parse(savedLayoutStr);
+      if (!layoutData.id) {
+        layoutData.id = 'layout_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+      }
+      const saveRes = await fetch(CORE_STORE_PROXY_ROUTE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save_gift_card_layout',
+          id: layoutData.id,
+          templatePath: layoutData.templatePath,
+          elements: layoutData.elements
+        })
+      });
+      const saveJson = await saveRes.json();
+      if (saveJson.success) {
+        giftCardLayoutId = layoutData.id;
+        sessionStorage.setItem('lumiere_gift_card_layout', JSON.stringify(layoutData));
+      } else {
+        console.error("Failed to save gift card layout:", saveJson.error);
+      }
+    } catch (err) {
+      console.error("Error saving gift card layout:", err);
+    }
+  }
+
   const prices = window.calculatePrices();
   const userEmail = window.getLoggedInEmail() || window.shippingInfo.email;
   const sessionToken = sessionStorage.getItem('lumiere_checkout_session') || 'session_' + Date.now() + '_' + generateSecureToken();
@@ -2241,7 +2299,8 @@ window.executeSecurePayment = async function() {
       pincode: window.shippingInfo.pincode,
       addressLabel: window.selectedAddressLabel || 'Home',
       couponCode: window.appliedPromoCode?.code || null,
-      deliveryMethod: window.deliveryMethod || 'Shipping'
+      deliveryMethod: window.deliveryMethod || 'Shipping',
+      giftCardLayoutId: giftCardLayoutId
     };
 
     try {
@@ -2287,7 +2346,8 @@ window.executeSecurePayment = async function() {
       pincode: window.shippingInfo.pincode,
       addressLabel: window.selectedAddressLabel || 'Home',
       sessionId: sessionToken,
-      deliveryMethod: window.deliveryMethod || 'Shipping'
+      deliveryMethod: window.deliveryMethod || 'Shipping',
+      giftCardLayoutId: giftCardLayoutId
     };
 
     try {
@@ -2336,7 +2396,8 @@ window.executeSecurePayment = async function() {
             pincode: window.shippingInfo.pincode,
             addressLabel: window.selectedAddressLabel || 'Home',
             couponCode: window.appliedPromoCode?.code || null,
-            deliveryMethod: window.deliveryMethod || 'Shipping'
+            deliveryMethod: window.deliveryMethod || 'Shipping',
+            giftCardLayoutId: giftCardLayoutId
           };
 
           try {

@@ -990,7 +990,7 @@ export async function POST({ request }) {
 
     if (body.action === 'save_gift_card_layout') {
       const { id, templatePath, elements } = body;
-      if (!id || !templatePath || !elements) {
+      if (!id || templatePath === undefined || !elements) {
         return new Response(JSON.stringify({ success: false, error: "Missing required layout fields." }), { status: 400 });
       }
       

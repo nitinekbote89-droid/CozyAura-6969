@@ -2260,6 +2260,7 @@ window.executeSecurePayment = async function() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'save_gift_card_layout',
+          siteToken: 'LUMIERE_STORE_2026',
           id: layoutData.id,
           templatePath: layoutData.templatePath,
           elements: layoutData.elements

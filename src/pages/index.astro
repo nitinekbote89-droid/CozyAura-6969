@@ -1531,6 +1531,17 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
                 <p style="font-size: 0.85rem; color: var(--text-muted); margin: 8px 0;">No stickers uploaded yet. Add them in the Admin Portal.</p>
               )}
             </div>
+
+            <!-- Sticker Size Control (shows when a sticker is selected) -->
+            <div id="stickerSizeControl" style="margin-top: 10px; display: none;">
+              <div class="builder-input-group" style="margin-bottom: 0;">
+                <label for="cardStickerSize" style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                  <span>Sticker Size</span>
+                  <span id="stickerSizeVal" style="font-weight: 600; color: var(--gold-dark);">70px</span>
+                </label>
+                <input type="range" id="cardStickerSize" min="30" max="150" value="70" style="width: 100%; cursor: pointer;" oninput="window.changeSelectedStickerSize(this.value)">
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1937,6 +1948,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         cardSelectedElement = null;
       }
       drawCardCanvas();
+      if (typeof window.updateSelectionUI === 'function') {
+        window.updateSelectionUI();
+      }
     }
 
     function onCardMouseMove(e) {
@@ -1984,6 +1998,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         cardSelectedElement = null;
       }
       drawCardCanvas();
+      if (typeof window.updateSelectionUI === 'function') {
+        window.updateSelectionUI();
+      }
     }
 
     function onCardTouchMove(e) {
@@ -2011,6 +2028,35 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     }
 
     // External Action APIs
+    window.updateSelectionUI = function() {
+      var stickerControl = document.getElementById('stickerSizeControl');
+      if (!stickerControl) return;
+      
+      if (cardSelectedElement && cardSelectedElement.type === 'sticker') {
+        stickerControl.style.display = 'block';
+        var sizeInput = document.getElementById('cardStickerSize');
+        var sizeValSpan = document.getElementById('stickerSizeVal');
+        if (sizeInput) sizeInput.value = cardSelectedElement.size || 70;
+        if (sizeValSpan) sizeValSpan.textContent = (cardSelectedElement.size || 70) + 'px';
+      } else {
+        stickerControl.style.display = 'none';
+      }
+    };
+
+    window.changeSelectedStickerSize = function(val) {
+      var size = parseInt(val, 10) || 70;
+      var sizeValSpan = document.getElementById('stickerSizeVal');
+      if (sizeValSpan) sizeValSpan.textContent = size + 'px';
+      
+      if (cardSelectedElement && cardSelectedElement.type === 'sticker') {
+        cardSelectedElement.size = size;
+        cardSelectedElement.width = size;
+        cardSelectedElement.height = size;
+        drawCardCanvas();
+        saveCardLayoutToSession();
+      }
+    };
+
     window.changeCardTemplate = function(templatePath, thumbEl) {
       if (checkOfflineStatusAndBlock()) return;
       cardActiveTemplate = templatePath;
@@ -2048,6 +2094,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       cardSelectedElement = newSticker;
       drawCardCanvas();
       saveCardLayoutToSession();
+      if (typeof window.updateSelectionUI === 'function') {
+        window.updateSelectionUI();
+      }
     };
 
     window.addOrUpdateCardText = function() {
@@ -2118,6 +2167,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         cardSelectedElement = null;
         drawCardCanvas();
         saveCardLayoutToSession();
+        if (typeof window.updateSelectionUI === 'function') {
+          window.updateSelectionUI();
+        }
       }
     };
 
@@ -2128,6 +2180,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         cardSelectedElement = null;
         drawCardCanvas();
         saveCardLayoutToSession();
+        if (typeof window.updateSelectionUI === 'function') {
+          window.updateSelectionUI();
+        }
       }
     };
 

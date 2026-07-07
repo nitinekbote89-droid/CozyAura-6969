@@ -1636,16 +1636,16 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
               )}
             </div>
 
-            <!-- Sticker Size Control (shows when a sticker is selected) -->
-            <div id="stickerSizeControl" style="margin-top: 10px; display: none;">
-              <div class="builder-input-group" style="margin-bottom: 0;">
-                <label for="cardStickerSize" style="display: flex; justify-content: space-between; font-size: 0.78rem;">
-                  <span>Sticker Size</span>
-                  <span id="stickerSizeVal" style="font-weight: 600; color: var(--gold-dark);">70px</span>
-                </label>
-                <input type="range" id="cardStickerSize" min="30" max="150" value="70" style="width: 100%; cursor: pointer;" oninput="window.changeSelectedStickerSize(this.value)">
-              </div>
-            </div>
+            <!-- Sticker Size Control (disabled by default, opacity 0.35) -->
+             <div id="stickerSizeControl" style="margin-top: 10px; opacity: 0.35; pointer-events: none; transition: opacity 0.2s ease;">
+               <div class="builder-input-group" style="margin-bottom: 0;">
+                 <label for="cardStickerSize" style="display: flex; justify-content: space-between; font-size: 0.78rem;">
+                   <span>Sticker Size</span>
+                   <span id="stickerSizeVal" style="font-weight: 600; color: var(--gold-dark);">70px</span>
+                 </label>
+                 <input type="range" id="cardStickerSize" min="30" max="150" value="70" style="width: 100%; cursor: pointer;" oninput="window.changeSelectedStickerSize(this.value)" disabled>
+               </div>
+             </div>
           </div>
         </div>
 
@@ -2140,15 +2140,25 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     window.updateSelectionUI = function() {
       var stickerControl = document.getElementById('stickerSizeControl');
       if (!stickerControl) return;
+      var sizeInput = document.getElementById('cardStickerSize');
+      var sizeValSpan = document.getElementById('stickerSizeVal');
       
       if (cardSelectedElement && cardSelectedElement.type === 'sticker') {
-        stickerControl.style.display = 'block';
-        var sizeInput = document.getElementById('cardStickerSize');
-        var sizeValSpan = document.getElementById('stickerSizeVal');
-        if (sizeInput) sizeInput.value = cardSelectedElement.size || 70;
+        stickerControl.style.opacity = '1';
+        stickerControl.style.pointerEvents = 'auto';
+        if (sizeInput) {
+          sizeInput.disabled = false;
+          sizeInput.value = cardSelectedElement.size || 70;
+        }
         if (sizeValSpan) sizeValSpan.textContent = (cardSelectedElement.size || 70) + 'px';
       } else {
-        stickerControl.style.display = 'none';
+        stickerControl.style.opacity = '0.35';
+        stickerControl.style.pointerEvents = 'none';
+        if (sizeInput) {
+          sizeInput.disabled = true;
+          sizeInput.value = 70;
+        }
+        if (sizeValSpan) sizeValSpan.textContent = '70px';
       }
     };
 

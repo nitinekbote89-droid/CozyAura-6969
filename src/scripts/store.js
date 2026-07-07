@@ -2338,7 +2338,8 @@ window.executeSecurePayment = async function() {
       addressLabel: window.selectedAddressLabel || 'Home',
       couponCode: window.appliedPromoCode?.code || null,
       deliveryMethod: window.deliveryMethod || 'Shipping',
-      giftCardLayoutId: giftCardLayoutId
+      giftCardLayoutId: giftCardLayoutId,
+      isGift: isGift
     };
 
     try {
@@ -2387,7 +2388,8 @@ window.executeSecurePayment = async function() {
       addressLabel: window.selectedAddressLabel || 'Home',
       sessionId: sessionToken,
       deliveryMethod: window.deliveryMethod || 'Shipping',
-      giftCardLayoutId: giftCardLayoutId
+      giftCardLayoutId: giftCardLayoutId,
+      isGift: isGift
     };
 
     try {
@@ -2437,7 +2439,8 @@ window.executeSecurePayment = async function() {
             addressLabel: window.selectedAddressLabel || 'Home',
             couponCode: window.appliedPromoCode?.code || null,
             deliveryMethod: window.deliveryMethod || 'Shipping',
-            giftCardLayoutId: giftCardLayoutId
+            giftCardLayoutId: giftCardLayoutId,
+            isGift: isGift
           };
 
           try {

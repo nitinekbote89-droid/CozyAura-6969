@@ -45,7 +45,7 @@ function getCanonicalItemsString(items) {
   return JSON.stringify(minimal);
 }
 
-async function calculateCartTotalOnServer(items, couponCode, state, pincode, deliveryMethod) {
+async function calculateCartTotalOnServer(items, couponCode, state, pincode, deliveryMethod, isGift = false) {
   if (!items || !Array.isArray(items)) return { subtotal: 0, discount: 0, shipping: 0, total: 0 };
 
   const productIds = items.map(it => it.product?.id).filter(Boolean);
@@ -110,7 +110,7 @@ async function calculateCartTotalOnServer(items, couponCode, state, pincode, del
       }
     }
   }
-  const finalTotal = Math.max(0, subtotal - discount + finalShipping);
+  const finalTotal = Math.max(0, subtotal + (isGift ? 50 : 0) - discount + finalShipping);
   return { subtotal, discount, shipping: finalShipping, total: finalTotal };
 }
 
@@ -400,7 +400,7 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'create_payment_intent') {
-      const { items, couponCode, email, name, phone, addressId, shippingAddress, city, state, pincode, addressLabel, sessionId, deliveryMethod, giftCardLayoutId } = body;
+      const { items, couponCode, email, name, phone, addressId, shippingAddress, city, state, pincode, addressLabel, sessionId, deliveryMethod, giftCardLayoutId, isGift } = body;
       
       if (!items || !email || !name) {
         return new Response(JSON.stringify({ success: false, error: "Missing required fields for payment intent." }), { status: 400 });
@@ -408,7 +408,7 @@ export async function POST({ request }) {
 
       let calculated;
       try {
-        calculated = await calculateCartTotalOnServer(items, couponCode, state, pincode, deliveryMethod);
+        calculated = await calculateCartTotalOnServer(items, couponCode, state, pincode, deliveryMethod, isGift === true || isGift === 'true');
       } catch (err) {
         return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
       }
@@ -514,7 +514,8 @@ export async function POST({ request }) {
         sessionId,
         couponCode,
         deliveryMethod,
-        giftCardLayoutId
+        giftCardLayoutId,
+        isGift
       } = body;
 
       // H2: Null-guard paymentId BEFORE calling .startsWith()
@@ -626,7 +627,7 @@ export async function POST({ request }) {
       }
       let recalculated;
       try {
-        recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode, deliveryMethod);
+        recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode, deliveryMethod, isGift === true || isGift === 'true');
       } catch (err) {
         return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
       }
@@ -684,7 +685,7 @@ export async function POST({ request }) {
       if (!isCOD) {
         await supabase.from('payment_intents').delete().eq('razorpay_order_id', razorpayOrderId);
         try {
-          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode, deliveryMethod);
+          recalculated = await calculateCartTotalOnServer(cartItems, couponCode || null, state, pincode, deliveryMethod, isGift === true || isGift === 'true');
         } catch (e) {
           recalculated = { subtotal: 0, discount: 0, shipping: 0, total: 0 };
         }

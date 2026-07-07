@@ -1703,8 +1703,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <div class="builder-actions-grid" style="margin-top: 10px; width: 100%; max-width: 100%;">
         <button class="builder-btn btn-outline btn-danger" onclick="window.deleteSelectedCardElement()">Delete Selected Item</button>
         <button class="builder-btn btn-outline" onclick="window.clearCardCanvas()">Reset Canvas</button>
-        <button class="builder-btn btn-solid" style="background: var(--black);" onclick="window.downloadCardImage()">Download Card (PNG)</button>
-        <button class="builder-btn btn-solid" style="background: var(--gold-dark); color: white;" onclick="if (typeof window.saveCardLayoutToSession === 'function') { window.saveCardLayoutToSession(); } window.closeGiftCardModal()">Save & Attach Card</button>
+        <button class="builder-btn btn-solid" style="background: var(--black); flex: 0 0 100%; width: 100%;" onclick="window.downloadCardImage()">Download Card (PNG)</button>
+        <button class="builder-btn btn-solid" style="background: var(--gold-dark); color: white; flex: 0 0 100%; width: 100%;" onclick="if (typeof window.saveCardLayoutToSession === 'function') { window.saveCardLayoutToSession(); } window.closeGiftCardModal()">Save & Attach Card</button>
       </div>
     </div>
 

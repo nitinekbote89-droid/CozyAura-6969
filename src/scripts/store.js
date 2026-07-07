@@ -2416,6 +2416,9 @@ window.executeSecurePayment = async function() {
         sessionStorage.removeItem('lumiere_applied_promo');
         sessionStorage.removeItem('lumiere_gift_card_layout');
         sessionStorage.removeItem('lumiere_cart_type');
+        if (typeof window.setCartType === 'function') {
+          window.setCartType('normal', false);
+        }
         document.getElementById('celebrationOrderId').textContent = json.orderId;
         document.getElementById('successCustomerName').textContent = `${window.shippingInfo.fname} ${window.shippingInfo.lname}`;
         document.getElementById('celebrationModal').classList.add('active');
@@ -2517,6 +2520,9 @@ window.executeSecurePayment = async function() {
               sessionStorage.removeItem('lumiere_applied_promo');
               sessionStorage.removeItem('lumiere_gift_card_layout');
               sessionStorage.removeItem('lumiere_cart_type');
+              if (typeof window.setCartType === 'function') {
+                window.setCartType('normal', false);
+              }
               document.getElementById('celebrationOrderId').textContent = orderJson.orderId;
               document.getElementById('successCustomerName').textContent = `${window.shippingInfo.fname} ${window.shippingInfo.lname}`;
               document.getElementById('celebrationModal').classList.add('active');

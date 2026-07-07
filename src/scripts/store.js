@@ -1206,6 +1206,9 @@ window.updateCart = function() {
 window.calculatePrices = function() {
   const subtotal = window.cart.reduce((sum, item) => sum + ((item.variant?.price || item.product?.price || 0) * item.quantity), 0);
   
+  const isGift = sessionStorage.getItem('lumiere_cart_type') === 'gift';
+  const giftCardFee = isGift ? 50 : 0;
+  
   // Auto-remove applied promo if cart falls below minimum order value
   if (window.appliedPromoCode) {
     const minVal = parseFloat(window.appliedPromoCode.min_order_value) || 0;
@@ -1240,7 +1243,7 @@ window.calculatePrices = function() {
   const shipState = window.shippingInfo?.state || guestState || '';
   const shipPincode = window.shippingInfo?.pincode || guestPincode || '';
   const shipping = (subtotal > 0 && hasAddress && window.deliveryMethod !== 'Pickup' && !isFreeShipCoupon) ? window.getShippingCharge(shipState, shipPincode) : 0;
-  let total = Math.max(0, subtotal - discount + shipping);
+  let total = Math.max(0, subtotal + giftCardFee - discount + shipping);
 
   if (document.getElementById('summaryTotal')) {
     document.getElementById('summaryShipping').textContent = window.deliveryMethod === 'Pickup' 
@@ -1249,6 +1252,17 @@ window.calculatePrices = function() {
           ? 'Free (Promo)' 
           : (hasAddress ? `₹${shipping}` : 'Calculated at checkout'));
     document.getElementById('summarySubtotal').textContent = `₹${subtotal}`;
+    
+    const summaryGiftCardLine = document.getElementById('summaryGiftCardLine');
+    if (summaryGiftCardLine) {
+      if (giftCardFee > 0) {
+        summaryGiftCardLine.style.display = 'flex';
+        document.getElementById('summaryGiftCard').textContent = `₹${giftCardFee}`;
+      } else {
+        summaryGiftCardLine.style.display = 'none';
+      }
+    }
+    
     document.getElementById('summaryTotal').textContent = `₹${total}`;
     const summaryShippingLine = document.getElementById('summaryShipping').parentElement;
     if (summaryShippingLine) {
@@ -1288,6 +1302,17 @@ window.calculatePrices = function() {
   // Update Shopify-like checkout sidebar breakdown
   if (document.getElementById('checkoutSidebarTotal')) {
     document.getElementById('checkoutSidebarSubtotal').textContent = `₹${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    
+    const sidebarGiftCardRow = document.getElementById('checkoutSidebarGiftCardRow');
+    const sidebarGiftCardEl = document.getElementById('checkoutSidebarGiftCard');
+    if (sidebarGiftCardRow && sidebarGiftCardEl) {
+      if (giftCardFee > 0) {
+        sidebarGiftCardRow.style.display = 'flex';
+        sidebarGiftCardEl.textContent = `₹${giftCardFee.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      } else {
+        sidebarGiftCardRow.style.display = 'none';
+      }
+    }
     
     const shippingEl = document.getElementById('checkoutSidebarShipping');
     if (shippingEl) {
@@ -1332,7 +1357,7 @@ window.calculatePrices = function() {
     }
   }
 
-  return { subtotal, discount, shipping, total };
+  return { subtotal, discount, shipping, total, giftCardFee };
 };
 
 window.setDeliveryMethod = function(method) {
@@ -2300,8 +2325,8 @@ window.executeSecurePayment = async function() {
       total: `₹${prices.total}`,
       phone: window.shippingInfo.phone,
       shippingAddress: window.shippingInfo.address,
-      items: window.cart.map(i => `${i.product.name} (${i.variant.name}) x${i.quantity}`).join(', '),
-      rawItems: { items: window.cart, subtotal: prices.subtotal, total: prices.total },
+      items: window.cart.map(i => `${i.product.name} (${i.variant.name}) x${i.quantity}`).join(', ') + (giftCardLayoutId ? ', Personalized Gift Card' : ''),
+      rawItems: { items: window.cart, subtotal: prices.subtotal, giftCardFee: prices.giftCardFee, total: prices.total },
       addressId: window.selectedAddressId || null,
       fname: window.shippingInfo.fname,
       lname: window.shippingInfo.lname,
@@ -2399,8 +2424,8 @@ window.executeSecurePayment = async function() {
             total: `₹${prices.total}`,
             phone: window.shippingInfo.phone,
             shippingAddress: window.shippingInfo.address,
-            items: window.cart.map(i => `${i.product.name} (${i.variant.name}) x${i.quantity}`).join(', '),
-            rawItems: { items: window.cart, subtotal: prices.subtotal, total: prices.total },
+            items: window.cart.map(i => `${i.product.name} (${i.variant.name}) x${i.quantity}`).join(', ') + (giftCardLayoutId ? ', Personalized Gift Card' : ''),
+            rawItems: { items: window.cart, subtotal: prices.subtotal, giftCardFee: prices.giftCardFee, total: prices.total },
             addressId: window.selectedAddressId || null,
             fname: window.shippingInfo.fname,
             lname: window.shippingInfo.lname,
@@ -3352,6 +3377,19 @@ window.showOrderDetail = function(id, isAuto) {
     });
   }
 
+  var rawItemsObj = null;
+  if (order.rawItems) {
+    if (typeof order.rawItems === 'string') {
+      try { rawItemsObj = JSON.parse(order.rawItems); } catch(e) {}
+    } else {
+      rawItemsObj = order.rawItems;
+    }
+  }
+  var giftCardFee = 0;
+  if (rawItemsObj && rawItemsObj.giftCardFee) {
+    giftCardFee = parseFloat(rawItemsObj.giftCardFee) || 0;
+  }
+
   var subtotal = itemsBreakdown.reduce(function(sum, item) {
     return sum + (parseFloat(item.price) * item.quantity);
   }, 0);
@@ -3359,7 +3397,7 @@ window.showOrderDetail = function(id, isAuto) {
   var totalStr = order.total.replace(/[^0-9.]/g, '');
   var total = parseFloat(totalStr) || 0;
   var shipping = parseFloat(order.shipping) || 0;
-  var discount = Math.max(0, subtotal + shipping - total);
+  var discount = Math.max(0, subtotal + giftCardFee + shipping - total);
 
   var itemsHtml = '';
   if (itemsBreakdown.length > 0) {
@@ -3383,6 +3421,11 @@ window.showOrderDetail = function(id, isAuto) {
           '<span>Subtotal</span>' +
           '<span>₹' + subtotal + '</span>' +
         '</div>' +
+        (giftCardFee > 0 ? 
+        ('<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--stone);">' +
+          '<span>Personalized Gift Card</span>' +
+          '<span>₹' + giftCardFee + '</span>' +
+        '</div>') : '') +
         (discount > 0 ? 
         ('<div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--danger);">' +
           '<span>Discount</span>' +

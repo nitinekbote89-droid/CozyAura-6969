@@ -696,13 +696,32 @@ window.downloadInvoiceBill = function() {
     doc.text('Total', 175, y, { align: 'right' });
     y += 7;
 
+    let items = order.items || [];
+    if (items.length === 0 && order.itemsSummary) {
+        items = order.itemsSummary.split(', ').map(raw => {
+            const match = raw.match(/^(.*?)\s*\((.*?)\)\s*x(\d+)$/);
+            if (match) {
+                const pName = match[1].trim();
+                const vName = match[2].trim();
+                const qty = parseInt(match[3]) || 1;
+                const invItem = inventory.find(p => p.name.toLowerCase() === pName.toLowerCase());
+                const price = invItem ? invItem.price : 0;
+                return { product: { name: pName }, variant: { name: vName }, quantity: qty, price: price };
+            }
+            if (raw.toLowerCase().includes('personalized gift card')) {
+                return { product: { name: 'Personalized Gift Card' }, variant: { name: 'Custom' }, quantity: 1, price: 50 };
+            }
+            return { product: { name: raw }, variant: { name: 'Standard' }, quantity: 1, price: 0 };
+        });
+    }
+
     doc.setFont('helvetica', 'normal');
-    for (const item of (order.items || [])) {
+    for (const item of items) {
         const invItem = inventory.find(p => String(p.id) === String(item.product?.id || item.id));
         const productName = item.product?.name || item.name || 'Product';
         const chosenFragrance = item.variant?.name || item.chosenFragrance || 'Standard';
         const category = item.product?.category || item.category || (invItem ? invItem.category : '') || '';
-        const itemPrice = parseInt(item.product?.price || item.price) || 0;
+        const itemPrice = parseInt(item.price || item.product?.price || 0) || 0;
         const subtotal = itemPrice * item.quantity;
 
         if (y > 260) { doc.addPage(); y = 20; }
@@ -735,7 +754,7 @@ window.downloadInvoiceBill = function() {
     let shippingAmt = parseFloat(order.shipping) || 0;
     let subtotalAmt = orderTotal + discountAmt - shippingAmt;
     if (discountAmt === 0 && shippingAmt === 0) {
-      const itemsSubtotal = (order.items || []).reduce((sum, it) => sum + ((parseInt(it.variant?.price || it.product?.price || it.price) || 0) * it.quantity), 0);
+      const itemsSubtotal = items.reduce((sum, it) => sum + ((parseInt(it.price || it.variant?.price || it.product?.price) || 0) * it.quantity), 0);
       if (itemsSubtotal > 0 && itemsSubtotal !== orderTotal) {
         subtotalAmt = itemsSubtotal;
         shippingAmt = orderTotal - itemsSubtotal;
@@ -1030,6 +1049,9 @@ window.viewOrderDetails = async function(orderId) {
                 const invItem = inv.find(p => p.name.toLowerCase() === pName.toLowerCase());
                 const price = invItem ? invItem.price : 0;
                 return { product: { name: pName }, variant: { name: vName }, quantity: qty, _price: price };
+            }
+            if (raw.toLowerCase().includes('personalized gift card')) {
+                return { product: { name: 'Personalized Gift Card' }, variant: { name: 'Custom' }, quantity: 1, _price: 50 };
             }
             return { product: { name: raw }, variant: { name: 'Standard' }, quantity: 1, _price: 0 };
         });

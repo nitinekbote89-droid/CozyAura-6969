@@ -226,6 +226,10 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         window.openGiftCardModal();
       }
     }
+
+    if (typeof window.calculatePrices === 'function') {
+      window.calculatePrices();
+    }
   };
   document.addEventListener('DOMContentLoaded', function() {
     var savedCartType = sessionStorage.getItem('lumiere_cart_type') || 'normal';
@@ -502,6 +506,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <!-- Applied Promo Badge / info if any -->
         <div id="cartAppliedPromoContainer"></div>
         <div class="summary-line"><span>Subtotal</span><span id="summarySubtotal">₹0</span></div>
+        <div class="summary-line" id="summaryGiftCardLine" style="display:none;"><span>Personalized Gift Card</span><span id="summaryGiftCard">₹50</span></div>
         <div class="summary-line"><span>Shipping Freight</span><span id="summaryShipping">₹0</span></div>
         <div class="summary-line" id="summaryPromoLine" style="display:none;"><span>Promo</span><span id="summaryPromo">—</span></div>
         <div class="summary-line total"><span>Total</span><span id="summaryTotal">₹0</span></div>
@@ -799,6 +804,10 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
             <div class="breakdown-row">
               <span>Subtotal</span>
               <span id="checkoutSidebarSubtotal">₹0.00</span>
+            </div>
+            <div class="breakdown-row" id="checkoutSidebarGiftCardRow" style="display: none;">
+              <span>Personalized Gift Card</span>
+              <span id="checkoutSidebarGiftCard">₹50.00</span>
             </div>
             <div class="breakdown-row">
               <span>Shipping</span>
@@ -1714,6 +1723,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
   <script is:inline>
     window.openGiftCardModal = function() {
+      if (typeof window.setCartType === 'function') {
+        window.setCartType('gift', false);
+      }
       var modal = document.getElementById('giftCard');
       if (modal) {
         modal.classList.add('active');

@@ -202,7 +202,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
   window.handleBottomNavClick = window.handleBottomNavClick || function handleBottomNavClick(pageId, element) {
     window.showPage(pageId);
   };
-  window.setCartType = function(type) {
+  window.setCartType = function(type, openModal = true) {
     var highlight = document.getElementById('cartTypeHighlight');
     var normalText = document.getElementById('toggleNormal');
     var giftText = document.getElementById('toggleGift');
@@ -222,7 +222,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       giftText.style.color = 'var(--black)';
       giftText.style.fontWeight = '600';
       sessionStorage.setItem('lumiere_cart_type', 'gift');
-      if (typeof window.openGiftCardModal === 'function') {
+      if (openModal && typeof window.openGiftCardModal === 'function') {
         window.openGiftCardModal();
       }
     }
@@ -230,7 +230,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
   document.addEventListener('DOMContentLoaded', function() {
     var savedCartType = sessionStorage.getItem('lumiere_cart_type') || 'normal';
     setTimeout(function() {
-      window.setCartType(savedCartType);
+      window.setCartType(savedCartType, false);
     }, 50);
   });
   </script>

@@ -14,5 +14,8 @@
     "astro": "^5.0.0",
     "jspdf": "^4.2.1",
     "playwright": "^1.61.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }

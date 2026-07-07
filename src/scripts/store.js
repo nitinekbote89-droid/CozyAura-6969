@@ -60,7 +60,7 @@ window.isUserLoggedIn = () => !!authStore.getCurrentUser();
   legacyKeys.forEach(key => localStorage.removeItem(key));
 })();
 
-window.STORE_PICKUP_ADDRESS = "Lumière Studio, Koregaon Park, Pune, Maharashtra - 411001";
+window.STORE_PICKUP_ADDRESS = "Cozy Aura Studio (2nd floor), above Vikrant Agencies, Subhash Chowk, Gunj Golai, Latur - 413512, Maharashtra, India";
 window.deliveryMethod = "Shipping";
 
 window.showLoadingOverlay = function(text, subtext) {
@@ -1370,7 +1370,7 @@ window.setDeliveryMethod = function(method) {
       pickupCard.style.display = 'block';
       const addressText = document.getElementById('pickupAddressText');
       if (addressText) {
-        addressText.textContent = window.STORE_PICKUP_ADDRESS || "Lumière Studio, Koregaon Park, Pune, Maharashtra - 411001";
+        addressText.textContent = window.STORE_PICKUP_ADDRESS || "Cozy Aura Studio (2nd floor), above Vikrant Agencies, Subhash Chowk, Gunj Golai, Latur - 413512, Maharashtra, India";
       }
     }
     
@@ -1420,8 +1420,8 @@ window.setDeliveryMethod = function(method) {
     const stateField = document.getElementById('state');
     
     if (addrField) addrField.value = "Self Pickup In Store";
-    if (pinField) pinField.value = "411001";
-    if (cityField) cityField.value = "Pune";
+    if (pinField) pinField.value = "413512";
+    if (cityField) cityField.value = "Latur";
     if (stateField) stateField.value = "maharashtra";
     
   } else {
@@ -1450,8 +1450,8 @@ window.setDeliveryMethod = function(method) {
     const stateField = document.getElementById('state');
     
     if (addrField && addrField.value === "Self Pickup In Store") addrField.value = "";
-    if (pinField && pinField.value === "411001") pinField.value = "";
-    if (cityField && cityField.value === "Pune") cityField.value = "";
+    if (pinField && pinField.value === "413512") pinField.value = "";
+    if (cityField && cityField.value === "Latur") cityField.value = "";
     if (stateField && stateField.value === "maharashtra") stateField.value = "";
     
     // Restore normal prefill state (saved addresses vs form)
@@ -1968,9 +1968,9 @@ window.proceedToPayment = async function() {
       lname: document.getElementById('lname').value,
       email: document.getElementById('email').value || loggedInEmail,
       address: window.STORE_PICKUP_ADDRESS,
-      city: "Pune",
+      city: "Latur",
       state: "maharashtra",
-      pincode: "411001",
+      pincode: "413512",
       phone: document.getElementById('phone').value
     };
     window.selectedAddressId = null;
@@ -3472,7 +3472,7 @@ window.showOrderDetail = function(id, isAuto) {
           '<div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Pickup Location</div>' +
           '<div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">' +
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
-            'CozyAura Studio, Koregaon Park, Pune' +
+            'Cozy Aura Studio, Gunj Golai, Latur' +
           '</div>' +
         '</div>' +
         '<div style="text-align:right;">' +
@@ -3559,7 +3559,7 @@ window.trackPackage = async function(e) {
                 <div style="font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--stone); margin-bottom:0.25rem; font-weight:500;">Pickup Location</div>
                 <div style="font-size:0.9rem; color:var(--charcoal); font-weight:400; display:flex; align-items:center; gap:0.4rem;">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  Lumière Studio, Koregaon Park, Pune
+                  Cozy Aura Studio, Gunj Golai, Latur
                 </div>
               </div>
               <div style="text-align:right;">

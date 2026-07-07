@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const SITE_URL = 'http://localhost:4321';
+const SITE_URL = 'https://cozyaura-6969-production.up.railway.app';
 
 test.describe('Cozy Aura Storefront Checkout with Greeting Card', () => {
   

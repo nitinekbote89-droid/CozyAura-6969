@@ -108,13 +108,15 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
             <td style="padding:32px 40px;">
               <h2 style="margin:0 0 6px;color:#1a1a2e;font-size:20px;">Your order is ready for pickup!</h2>
               <p style="margin:0 0 16px;color:#6b5d53;font-size:15px;line-height:1.5;">
-                Hi ${name}, your order <strong style="color:#1a1a2e;">${orderId}</strong> is ready for pickup at our Koregaon Park studio.
+                Hi ${name}, your order <strong style="color:#1a1a2e;">${orderId}</strong> is ready for pickup at Cozy Aura Studio.
               </p>
               <div style="background:#fcf9f5; border:1px solid #e8e0d6; padding:16px; border-radius:6px; margin-top:16px;">
                 <p style="margin:0 0 8px; color:#1a1a2e; font-size:14px; font-weight:bold;">Pickup Location:</p>
                 <p style="margin:0 0 16px; color:#6b5d53; font-size:14px; line-height:1.4;">
-                  CozyAura Studio, Koregaon Park,<br>
-                  Pune, Maharashtra - 411001
+                  Cozy Aura Studio (2nd floor),<br>
+                  above Vikrant Agencies, Subhash Chowk,<br>
+                  Gunj Golai, Latur - 413512,<br>
+                  Maharashtra, India
                 </p>
                 <p style="margin:0 0 8px; color:#1a1a2e; font-size:14px; font-weight:bold;">Pickup Hours:</p>
                 <p style="margin:0; color:#6b5d53; font-size:14px;">

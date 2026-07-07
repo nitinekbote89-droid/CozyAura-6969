@@ -1009,7 +1009,7 @@ window.viewOrderDetails = async function(orderId) {
     if (order.shippingInfo) {
         const s = order.shippingInfo;
         if (isPickup) {
-            addrParts.push(s.address || 'Lumière Studio, Koregaon Park, Pune, Maharashtra - 411001');
+            addrParts.push(s.address || 'Cozy Aura Studio (2nd floor), above Vikrant Agencies, Subhash Chowk, Gunj Golai, Latur - 413512, Maharashtra, India');
         } else {
             if (s.address) addrParts.push(s.address);
             if (s.city) addrParts.push(s.city);

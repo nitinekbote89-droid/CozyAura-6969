@@ -3,13 +3,13 @@ import { test, expect } from '@playwright/test';
 // Target the live production site
 const SITE_URL = 'https://cozyaura-6969-production.up.railway.app';
 
-test.describe('Lumière Storefront Checkout Flows', () => {
+test.describe('Cozy Aura Storefront Checkout Flows', () => {
   
   test('Should place a Self Pickup COD order successfully', async ({ page }) => {
     // 1. Open the storefront homepage
     console.log("Navigating to:", SITE_URL);
     await page.goto(SITE_URL);
-    await expect(page).toHaveTitle(/Lumière/);
+    await expect(page).toHaveTitle(/Cozy Aura/);
 
     // Wait for the initialization boot loader to disappear
     console.log("Waiting for boot loader to dismiss...");
@@ -27,17 +27,48 @@ test.describe('Lumière Storefront Checkout Flows', () => {
     await page.locator('button:has-text("Explore the Collection")').click();
     await expect(page.locator('#shop')).toBeVisible();
 
-    // 3. Open the Quickview modal for the first product by clicking its card
-    console.log("Opening Quickview modal by clicking the first product card...");
-    const firstProduct = page.locator('.product-card').first();
-    await firstProduct.click();
-
-    // Verify modal is open
-    await expect(page.locator('#productModalOverlay')).toHaveClass(/active/);
-
-    // 4. Select a scent variant to activate the Add to Cart button (click the visible label wrapper)
-    console.log("Selecting first scent variant label...");
-    await page.locator('.variant-radio-label').first().click();
+    // 3. Find a product card and select an in-stock variant
+    console.log("Locating product cards...");
+    const productCards = page.locator('.product-card');
+    const productCount = await productCards.count();
+    let foundProductWithStock = false;
+    
+    for (let p = 0; p < productCount; p++) {
+      console.log(`Opening Quickview modal for product card index: ${p}`);
+      await productCards.nth(p).click();
+      
+      // Verify modal is open
+      await expect(page.locator('#productModalOverlay')).toHaveClass(/active/);
+      
+      // Select an in-stock scent variant
+      console.log("Checking variants...");
+      const variantLabels = page.locator('.variant-radio-label');
+      const variantCount = await variantLabels.count();
+      let foundInStock = false;
+      for (let i = 0; i < variantCount; i++) {
+        await variantLabels.nth(i).click();
+        const btnText = await page.locator('#addToCartBtn').textContent();
+        if (btnText && btnText.toLowerCase().includes('add to cart')) {
+          foundInStock = true;
+          console.log(`Selected in-stock variant at index: ${i}`);
+          break;
+        }
+      }
+      
+      if (foundInStock) {
+        foundProductWithStock = true;
+        break; // Keep the modal open and proceed with this product
+      } else {
+        console.log(`Product at index ${p} has no in-stock variants. Closing modal to try next product...`);
+        await page.locator('#productModalOverlay .close-modal-btn').click({ force: true });
+        // Wait a small moment for overlay transition
+        await page.waitForTimeout(500);
+      }
+    }
+    
+    if (!foundProductWithStock) {
+      throw new Error("No products with in-stock variants found in the entire catalog!");
+    }
 
     // 5. Add to Cart
     console.log("Adding product to cart...");
@@ -78,7 +109,7 @@ test.describe('Lumière Storefront Checkout Flows', () => {
 
     // 11. Select Cash on Delivery (COD) payment option
     console.log("Selecting Cash on Delivery (COD)...");
-    await page.locator('text=Cash on Delivery (COD)').click();
+    await page.locator('span.payment-method-title:has-text("Cash on Delivery (COD)")').click();
 
     // 12. Pay Now / Place Order
     console.log("Submitting order...");

@@ -235,7 +235,7 @@ window.currentProduct = null;
 window.selectedVariant = null;
 window.activeCategory = 'all';
 window.PROMOS = [];
-let pages = ['home', 'shop', 'cartPage', 'payment', 'trackPage', 'about', 'contact', 'ordersPage', 'addressesPage', 'wishlistPage', 'shipping', 'returns', 'privacy', 'terms', 'faq', 'candleCare', 'bulkWholesale'];
+let pages = ['home', 'shop', 'cartPage', 'payment', 'trackPage', 'about', 'contact', 'ordersPage', 'addressesPage', 'wishlistPage', 'shipping', 'returns', 'privacy', 'terms', 'faq', 'candleCare', 'giftCardPage', 'bulkWholesale'];
 let categories = ['all'];
 
 function toTitleCase(str) {

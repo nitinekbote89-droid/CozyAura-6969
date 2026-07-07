@@ -2316,13 +2316,31 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     window.clearCardCanvas = function() {
       if (checkOfflineStatusAndBlock()) return;
-      if (confirm("Are you sure you want to clear your designs?")) {
-        cardElements = [];
-        cardSelectedElement = null;
-        drawCardCanvas();
-        saveCardLayoutToSession();
-        if (typeof window.updateSelectionUI === 'function') {
-          window.updateSelectionUI();
+      if (typeof window.showConfirmModal === 'function') {
+        window.showConfirmModal({
+          category: 'Card Designer',
+          title: 'Clear Canvas?',
+          text: 'Are you sure you want to clear your designs?',
+          confirmText: 'Clear',
+          onConfirm: () => {
+            cardElements = [];
+            cardSelectedElement = null;
+            drawCardCanvas();
+            saveCardLayoutToSession();
+            if (typeof window.updateSelectionUI === 'function') {
+              window.updateSelectionUI();
+            }
+          }
+        });
+      } else {
+        if (confirm("Are you sure you want to clear your designs?")) {
+          cardElements = [];
+          cardSelectedElement = null;
+          drawCardCanvas();
+          saveCardLayoutToSession();
+          if (typeof window.updateSelectionUI === 'function') {
+            window.updateSelectionUI();
+          }
         }
       }
     };

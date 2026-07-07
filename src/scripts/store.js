@@ -2014,23 +2014,51 @@ window.updateGiftCardCheckoutSection = function() {
 };
 
 window.detachGiftCard = function() {
-  if (confirm("Are you sure you want to remove the gift card from this order?")) {
-    sessionStorage.removeItem('lumiere_gift_card_layout');
-    if (typeof window.setCartType === 'function') {
-      window.setCartType('normal', false);
-    }
-    if (typeof window.updateGiftCardCheckoutSection === 'function') {
-      window.updateGiftCardCheckoutSection();
-    }
-    var highlight = document.getElementById('cartTypeHighlight');
-    var normalText = document.getElementById('toggleNormal');
-    var giftText = document.getElementById('toggleGift');
-    if (highlight && normalText && giftText) {
-      highlight.style.transform = 'translateX(0)';
-      normalText.style.color = 'var(--black)';
-      normalText.style.fontWeight = '600';
-      giftText.style.color = 'var(--stone)';
-      giftText.style.fontWeight = '500';
+  if (typeof window.showConfirmModal === 'function') {
+    window.showConfirmModal({
+      category: 'Gifting',
+      title: 'Remove Gift Card?',
+      text: 'Are you sure you want to remove the gift card from this order?',
+      confirmText: 'Remove',
+      onConfirm: () => {
+        sessionStorage.removeItem('lumiere_gift_card_layout');
+        if (typeof window.setCartType === 'function') {
+          window.setCartType('normal', false);
+        }
+        if (typeof window.updateGiftCardCheckoutSection === 'function') {
+          window.updateGiftCardCheckoutSection();
+        }
+        var highlight = document.getElementById('cartTypeHighlight');
+        var normalText = document.getElementById('toggleNormal');
+        var giftText = document.getElementById('toggleGift');
+        if (highlight && normalText && giftText) {
+          highlight.style.transform = 'translateX(0)';
+          normalText.style.color = 'var(--black)';
+          normalText.style.fontWeight = '600';
+          giftText.style.color = 'var(--stone)';
+          giftText.style.fontWeight = '500';
+        }
+      }
+    });
+  } else {
+    if (confirm("Are you sure you want to remove the gift card from this order?")) {
+      sessionStorage.removeItem('lumiere_gift_card_layout');
+      if (typeof window.setCartType === 'function') {
+        window.setCartType('normal', false);
+      }
+      if (typeof window.updateGiftCardCheckoutSection === 'function') {
+        window.updateGiftCardCheckoutSection();
+      }
+      var highlight = document.getElementById('cartTypeHighlight');
+      var normalText = document.getElementById('toggleNormal');
+      var giftText = document.getElementById('toggleGift');
+      if (highlight && normalText && giftText) {
+        highlight.style.transform = 'translateX(0)';
+        normalText.style.color = 'var(--black)';
+        normalText.style.fontWeight = '600';
+        giftText.style.color = 'var(--stone)';
+        giftText.style.fontWeight = '500';
+      }
     }
   }
 };

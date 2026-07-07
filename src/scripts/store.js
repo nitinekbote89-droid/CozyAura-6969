@@ -3426,6 +3426,9 @@ window.showOrderDetail = function(id, isAuto) {
   if (rawItemsObj && rawItemsObj.giftCardFee) {
     giftCardFee = parseFloat(rawItemsObj.giftCardFee) || 0;
   }
+  if (giftCardFee === 0 && order.itemsString && order.itemsString.toLowerCase().includes('personalized gift card')) {
+    giftCardFee = 50;
+  }
 
   var subtotal = itemsBreakdown.reduce(function(sum, item) {
     return sum + (parseFloat(item.price) * item.quantity);

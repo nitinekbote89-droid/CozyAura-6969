@@ -379,7 +379,7 @@ section.active {
 #shop.active .product-card:nth-child(4) { animation-delay: 0.45s; }
 #shop.active .product-card:nth-child(5) { animation-delay: 0.55s; }
 #shop.active .product-card:nth-child(6) { animation-delay: 0.65s; }
-.section-header { margin-bottom: 3.5rem; display: flex; align-items: flex-end; justify-content: space-between; }
+.section-header { display: flex; align-items: flex-end; justify-content: space-between; }
 .section-header h2 { font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 300; color: var(--black); line-height: 1.1; }
 .section-header h2 em { color: var(--gold-dark); font-style: italic; }
 .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap;}

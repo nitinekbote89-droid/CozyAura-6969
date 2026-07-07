@@ -182,15 +182,15 @@
       <div id="modalPickupActionSection" style="margin-bottom:24px; display:none;">
         <button type="button" class="btn btn-theme-adaptive" id="modalPickupSubmitBtn" onclick="window.saveTrackingFromModal()" style="font-size:0.9rem; padding:10px 20px; border-radius:6px; width:100%; text-align:center; display:block;"></button>
       </div>
-      <div class="table-container" style="margin-bottom:24px; border:1px solid var(--border); border-radius:6px; overflow:hidden;">
-        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+      <div class="table-container" style="margin-bottom:24px; border:1px solid var(--border); border-radius:6px; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <table style="width:100%; min-width:550px; border-collapse:collapse; font-size:0.9rem;">
           <thead>
             <tr style="background:var(--bg-main);">
-              <th style="padding:10px 16px;">Product Details</th>
-              <th style="padding:10px 16px;">Category</th>
-              <th style="padding:10px 16px;">Rate</th>
-              <th style="padding:10px 16px;">Qty</th>
-              <th style="padding:10px 16px; text-align:right;">Subtotal</th>
+              <th style="padding:10px 12px; text-align:left;">Product Details</th>
+              <th style="padding:10px 12px; text-align:left;">Category</th>
+              <th style="padding:10px 12px; text-align:left;">Rate</th>
+              <th style="padding:10px 12px; text-align:left;">Qty</th>
+              <th style="padding:10px 12px; text-align:right;">Subtotal</th>
             </tr>
           </thead>
           <tbody id="orderItemsBody"></tbody>

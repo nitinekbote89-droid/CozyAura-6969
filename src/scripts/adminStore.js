@@ -1074,11 +1074,11 @@ window.viewOrderDetails = async function(orderId) {
                 const fImgHTML = fImg ? `<img src="${fImg}" style="width:14px; height:14px; object-fit:cover; border-radius:50%; border:1px solid var(--border); vertical-align:middle; margin-right:4px;">` : '';
 
                 return `<tr>
-                    <td style="font-weight:500;text-transform:capitalize;">${productName} — <span style="text-transform:capitalize;color:var(--text-muted);font-weight:400;">${variantName}</span></td>
-                    <td style="text-transform:capitalize;">${category}</td>
-                    <td>₹${itemPrice.toLocaleString('en-IN')}</td>
-                    <td>${item.quantity}</td>
-                    <td>₹${subtotal.toLocaleString('en-IN')}</td>
+                    <td style="padding:10px 12px; font-weight:500; text-transform:capitalize;">${productName} — <span style="text-transform:capitalize; color:var(--text-muted); font-weight:400;">${variantName}</span></td>
+                    <td style="padding:10px 12px; text-transform:capitalize;">${category}</td>
+                    <td style="padding:10px 12px;">₹${itemPrice.toLocaleString('en-IN')}</td>
+                    <td style="padding:10px 12px;">${item.quantity}</td>
+                    <td style="padding:10px 12px; text-align:right;">₹${subtotal.toLocaleString('en-IN')}</td>
                 </tr>`;
             }).join('');
         }

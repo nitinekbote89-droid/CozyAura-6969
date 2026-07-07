@@ -1084,18 +1084,45 @@ window.viewOrderDetails = async function(orderId) {
         }
     }
 
+    let rawItemsObj = null;
+    if (order.rawItems) {
+      if (typeof order.rawItems === 'string') {
+        try { rawItemsObj = JSON.parse(order.rawItems); } catch(e) {}
+      } else {
+        rawItemsObj = order.rawItems;
+      }
+    }
+    let giftCardFee = 0;
+    if (rawItemsObj && rawItemsObj.giftCardFee) {
+      giftCardFee = parseFloat(rawItemsObj.giftCardFee) || 0;
+    }
+    if (giftCardFee === 0 && order.itemsSummary && order.itemsSummary.toLowerCase().includes('personalized gift card')) {
+      giftCardFee = 50;
+    }
+
     const totalVal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
     let discountVal = parseFloat(order.discount) || 0;
     let shippingVal = parseFloat(order.shipping) || 0;
     const itemsSubtotal = items.reduce((sum, it) => sum + ((it._price || parseInt(it.variant?.price || it.product?.price || it.price) || 0) * it.quantity), 0);
-    let subtotalVal = totalVal + discountVal - shippingVal;
+    let subtotalVal = totalVal + discountVal - shippingVal - giftCardFee;
     if (discountVal === 0 && shippingVal === 0 && itemsSubtotal > 0 && itemsSubtotal !== totalVal) {
-      subtotalVal = itemsSubtotal;
+      subtotalVal = itemsSubtotal - giftCardFee;
       shippingVal = totalVal - itemsSubtotal;
-      if (shippingVal < 0) { shippingVal = 0; subtotalVal = totalVal; }
+      if (shippingVal < 0) { shippingVal = 0; subtotalVal = totalVal - giftCardFee; }
     }
 
     document.getElementById('orderModalSubtotalRow').textContent = `Subtotal: ₹${subtotalVal.toLocaleString('en-IN')}`;
+    
+    const giftCardRow = document.getElementById('orderModalGiftCardRow');
+    if (giftCardRow) {
+      if (giftCardFee > 0) {
+        giftCardRow.style.display = 'block';
+        giftCardRow.textContent = `Gift Card: ₹${giftCardFee.toLocaleString('en-IN')}`;
+      } else {
+        giftCardRow.style.display = 'none';
+      }
+    }
+
     document.getElementById('orderModalShippingRow').textContent = shippingVal > 0 ? `Shipping: ₹${shippingVal.toLocaleString('en-IN')}` : (order.deliveryMethod === 'Pickup' ? `Pickup: Free` : `Shipping: Free`);
     document.getElementById('orderModalPromoRow').textContent = discountVal > 0 ? `Discount Applied: -₹${discountVal.toLocaleString('en-IN')}` : '';
     document.getElementById('orderModalTotal').textContent = `₹${totalVal.toLocaleString('en-IN')}`;

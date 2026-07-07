@@ -2078,18 +2078,20 @@ window.proceedToPayment = async function() {
     if (isGift) {
       giftSection.style.display = 'block';
       const savedLayoutStr = sessionStorage.getItem('lumiere_gift_card_layout');
+      const titleEl = document.getElementById('checkoutGiftCardTitle');
+      const linkEl = document.getElementById('checkoutGiftCardLink');
       if (savedLayoutStr) {
         try {
           const layout = JSON.parse(savedLayoutStr);
-          document.getElementById('checkoutGiftCardIcon').style.backgroundImage = `url(${layout.templatePath})`;
-          document.getElementById('checkoutGiftCardTitle').textContent = "Customized Gift Card Attached";
+          if (titleEl) titleEl.textContent = "Customized Gift Card Attached";
+          if (linkEl) linkEl.textContent = "Edit Card Design";
         } catch (e) {
-          document.getElementById('checkoutGiftCardIcon').style.backgroundImage = 'none';
-          document.getElementById('checkoutGiftCardTitle').textContent = "No card designed yet";
+          if (titleEl) titleEl.textContent = "No card designed yet";
+          if (linkEl) linkEl.textContent = "Design a Card";
         }
       } else {
-        document.getElementById('checkoutGiftCardIcon').style.backgroundImage = 'none';
-        document.getElementById('checkoutGiftCardTitle').textContent = "No card designed yet";
+        if (titleEl) titleEl.textContent = "No card designed yet";
+        if (linkEl) linkEl.textContent = "Design a Card";
       }
     } else {
       giftSection.style.display = 'none';

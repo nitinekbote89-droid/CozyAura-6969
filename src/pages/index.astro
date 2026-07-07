@@ -707,10 +707,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <div class="checkout-section" id="checkoutGiftSection" style="margin-top:1.5rem; display:none;">
             <h3 class="checkout-section-title" style="margin-bottom:0.5rem; font-family:'Jost',sans-serif; font-size:0.88rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--black); font-weight:500;">Gift Card Attachment</h3>
             <div style="background:#faf7f2; border:1px solid #e6dfd5; padding:12px; border-radius:6px; display:flex; align-items:center; gap:12px;">
-              <div id="checkoutGiftCardIcon" style="width:40px; height:80px; border-radius:4px; border:1px solid #e6dfd5; background:#fff; background-size:cover; background-position:center; flex-shrink:0;"></div>
               <div style="flex:1;">
                 <p id="checkoutGiftCardTitle" style="margin:0 0 4px 0; font-family:'Jost',sans-serif; font-size:0.9rem; font-weight:600; color:var(--black);">No card designed yet</p>
-                <a href="#" onclick="event.preventDefault(); window.openGiftCardModal()" style="font-size:0.8rem; color:var(--gold-dark); text-decoration:underline;">Design a Card</a>
+                <a href="#" id="checkoutGiftCardLink" onclick="event.preventDefault(); window.openGiftCardModal()" style="font-size:0.8rem; color:var(--gold-dark); text-decoration:underline;">Design a Card</a>
               </div>
             </div>
           </div>

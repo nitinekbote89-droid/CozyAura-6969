@@ -1321,12 +1321,12 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         width: 100%;
         max-width: 950px;
         border-radius: 8px;
-        overflow: hidden;
+        overflow-y: auto;
         position: relative;
         transform: translateY(15px);
         transition: transform 0.3s ease;
         box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        max-height: 90vh;
+        max-height: 95vh;
         padding: 1.25rem 2rem;
         display: flex;
         flex-direction: column;
@@ -1492,7 +1492,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         cursor: crosshair;
         touch-action: none;
         max-width: 100%;
-        max-height: 58vh;
+        max-height: 50vh;
         aspect-ratio: 1 / 2;
         height: auto;
       }
@@ -1627,25 +1627,26 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
               <button id="cardTextItalic" class="style-btn" onclick="window.toggleTextStyle('italic')"><i>I</i></button>
             </div>
 
-            <div class="color-size-row">
-              <div class="builder-input-group">
+            <div class="color-font-row" style="display: flex; gap: 10px; margin-bottom: 10px; width: 100%;">
+              <div class="builder-input-group" style="flex: 1; margin-bottom: 0;">
                 <label for="cardTextColor">Color</label>
                 <input type="color" id="cardTextColor" value="#5c5246" style="width: 100%; height: 38px; border: 1px solid #e6dfd5; border-radius: 6px; padding: 2px; cursor: pointer;" oninput="window.addOrUpdateCardText()">
               </div>
-              <div class="builder-input-group">
+              <div class="builder-input-group" style="flex: 1; margin-bottom: 0;">
                 <label for="cardFontFamily">Font</label>
-                <select id="cardFontFamily" onchange="window.addOrUpdateCardText()">
+                <select id="cardFontFamily" onchange="window.addOrUpdateCardText()" style="width: 100%; height: 38px; border: 1px solid #e6dfd5; border-radius: 6px; padding: 8px; background: #fff; font-family: inherit; font-size: 0.9rem;">
                   <option value="cormorant">Classic Serif</option>
                   <option value="jost">Modern Sans</option>
                 </select>
               </div>
-              <div class="builder-input-group">
-                <label for="cardFontSize">Size</label>
-                 <input type="range" id="cardFontSize" min="16" max="120" value="40" style="width: 100%;" oninput="window.addOrUpdateCardText()">
-              </div>
             </div>
 
-            <button class="builder-btn btn-solid" style="padding: 9px;" onclick="window.addOrUpdateCardText()">Add / Update Text Box</button>
+            <div class="builder-input-group" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; width: 100%;">
+              <label for="cardFontSize" style="font-size: 0.78rem; font-weight: 500; color: var(--charcoal); text-transform: uppercase; letter-spacing: 0.05em;">Text Size</label>
+              <input type="range" id="cardFontSize" min="16" max="120" value="40" style="width: 100%; cursor: pointer;" oninput="window.addOrUpdateCardText()">
+            </div>
+
+            <button class="builder-btn btn-solid" style="padding: 10px; width: 100%;" onclick="window.addOrUpdateCardText()">Add / Update Text Box</button>
           </div>
         </div>
       </div>

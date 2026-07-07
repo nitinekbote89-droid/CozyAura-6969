@@ -1981,6 +1981,60 @@ window.goBackToShipping = function() {
   window.calculatePrices();
 };
 
+window.updateGiftCardCheckoutSection = function() {
+  const isGift = sessionStorage.getItem('lumiere_cart_type') === 'gift';
+  const giftSection = document.getElementById('checkoutGiftSection');
+  if (giftSection) {
+    if (isGift) {
+      giftSection.style.display = 'block';
+      const savedLayoutStr = sessionStorage.getItem('lumiere_gift_card_layout');
+      const titleEl = document.getElementById('checkoutGiftCardTitle');
+      const linkEl = document.getElementById('checkoutGiftCardLink');
+      const deleteBtn = document.getElementById('checkoutGiftCardDeleteBtn');
+      if (savedLayoutStr) {
+        try {
+          const layout = JSON.parse(savedLayoutStr);
+          if (titleEl) titleEl.textContent = "Customized Gift Card Attached";
+          if (linkEl) linkEl.textContent = "Edit Card Design";
+          if (deleteBtn) deleteBtn.style.display = 'inline-flex';
+        } catch (e) {
+          if (titleEl) titleEl.textContent = "No card designed yet";
+          if (linkEl) linkEl.textContent = "Design a Card";
+          if (deleteBtn) deleteBtn.style.display = 'none';
+        }
+      } else {
+        if (titleEl) titleEl.textContent = "No card designed yet";
+        if (linkEl) linkEl.textContent = "Design a Card";
+        if (deleteBtn) deleteBtn.style.display = 'none';
+      }
+    } else {
+      giftSection.style.display = 'none';
+    }
+  }
+};
+
+window.detachGiftCard = function() {
+  if (confirm("Are you sure you want to remove the gift card from this order?")) {
+    sessionStorage.removeItem('lumiere_gift_card_layout');
+    if (typeof window.setCartType === 'function') {
+      window.setCartType('normal', false);
+    }
+    if (typeof window.updateGiftCardCheckoutSection === 'function') {
+      window.updateGiftCardCheckoutSection();
+    }
+    var highlight = document.getElementById('cartTypeHighlight');
+    var normalText = document.getElementById('toggleNormal');
+    var giftText = document.getElementById('toggleGift');
+    if (highlight && normalText && giftText) {
+      highlight.style.transform = 'translateX(0)';
+      normalText.style.color = 'var(--black)';
+      normalText.style.fontWeight = '600';
+      giftText.style.color = 'var(--stone)';
+      giftText.style.fontWeight = '500';
+    }
+  }
+};
+
 window.proceedToPayment = async function() {
   const loggedInEmail = window.getLoggedInEmail();
   if (window.deliveryMethod === 'Pickup') {
@@ -2005,7 +2059,7 @@ window.proceedToPayment = async function() {
     const addresses = rawAddrs ? JSON.parse(rawAddrs) : [];
     const selectedAddr = addresses.find(a => String(a.id) === String(window.selectedAddressId));
     if (!selectedAddr) {
-      window.showToast("Please select a saved shipping address, or add a new one.", true);
+      window.showToast("Please select a shipping address.", true);
       return;
     }
     if (!selectedAddr.phone || selectedAddr.phone.replace(/[^0-9]/g, '').length < 10) {
@@ -2072,30 +2126,8 @@ window.proceedToPayment = async function() {
   document.getElementById('deliveryFormContainer').style.display = 'none';
   document.getElementById('paymentScreenContainer').style.display = 'block';
 
-  const isGift = sessionStorage.getItem('lumiere_cart_type') === 'gift';
-  const giftSection = document.getElementById('checkoutGiftSection');
-  if (giftSection) {
-    if (isGift) {
-      giftSection.style.display = 'block';
-      const savedLayoutStr = sessionStorage.getItem('lumiere_gift_card_layout');
-      const titleEl = document.getElementById('checkoutGiftCardTitle');
-      const linkEl = document.getElementById('checkoutGiftCardLink');
-      if (savedLayoutStr) {
-        try {
-          const layout = JSON.parse(savedLayoutStr);
-          if (titleEl) titleEl.textContent = "Customized Gift Card Attached";
-          if (linkEl) linkEl.textContent = "Edit Card Design";
-        } catch (e) {
-          if (titleEl) titleEl.textContent = "No card designed yet";
-          if (linkEl) linkEl.textContent = "Design a Card";
-        }
-      } else {
-        if (titleEl) titleEl.textContent = "No card designed yet";
-        if (linkEl) linkEl.textContent = "Design a Card";
-      }
-    } else {
-      giftSection.style.display = 'none';
-    }
+  if (typeof window.updateGiftCardCheckoutSection === 'function') {
+    window.updateGiftCardCheckoutSection();
   }
 
   window.calculatePrices();

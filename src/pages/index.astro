@@ -1319,15 +1319,15 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       .gift-card-modal {
         background: var(--warm-white);
         width: 100%;
-        max-width: 950px;
+        max-width: 1080px;
         border-radius: 8px;
-        overflow-y: auto;
+        overflow: hidden;
         position: relative;
         transform: translateY(15px);
         transition: transform 0.3s ease;
         box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        max-height: 95vh;
-        padding: 1.25rem 2rem;
+        max-height: 96vh;
+        padding: 1.5rem 2.5rem;
         display: flex;
         flex-direction: column;
       }
@@ -1337,9 +1337,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       .card-builder-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 20px;
+        gap: 25px;
         margin: 0.5rem auto;
-        max-width: 1000px;
+        max-width: 1040px;
         justify-content: center;
         align-items: flex-start;
         font-family: 'Jost', sans-serif;
@@ -1559,10 +1559,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <button type="button" id="tabBtnText" class="sidebar-tab-btn" onclick="window.switchSidebarTab('text')" style="flex: 1; padding: 6px; border: none; background: transparent; font-family: 'Jost', sans-serif; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; color: var(--stone); outline: none;">Text Message</button>
         </div>
 
-        <!-- Scrollable content wrapper -->
-        <div class="sidebar-scroll-container" style="max-height: 38vh; overflow-y: auto; padding-right: 4px; margin-bottom: 12px;">
-          <!-- Design Tab Content -->
-          <div id="sidebarTabDesign">
+        <!-- Design Tab Content -->
+        <div id="sidebarTabDesign">
           <!-- 1. Templates Selection -->
           <div class="builder-section">
             <h3>1. Choose Card Template</h3>
@@ -1651,7 +1649,6 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
             <button class="builder-btn btn-solid" style="padding: 10px; width: 100%; margin-top: 10px;" onclick="window.addOrUpdateCardText()">Add / Update Text Box</button>
           </div>
         </div>
-      </div>
 
       <!-- Actions -->
       <div class="builder-actions-grid" style="margin-top: 10px; width: 100%; max-width: 100%;">

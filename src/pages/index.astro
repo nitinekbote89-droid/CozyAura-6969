@@ -1484,7 +1484,15 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 10px;
+        gap: 12px;
+        flex: 1.3;
+        min-width: 320px;
+      }
+      @media (min-width: 768px) {
+        .builder-canvas-area {
+          border-left: 1px solid rgba(196,181,160,0.25);
+          padding-left: 25px;
+        }
       }
       .canvas-frame {
         background: #f0ede6;
@@ -1509,7 +1517,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         color: #8c8275;
         font-style: italic;
         text-align: center;
-        max-width: 300px;
+        max-width: 360px;
       }
       .builder-actions-grid {
         display: flex;

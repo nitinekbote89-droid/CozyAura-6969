@@ -1353,8 +1353,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         border-radius: 8px;
         padding: 16px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-        max-height: 60vh;
-        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
       }
       .builder-section {
         margin-bottom: 12px;
@@ -1559,8 +1559,10 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <button type="button" id="tabBtnText" class="sidebar-tab-btn" onclick="window.switchSidebarTab('text')" style="flex: 1; padding: 6px; border: none; background: transparent; font-family: 'Jost', sans-serif; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; color: var(--stone); outline: none;">Text Message</button>
         </div>
 
-        <!-- Design Tab Content -->
-        <div id="sidebarTabDesign">
+        <!-- Scrollable content wrapper -->
+        <div class="sidebar-scroll-container" style="max-height: 38vh; overflow-y: auto; padding-right: 4px; margin-bottom: 12px;">
+          <!-- Design Tab Content -->
+          <div id="sidebarTabDesign">
           <!-- 1. Templates Selection -->
           <div class="builder-section">
             <h3>1. Choose Card Template</h3>
@@ -1646,27 +1648,28 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
               <input type="range" id="cardFontSize" min="16" max="120" value="40" style="width: 100%; cursor: pointer;" oninput="window.addOrUpdateCardText()">
             </div>
 
-            <button class="builder-btn btn-solid" style="padding: 10px; width: 100%;" onclick="window.addOrUpdateCardText()">Add / Update Text Box</button>
           </div>
         </div>
       </div>
 
-      <!-- Canvas Frame -->
-      <div class="builder-canvas-area">
-        <div class="canvas-frame">
-          <canvas id="cardCanvas" width="900" height="1800"></canvas>
-        </div>
-        <p class="canvas-hint" style="margin: 0; font-size: 0.78rem;">
-          Click and drag stickers or text to position them on your card. Click an item to select it.
-        </p>
-        <!-- Actions -->
-        <div class="builder-actions-grid">
-          <button class="builder-btn btn-outline btn-danger" onclick="window.deleteSelectedCardElement()">Delete Selected Item</button>
-          <button class="builder-btn btn-outline" onclick="window.clearCardCanvas()">Reset Canvas</button>
-          <button class="builder-btn btn-solid" style="background: var(--black);" onclick="window.downloadCardImage()">Download Card (PNG)</button>
-          <button class="builder-btn btn-solid" style="background: var(--gold-dark); color: white;" onclick="if (typeof window.saveCardLayoutToSession === 'function') { window.saveCardLayoutToSession(); } window.closeGiftCardModal()">Save & Attach Card</button>
-        </div>
+      <!-- Actions -->
+      <div class="builder-actions-grid" style="margin-top: 10px; width: 100%; max-width: 100%;">
+        <button class="builder-btn btn-outline btn-danger" onclick="window.deleteSelectedCardElement()">Delete Selected Item</button>
+        <button class="builder-btn btn-outline" onclick="window.clearCardCanvas()">Reset Canvas</button>
+        <button class="builder-btn btn-solid" style="background: var(--black);" onclick="window.downloadCardImage()">Download Card (PNG)</button>
+        <button class="builder-btn btn-solid" style="background: var(--gold-dark); color: white;" onclick="if (typeof window.saveCardLayoutToSession === 'function') { window.saveCardLayoutToSession(); } window.closeGiftCardModal()">Save & Attach Card</button>
       </div>
+    </div>
+
+    <!-- Canvas Frame -->
+    <div class="builder-canvas-area">
+      <div class="canvas-frame">
+        <canvas id="cardCanvas" width="900" height="1800"></canvas>
+      </div>
+      <p class="canvas-hint" style="margin: 0; font-size: 0.78rem;">
+        Click and drag stickers or text to position them on your card. Click an item to select it.
+      </p>
+    </div>
     </div>
   </div>
 </div>

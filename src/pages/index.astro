@@ -1556,6 +1556,35 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       .builder-btn.btn-danger:hover {
         background: #f6e6e6;
       }
+
+      /* Responsive styling for smaller laptop viewports */
+      @media (max-height: 760px) {
+        .gift-card-modal {
+          height: 94vh;
+          padding: 1rem 2rem;
+        }
+        canvas#cardCanvas {
+          max-height: 380px;
+        }
+      }
+      @media (max-height: 650px) {
+        .gift-card-modal {
+          height: 95vh;
+          padding: 0.75rem 1.5rem;
+        }
+        .gift-card-modal .section-header {
+          margin-bottom: 0.5rem !important;
+        }
+        .gift-card-modal .section-header h2 {
+          font-size: 1.8rem !important;
+        }
+        .gift-card-modal p {
+          margin-bottom: 0.75rem !important;
+        }
+        canvas#cardCanvas {
+          max-height: 280px;
+        }
+      }
     </style>
 
     <div class="card-builder-container">

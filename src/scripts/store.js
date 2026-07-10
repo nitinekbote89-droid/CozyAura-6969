@@ -384,7 +384,7 @@ window.PAGE_META = {
   home:          { title: 'Cozy Aura Candle | Premium Hand-Poured Soy Wax Candles', desc: 'Discover premium hand-poured soy wax candles by Cozy Aura Candle. Thoughtfully crafted with elegant fragrances to create warmth, comfort, and timeless moments in every home.' },
   shop:          { title: 'Shop All Candles — Cozy Aura Candle',                     desc: 'Browse our collection of hand-poured soy wax candles. Available in a variety of exquisite fragrances. 100% natural soy wax, lead-free cotton wicks.' },
   cartPage:      { title: 'Your Cart — Cozy Aura Candle',                            desc: 'Review your hand-poured soy wax candle selections before checkout.' },
-  payment:       { title: 'Checkout — Cozy Aura Candle',                             desc: 'Complete your purchase of hand-poured soy wax candles. Secure payment via Razorpay.' },
+  payment:       { title: 'Checkout — Cozy Aura Candle',                             desc: 'Complete your purchase of hand-poured soy wax candles. Secure payment via Paytm.' },
   ordersPage:    { title: 'My Orders — Cozy Aura Candle',                            desc: 'Track and manage your Cozy Aura Candle orders.' },
   addressesPage: { title: 'My Addresses — Cozy Aura Candle',                         desc: 'Manage your shipping addresses for Cozy Aura Candle orders.' },
   about:         { title: 'About Us — Cozy Aura Candle',                             desc: 'Cozy Aura Candle was created with one simple idea — every home deserves moments of warmth, comfort, and calm. Hand-poured in Latur, Maharashtra.' },
@@ -2470,104 +2470,124 @@ window.executeSecurePayment = async function() {
         return;
       }
 
-      const options = {
-        key: json.razorpayKeyId,
-        amount: Math.round(json.expectedTotal * 100),
-        currency: "INR",
-        name: "Cozy Aura Candle",
-        description: "Order Checkout",
-        order_id: json.razorpayOrderId,
-        handler: async function (response) {
-          window.showLoadingOverlay("Processing your order...", "Please do not close the window or click back.");
-          const payload = {
-            action: "new_order",
-            siteToken: "LUMIERE_STORE_2026",
-            paymentId: response.razorpay_payment_id,
-            razorpayOrderId: response.razorpay_order_id,
-            razorpaySignature: response.razorpay_signature,
-            sessionId: sessionToken,
-            name: `${window.shippingInfo.fname} ${window.shippingInfo.lname}`,
-            email: userEmail,
-            total: `₹${prices.total}`,
-            phone: window.shippingInfo.phone,
-            shippingAddress: window.shippingInfo.address,
-            items: window.cart.map(i => `${i.product.name} (${i.variant.name}) x${i.quantity}`).join(', ') + (giftCardLayoutId ? ', Personalized Gift Card' : ''),
-            rawItems: { items: window.cart, subtotal: prices.subtotal, giftCardFee: prices.giftCardFee, total: prices.total },
-            addressId: window.selectedAddressId || null,
-            fname: window.shippingInfo.fname,
-            lname: window.shippingInfo.lname,
-            city: window.shippingInfo.city,
-            state: window.shippingInfo.state,
-            pincode: window.shippingInfo.pincode,
-            addressLabel: window.selectedAddressLabel || 'Home',
-            couponCode: window.appliedPromoCode?.code || null,
-            deliveryMethod: window.deliveryMethod || 'Shipping',
-            giftCardLayoutId: giftCardLayoutId,
-            isGift: isGift
-          };
+      const config = {
+        "root": "",
+        "flow": "DEFAULT",
+        "data": {
+          "orderId": json.razorpayOrderId,
+          "token": json.txnToken,
+          "tokenType": "TXN_TOKEN",
+          "amount": json.expectedTotal
+        },
+        "merchant": {
+          "redirect": false
+        },
+        "handler": {
+          "transactionStatus": async function (response) {
+            console.log("Paytm transaction status received:", response);
+            if (response.STATUS === 'TXN_SUCCESS') {
+              window.showLoadingOverlay("Processing your order...", "Please do not close the window or click back.");
+              const payload = {
+                action: "new_order",
+                siteToken: "LUMIERE_STORE_2026",
+                paymentId: response.TXNID,
+                razorpayOrderId: response.ORDERID,
+                razorpaySignature: JSON.stringify(response),
+                sessionId: sessionToken,
+                name: `${window.shippingInfo.fname} ${window.shippingInfo.lname}`,
+                email: userEmail,
+                total: `₹${prices.total}`,
+                phone: window.shippingInfo.phone,
+                shippingAddress: window.shippingInfo.address,
+                items: window.cart.map(i => `${i.product.name} (${i.variant.name}) x${i.quantity}`).join(', ') + (giftCardLayoutId ? ', Personalized Gift Card' : ''),
+                rawItems: { items: window.cart, subtotal: prices.subtotal, giftCardFee: prices.giftCardFee, total: prices.total },
+                addressId: window.selectedAddressId || null,
+                fname: window.shippingInfo.fname,
+                lname: window.shippingInfo.lname,
+                city: window.shippingInfo.city,
+                state: window.shippingInfo.state,
+                pincode: window.shippingInfo.pincode,
+                addressLabel: window.selectedAddressLabel || 'Home',
+                couponCode: window.appliedPromoCode?.code || null,
+                deliveryMethod: window.deliveryMethod || 'Shipping',
+                giftCardLayoutId: giftCardLayoutId,
+                isGift: isGift
+              };
 
-          try {
-            const orderRes = await fetch(CORE_STORE_PROXY_ROUTE, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            });
-            const orderJson = await orderRes.json();
-            window.hideLoadingOverlay();
-            if (orderJson.success) {
-              window.stopCheckoutTimer();
-              sessionStorage.removeItem('lumiere_checkout_session');
-              sessionStorage.removeItem('lumiere_applied_promo');
-              sessionStorage.removeItem('lumiere_gift_card_layout');
-              sessionStorage.removeItem('lumiere_cart_type');
-              if (typeof window.setCartType === 'function') {
-                window.setCartType('normal', false);
+              try {
+                const orderRes = await fetch(CORE_STORE_PROXY_ROUTE, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload)
+                });
+                const orderJson = await orderRes.json();
+                window.hideLoadingOverlay();
+                if (orderJson.success) {
+                  window.stopCheckoutTimer();
+                  sessionStorage.removeItem('lumiere_checkout_session');
+                  sessionStorage.removeItem('lumiere_applied_promo');
+                  sessionStorage.removeItem('lumiere_gift_card_layout');
+                  sessionStorage.removeItem('lumiere_cart_type');
+                  if (typeof window.setCartType === 'function') {
+                    window.setCartType('normal', false);
+                  }
+                  document.getElementById('celebrationOrderId').textContent = orderJson.orderId;
+                  document.getElementById('successCustomerName').textContent = `${window.shippingInfo.fname} ${window.shippingInfo.lname}`;
+                  document.getElementById('celebrationModal').classList.add('active');
+                  window.triggerCelebration();
+                  window.cart = [];
+                  window.updateCart();
+                } else {
+                  window.showToast(orderJson.error || "Order execution failed.", true);
+                }
+              } catch (err) {
+                window.hideLoadingOverlay();
+                window.showToast("Connection error while processing order.", true);
               }
-              document.getElementById('celebrationOrderId').textContent = orderJson.orderId;
-              document.getElementById('successCustomerName').textContent = `${window.shippingInfo.fname} ${window.shippingInfo.lname}`;
-              document.getElementById('celebrationModal').classList.add('active');
-              window.triggerCelebration();
-              window.cart = [];
-              window.updateCart();
             } else {
-              window.showToast(orderJson.error || "Order execution failed.", true);
+              window.showToast(response.RESPMSG || "Payment failed or was cancelled.", true);
             }
-          } catch (err) {
-            window.hideLoadingOverlay();
-            window.showToast("Connection error while processing order.", true);
-          }
-          window._submittingOrder = false;
-        },
-        prefill: {
-          name: `${window.shippingInfo.fname} ${window.shippingInfo.lname}`,
-          email: userEmail,
-          contact: window.shippingInfo.phone
-        },
-        theme: {
-          color: "#c4b5a0"
-        },
-        modal: {
-          ondismiss: function() {
-            window.hideLoadingOverlay();
             window._submittingOrder = false;
+          },
+          "notifyMerchant": function(eventName, data) {
+            console.log("Paytm notifyMerchant:", eventName, data);
+            if (eventName === 'CLOSED') {
+              window.hideLoadingOverlay();
+              window._submittingOrder = false;
+            }
           }
         }
       };
 
       if (json.razorpayOrderId.startsWith('order_mock_')) {
-        console.log("Mock Order ID detected. Bypassing Razorpay modal in development mode.");
-        const mockPaymentId = 'pay_mock_' + Math.random().toString(36).substring(2, 15);
+        console.log("Mock Order ID detected. Bypassing Paytm modal in development mode.");
+        const mockTxnId = 'pay_mock_' + Math.random().toString(36).substring(2, 15);
         const mockSignature = 'sig_mock_' + Math.random().toString(36).substring(2, 15);
-        options.handler({
-          razorpay_payment_id: mockPaymentId,
-          razorpay_order_id: json.razorpayOrderId,
-          razorpay_signature: mockSignature
+        config.handler.transactionStatus({
+          STATUS: 'TXN_SUCCESS',
+          TXNID: mockTxnId,
+          ORDERID: json.razorpayOrderId,
+          CHECKSUMHASH: mockSignature,
+          RESPMSG: 'Mock success'
         });
         return;
       }
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      if (window.Paytm && window.Paytm.CheckoutJS) {
+        window.Paytm.CheckoutJS.init(config).then(function() {
+          window.Paytm.CheckoutJS.invoke();
+        }).catch(function(error) {
+          console.error("Paytm CheckoutJS initialization failed:", error);
+          window.hideLoadingOverlay();
+          window.showToast("Failed to initialize payment gateway.", true);
+          window._submittingOrder = false;
+        });
+      } else {
+        console.error("Paytm CheckoutJS library not loaded on page.");
+        window.hideLoadingOverlay();
+        window.showToast("Payment gateway library not loaded.", true);
+        window._submittingOrder = false;
+      }
 
     } catch (e) {
       window.hideLoadingOverlay();

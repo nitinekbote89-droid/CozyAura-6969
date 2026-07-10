@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendOrderConfirmation, sendContactMessage } from '../../lib/email.js';
 import { calculateShipping } from '../../lib/shipping.js';
+import PaytmChecksum from '../../lib/PaytmChecksum.js';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const jsonRes = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
@@ -14,12 +15,14 @@ const supabase = createClient(
   import.meta.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const razorpayKeyId = import.meta.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
-const razorpayKeySecret = import.meta.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID;
+const paytmMerchantKey = import.meta.env.PAYTM_MERCHANT_KEY || process.env.PAYTM_MERCHANT_KEY;
+const paytmWebsite = import.meta.env.PAYTM_WEBSITE || process.env.PAYTM_WEBSITE || 'WEBSTAGING';
+const paytmEnvironment = import.meta.env.PAYTM_ENVIRONMENT || process.env.PAYTM_ENVIRONMENT || 'stage';
 const isProd = import.meta.env.PROD || process.env.NODE_ENV === 'production';
 
-if (isProd && (!razorpayKeyId || !razorpayKeySecret)) {
-  console.error("FATAL: Razorpay credentials are required in production mode.");
+if (isProd && (!paytmMid || !paytmMerchantKey)) {
+  console.error("FATAL: Paytm credentials are required in production mode.");
 }
 
 function getCanonicalItemsString(items) {
@@ -413,38 +416,62 @@ export async function POST({ request }) {
         return new Response(JSON.stringify({ success: false, error: err.message }), { status: 400 });
       }
 
-      let razorpayOrderId = 'order_mock_' + Math.random().toString(36).substring(2, 15);
-      if (razorpayKeyId && razorpayKeySecret) {
+      let razorpayOrderId = 'order_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+      let txnToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
+
+      if (paytmMid && paytmMerchantKey) {
         try {
-          const authHeader = 'Basic ' + Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
-          const rzpRes = await fetch('https://api.razorpay.com/v1/orders', {
+          const paytmParams = {
+            body: {
+              requestType: "Payment",
+              mid: paytmMid,
+              websiteName: paytmWebsite,
+              orderId: razorpayOrderId,
+              txnAmount: {
+                value: calculated.total.toFixed(2),
+                currency: "INR"
+              },
+              userInfo: {
+                custId: email.toLowerCase().trim().replace(/[^a-zA-Z0-9]/g, '_').substring(0, 50)
+              },
+              callbackUrl: `${new URL(request.url).origin}/api/paytm-callback`
+            }
+          };
+
+          const signature = await PaytmChecksum.generateSignature(JSON.stringify(paytmParams.body), paytmMerchantKey);
+          paytmParams.head = {
+            signature: signature
+          };
+
+          const paytmHost = paytmEnvironment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
+          const rRes = await fetch(`${paytmHost}/theia/api/v1/initiateTransaction?mid=${paytmMid}&orderId=${razorpayOrderId}`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': authHeader
-            },
-            body: JSON.stringify({
-              amount: Math.round(calculated.total * 100),
-              currency: 'INR',
-              receipt: `receipt_${Date.now()}`
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(paytmParams)
           });
-          
-          if (!rzpRes.ok) {
-            const errorText = await rzpRes.text();
-            throw new Error(`Razorpay Order creation failed: ${errorText}`);
+
+          if (!rRes.ok) {
+            const errorText = await rRes.text();
+            throw new Error(`Paytm initiateTransaction failed: ${errorText}`);
           }
-          
-          const rzpJson = await rzpRes.json();
-          razorpayOrderId = rzpJson.id;
+
+          const rJson = await rRes.json();
+          const rBody = rJson.body || {};
+          const rResultInfo = rBody.resultInfo || {};
+          if (rResultInfo.resultStatus !== 'S' && rResultInfo.resultStatus !== 'SUCCESS') {
+            throw new Error(rResultInfo.resultMsg || "Failed to initiate payment transaction");
+          }
+
+          txnToken = rBody.txnToken;
         } catch (err) {
           if (isProd) {
-            return new Response(JSON.stringify({ success: false, error: "Razorpay order creation failed: " + err.message }), { status: 500 });
+            return new Response(JSON.stringify({ success: false, error: "Paytm payment initiation failed: " + err.message }), { status: 500 });
           }
-          console.warn("Razorpay API call failed, falling back to mock Order ID in development:", err.message);
+          console.warn("Paytm API call failed, falling back to mock Order ID in development:", err.message);
+          razorpayOrderId = 'order_mock_' + Math.random().toString(36).substring(2, 15);
         }
       } else if (isProd) {
-        return new Response(JSON.stringify({ success: false, error: "Razorpay credentials are missing in production environment." }), { status: 500 });
+        return new Response(JSON.stringify({ success: false, error: "Paytm credentials are missing in production environment." }), { status: 500 });
       }
 
       const canonicalItems = getCanonicalItemsString(items);
@@ -488,7 +515,8 @@ export async function POST({ request }) {
         success: true,
         razorpayOrderId,
         expectedTotal: calculated.total,
-        razorpayKeyId: razorpayKeyId || 'mock_key'
+        paytmMid: paytmMid || 'mock_mid',
+        txnToken
       }), { status: 200 });
     }
 
@@ -579,25 +607,57 @@ export async function POST({ request }) {
 
       if (!isCOD) {
         if (!paymentId || !razorpayOrderId || !razorpaySignature) {
-          return new Response(JSON.stringify({ success: false, error: "Missing Razorpay verification tokens." }), { status: 400 });
+          return new Response(JSON.stringify({ success: false, error: "Missing Paytm verification tokens." }), { status: 400 });
         }
 
-        if (razorpayKeyId && razorpayKeySecret) {
-          const crypto = await import('crypto');
-          const generatedSig = crypto
-            .createHmac('sha256', razorpayKeySecret)
-            .update(`${razorpayOrderId}|${paymentId}`)
-            .digest('hex');
+        if (paytmMid && paytmMerchantKey) {
+          try {
+            const parsedParams = JSON.parse(razorpaySignature);
+            const isChecksumValid = PaytmChecksum.verifySignature(parsedParams, paytmMerchantKey, parsedParams.CHECKSUMHASH);
+            if (!isChecksumValid) {
+              return new Response(JSON.stringify({ success: false, error: "Paytm signature verification failed. Security alert!" }), { status: 400 });
+            }
 
-          const sigBuf = Buffer.from(razorpaySignature, 'hex');
-          const expBuf = Buffer.from(generatedSig, 'hex');
-          if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
-            return new Response(JSON.stringify({ success: false, error: "Razorpay signature verification failed. Security alert!" }), { status: 400 });
+            const statusQueryBody = {
+              mid: paytmMid,
+              orderId: razorpayOrderId
+            };
+            const queryChecksum = await PaytmChecksum.generateSignature(statusQueryBody, paytmMerchantKey);
+
+            const statusQueryPayload = {
+              body: statusQueryBody,
+              head: {
+                signature: queryChecksum
+              }
+            };
+
+            const paytmHost = paytmEnvironment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
+            const statusRes = await fetch(`${paytmHost}/v3/order/status`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(statusQueryPayload)
+            });
+
+            if (!statusRes.ok) {
+              throw new Error(`HTTP ${statusRes.status}`);
+            }
+
+            const queryResult = await statusRes.json();
+            const queryBody = queryResult.body || {};
+            const queryResultInfo = queryBody.resultInfo || {};
+            const txnStatus = queryBody.status || queryResultInfo.resultStatus;
+
+            if (txnStatus !== 'TXN_SUCCESS') {
+              return new Response(JSON.stringify({ success: false, error: `Paytm payment status: ${queryResultInfo.resultMsg || txnStatus}` }), { status: 400 });
+            }
+          } catch (err) {
+            if (isProd) {
+              return new Response(JSON.stringify({ success: false, error: "Paytm payment verification failed: " + err.message }), { status: 500 });
+            }
+            console.warn("Paytm verification failed in development mode, bypassing check:", err.message);
           }
         } else if (isProd) {
-          return new Response(JSON.stringify({ success: false, error: "Razorpay credentials are missing in production environment." }), { status: 500 });
-        } else {
-          console.warn("Skipping Razorpay signature verification in development (missing credentials).");
+          return new Response(JSON.stringify({ success: false, error: "Paytm credentials are missing in production environment." }), { status: 500 });
         }
 
         const { data: intent, error: fetchIntentErr } = await supabase

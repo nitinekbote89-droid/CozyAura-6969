@@ -591,8 +591,24 @@ document.addEventListener('click', (e) => {
 });
 
 window.selectCategory = function(cat) { 
-  cat = decodeURIComponent(cat); 
-  window.activeCategory = cat; 
+  cat = decodeURIComponent(cat).toLowerCase().trim(); 
+
+  const isProductCategory = categories.some(c => c.toLowerCase().trim() === cat);
+
+  if (isProductCategory) {
+    window.activeCategory = categories.find(c => c.toLowerCase().trim() === cat) || cat;
+    document.querySelectorAll('input[name="fragranceFilter"]').forEach(el => el.checked = false);
+  } else {
+    window.activeCategory = 'all';
+    document.querySelectorAll('input[name="fragranceFilter"]').forEach(el => el.checked = false);
+    
+    const checkbox = Array.from(document.querySelectorAll('input[name="fragranceFilter"]'))
+      .find(el => el.value.toLowerCase().trim() === cat);
+    if (checkbox) {
+      checkbox.checked = true;
+    }
+  }
+
   window.showPage('shop'); 
   window.renderCategoryFilters(); 
   window.triggerSearch(); 

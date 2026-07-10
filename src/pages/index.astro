@@ -1396,21 +1396,19 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         scrollbar-width: thin;
       }
       .template-thumb {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
+        width: 40px;
+        height: 80px;
+        border-radius: 6px;
         cursor: pointer;
         border: 2px solid transparent;
-        padding: 2px;
         transition: all 0.2s ease;
         object-fit: cover;
         flex-shrink: 0;
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        background: white;
       }
       .template-thumb:hover, .template-thumb.active {
         border-color: var(--gold-dark);
-        transform: scale(1.05);
+        transform: translateY(-2px);
       }
       .sticker-grid {
         display: flex;
@@ -1650,8 +1648,15 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           gap: 8px !important;
         }
         .template-thumb {
-          width: 48px !important;
-          height: 48px !important;
+          width: 56px !important;
+          height: 56px !important;
+          border-radius: 50% !important;
+          padding: 2px !important;
+          background: white !important;
+        }
+        .template-thumb:hover, .template-thumb.active {
+          border-color: var(--gold-dark) !important;
+          transform: scale(1.05) !important;
         }
         .sticker-grid {
           gap: 6px !important;

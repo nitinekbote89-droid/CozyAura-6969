@@ -1602,8 +1602,67 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         .gift-card-modal p {
           margin-bottom: 0.75rem !important;
         }
+      }
+      @media (max-width: 768px) {
+        .gift-card-modal {
+          padding: 1rem !important;
+          height: 98vh !important;
+          max-height: 98vh !important;
+          display: flex !important;
+          flex-direction: column !important;
+          border-radius: 0 !important;
+        }
+        .gift-card-modal .section-header {
+          margin-bottom: 0.5rem !important;
+          flex-shrink: 0 !important;
+        }
+        .gift-card-modal .section-header h2 {
+          font-size: 1.6rem !important;
+        }
+        .card-builder-container {
+          flex-direction: column-reverse !important;
+          gap: 12px !important;
+          overflow-y: auto !important;
+          flex: 1 !important;
+          align-items: center !important;
+          width: 100% !important;
+        }
+        .builder-sidebar {
+          min-width: 100% !important;
+          width: 100% !important;
+          height: auto !important;
+          max-height: 300px !important;
+          flex: 0 0 auto !important;
+          padding: 12px !important;
+        }
+        .builder-canvas-area {
+          min-width: 100% !important;
+          width: 100% !important;
+          flex: 0 0 auto !important;
+          gap: 8px !important;
+          border-left: none !important;
+          padding-left: 0 !important;
+        }
         canvas#cardCanvas {
-          max-height: 380px;
+          max-height: 300px !important;
+        }
+        .template-grid {
+          gap: 8px !important;
+        }
+        .template-thumb {
+          width: 48px !important;
+          height: 48px !important;
+        }
+        .sticker-grid {
+          gap: 6px !important;
+        }
+        .sticker-item {
+          width: 36px !important;
+          height: 36px !important;
+          font-size: 1.1rem !important;
+        }
+        .builder-actions-grid {
+          margin-top: 10px !important;
         }
       }
     </style>

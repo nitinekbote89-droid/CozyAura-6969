@@ -221,7 +221,7 @@ section.active {
 
 /* Scent Guide */
 .scent-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-top: 3rem; }
-.scent-card { flex: 0 1 calc(25% - 1.5rem); min-width: 250px; cursor: pointer; text-align: center; padding: 3rem 1.5rem; border: 1px solid rgba(196,181,160,0.25); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); background: var(--warm-white); border-radius: 8px; }
+.scent-card { flex: 0 1 calc(25% - 1.5rem); min-width: 200px; cursor: pointer; text-align: center; padding: 3rem 1.5rem; border: 1px solid rgba(196,181,160,0.25); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); background: var(--warm-white); border-radius: 8px; }
 .scent-card:hover { border-color: var(--gold); transform: translateY(-5px); box-shadow: 0 12px 30px rgba(42,36,32,0.05); }
 .scent-card-bg { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
 .scent-card:hover .scent-card-bg { transform: scale(1.08) rotate(5deg); }

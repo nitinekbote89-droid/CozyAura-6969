@@ -656,7 +656,18 @@ window.triggerSearch = function() {
     const hasSort = sortBy !== 'default';
     if (hasFragrance || hasSort) {
       customFilterBtn.classList.add('applied');
-      customFilterBtn.innerHTML = 'Filters Applied <span class="arrow">▼</span>';
+      let filterDetails = [];
+      if (hasFragrance) {
+        const fragNames = checkedFragrances.map(f => toTitleCase(f));
+        filterDetails.push(fragNames.join(', '));
+      }
+      if (hasSort) {
+        let sortLabel = 'Sorted';
+        if (sortBy === 'price-asc') sortLabel = 'Price: Low-High';
+        if (sortBy === 'price-desc') sortLabel = 'Price: High-Low';
+        filterDetails.push(sortLabel);
+      }
+      customFilterBtn.innerHTML = `Filter: ${filterDetails.join(' | ')} <span class="arrow">▼</span>`;
     } else {
       customFilterBtn.classList.remove('applied');
       customFilterBtn.innerHTML = 'Sort & Filter <span class="arrow">▼</span>';

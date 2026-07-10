@@ -1601,6 +1601,101 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           margin-bottom: 0.75rem !important;
         }
       }
+      @media (max-width: 768px) {
+        .gift-card-modal .section-header {
+          display: none !important;
+        }
+        .gift-card-modal {
+          padding: 10px !important;
+          height: 96vh !important;
+          max-height: 96vh !important;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: space-between !important;
+          overflow: hidden !important;
+          border-radius: 0 !important;
+        }
+        .card-builder-container {
+          display: flex !important;
+          flex-direction: column-reverse !important;
+          gap: 8px !important;
+          height: 100% !important;
+          margin: 0 !important;
+          overflow: hidden !important;
+        }
+        .builder-canvas-area {
+          flex: 0 0 auto !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          border: none !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+        }
+        .canvas-frame {
+          padding: 6px !important;
+          border-radius: 8px !important;
+        }
+        canvas#cardCanvas {
+          height: 260px !important;
+          width: 130px !important;
+          max-height: 260px !important;
+        }
+        .canvas-hint {
+          display: none !important;
+        }
+        .builder-sidebar {
+          flex: 1 1 auto !important;
+          min-width: 100% !important;
+          width: 100% !important;
+          height: auto !important;
+          max-height: 310px !important;
+          margin: 0 !important;
+          padding: 10px !important;
+          overflow-y: auto !important;
+          box-sizing: border-box !important;
+        }
+        .builder-section {
+          margin-bottom: 8px !important;
+        }
+        .builder-section h3 {
+          font-size: 0.85rem !important;
+          margin-bottom: 6px !important;
+        }
+        .template-grid {
+          gap: 8px !important;
+          padding: 2px 0 !important;
+        }
+        .template-thumb {
+          width: 56px !important;
+          height: 56px !important;
+          border-radius: 50% !important;
+          padding: 2px !important;
+          background: white !important;
+        }
+        .template-thumb:hover, .template-thumb.active {
+          border-color: var(--gold-dark) !important;
+          transform: scale(1.05) !important;
+        }
+        .sticker-grid {
+          gap: 6px !important;
+        }
+        .sticker-item {
+          width: 34px !important;
+          height: 34px !important;
+          font-size: 1.1rem !important;
+        }
+        .builder-actions-grid {
+          margin-top: 8px !important;
+          gap: 4px !important;
+        }
+        .builder-btn {
+          padding: 6px 8px !important;
+          font-size: 0.75rem !important;
+        }
+      }
     </style>
 
     <div class="card-builder-container">

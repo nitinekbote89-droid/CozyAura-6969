@@ -130,6 +130,14 @@ async function autoCleanExpiredIntents() {
     }
   }
 }
+async function autoCleanExpiredLocks() {
+  try {
+    const { error } = await supabase.from('inventory_locks').delete().lt('expires_at', new Date().toISOString());
+    if (error) throw error;
+  } catch (err) {
+    console.error("Auto clean expired locks error:", err);
+  }
+}
 
 // H6: Throttle autoClean — run at most once every 5 minutes to avoid per-request DB overhead
 let _lastAutoCleanTime = 0;
@@ -152,6 +160,7 @@ async function autoCleanInactiveVariants() {
       }
     }
     await autoCleanExpiredIntents();
+    await autoCleanExpiredLocks();
   } catch (err) {
     console.error("Auto cleanup error:", err);
   }

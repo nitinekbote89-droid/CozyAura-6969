@@ -210,6 +210,9 @@ DECLARE
     v_locked_stock INT;
     v_is_valid BOOLEAN := TRUE;
 BEGIN
+    -- 0. Prune expired locks first to ensure accurate calculations
+    DELETE FROM inventory_locks WHERE expires_at < NOW();
+
     -- 1. Lock products and variant tables to prevent race conditions
     PERFORM id FROM products 
     WHERE id IN (SELECT jsonb_array_elements_text(jsonb_path_query_array(p_items, '$[*].product_id')))

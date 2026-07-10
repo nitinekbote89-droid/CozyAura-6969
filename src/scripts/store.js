@@ -656,25 +656,75 @@ window.triggerSearch = function() {
     const hasSort = sortBy !== 'default';
     if (hasFragrance || hasSort) {
       customFilterBtn.classList.add('applied');
-      let filterDetails = [];
-      if (hasFragrance) {
-        const fragNames = checkedFragrances.map(f => toTitleCase(f));
-        filterDetails.push(fragNames.join(', '));
-      }
-      if (hasSort) {
-        let sortLabel = 'Sorted';
-        if (sortBy === 'price-asc') sortLabel = 'Price: Low-High';
-        if (sortBy === 'price-desc') sortLabel = 'Price: High-Low';
-        filterDetails.push(sortLabel);
-      }
-      customFilterBtn.innerHTML = `Filter: ${filterDetails.join(' | ')} <span class="arrow">▼</span>`;
+      customFilterBtn.innerHTML = 'Filters Applied <span class="arrow">▼</span>';
     } else {
       customFilterBtn.classList.remove('applied');
       customFilterBtn.innerHTML = 'Sort & Filter <span class="arrow">▼</span>';
     }
   }
 
+  // Render active tags list
+  const tagsContainer = document.getElementById('activeFiltersTags');
+  if (tagsContainer) {
+    tagsContainer.innerHTML = '';
+    let tagsHtml = [];
+
+    checkedFragrances.forEach(frag => {
+      tagsHtml.push(`
+        <span class="filter-tag">
+          Scent: ${toTitleCase(frag)}
+          <span class="filter-tag-close" onclick="window.clearSingleFilter('fragrance', '${frag}')">×</span>
+        </span>
+      `);
+    });
+
+    if (sortBy !== 'default') {
+      let label = 'Sort';
+      if (sortBy === 'price-asc') label = 'Price: Low to High';
+      if (sortBy === 'price-desc') label = 'Price: High to Low';
+      tagsHtml.push(`
+        <span class="filter-tag">
+          ${label}
+          <span class="filter-tag-close" onclick="window.clearSingleFilter('sort')">×</span>
+        </span>
+      `);
+    }
+
+    if (tagsHtml.length > 0) {
+      tagsHtml.push(`
+        <span class="filter-tag" onclick="window.clearAllFilters()" style="background:transparent; border-color:var(--danger); color:var(--brand); font-weight:600; cursor:pointer;">
+          Clear All
+        </span>
+      `);
+      tagsContainer.innerHTML = tagsHtml.join('');
+      tagsContainer.style.display = 'flex';
+    } else {
+      tagsContainer.style.display = 'none';
+    }
+  }
+
   window.renderProducts(list);
+};
+
+window.clearSingleFilter = function(type, value) {
+  if (type === 'fragrance') {
+    const checkbox = Array.from(document.querySelectorAll('input[name="fragranceFilter"]'))
+      .find(el => el.value.toLowerCase().trim() === value.toLowerCase().trim());
+    if (checkbox) checkbox.checked = false;
+  } else if (type === 'sort') {
+    const radio = document.querySelector('input[name="shopSort"][value="default"]');
+    if (radio) radio.checked = true;
+  }
+  window.triggerSearch();
+};
+
+window.clearAllFilters = function() {
+  document.querySelectorAll('input[name="fragranceFilter"]').forEach(el => el.checked = false);
+  const radio = document.querySelector('input[name="shopSort"][value="default"]');
+  if (radio) radio.checked = true;
+  window.activeCategory = 'all';
+  window.renderCategoryFilters();
+  window.triggerSearch();
 };
 
 window.renderHomeBestsellers = function() {

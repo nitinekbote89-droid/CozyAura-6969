@@ -3992,6 +3992,20 @@ window.addEventListener('DOMContentLoaded', async () => {
   const bootLoader = document.getElementById('globalBootLoader');
   if (bootLoader) bootLoader.classList.add('active');
 
+  // Increment site views (once per session)
+  if (!sessionStorage.getItem('lumiere_site_viewed')) {
+    sessionStorage.setItem('lumiere_site_viewed', 'true');
+    try {
+      fetch('/api/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'increment_views', siteToken: 'LUMIERE_STORE_2026' })
+      });
+    } catch (e) {
+      console.error("Failed to increment views:", e);
+    }
+  }
+
   const params = new URLSearchParams(window.location.search);
   const authError = params.get('auth_error');
   if (authError) {

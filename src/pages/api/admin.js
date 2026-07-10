@@ -538,6 +538,7 @@ export async function GET({ request }) {
       supabase.from('coupons').select('*'),
       supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
       supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
+      supabase.from('settings').select('*').eq('key', 'site_views').maybeSingle(),
     ];
 
     let usersPromiseIdx = -1;
@@ -584,6 +585,7 @@ export async function GET({ request }) {
     const coupons = results[2].data;
     const settings = results[3].data;
     const storefront_images_setting = results[4].data;
+    const site_views_setting = results[5].data;
 
     const users = usersPromiseIdx !== -1 ? results[usersPromiseIdx].data : [];
     let totalUserCount = usersPromiseIdx !== -1 ? results[usersPromiseIdx].count : 0;
@@ -713,6 +715,7 @@ export async function GET({ request }) {
         coupons,
         fragrances: settings ? settings.value : [],
         storefrontImages: storefront_images_setting ? storefront_images_setting.value : null,
+        siteViews: site_views_setting && site_views_setting.value ? (site_views_setting.value.count || 0) : 0,
         ...(tab === 'customers' ? {
           users: users || [],
           userAddresses: user_addresses || [],

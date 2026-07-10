@@ -302,6 +302,33 @@ export async function POST({ request }) {
       return jsonRes({ success: false, error: "Missing origin validity token." }, 401);
     }
 
+    if (body.action === 'increment_views') {
+      try {
+        const { data } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'site_views')
+          .maybeSingle();
+
+        let currentCount = 0;
+        if (data && data.value && typeof data.value.count === 'number') {
+          currentCount = data.value.count;
+        }
+
+        const newCount = currentCount + 1;
+        await supabase
+          .from('settings')
+          .upsert({
+            key: 'site_views',
+            value: { count: newCount }
+          });
+
+        return jsonRes({ success: true, count: newCount });
+      } catch (err) {
+        return jsonRes({ success: false, error: err.message }, 500);
+      }
+    }
+
     if (body.action === 'acquire_locks') {
       const { session_id, items, expires_in_minutes } = body;
       if (!session_id || !items) {

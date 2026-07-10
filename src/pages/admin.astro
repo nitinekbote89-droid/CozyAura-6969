@@ -93,12 +93,13 @@ import AdminModals from '../components/AdminModals.astro';
     <div class="content">
       <!-- Dashboard Pane -->
       <div id="tab-dashboard" class="tab-pane active">
-        <div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="stats-grid" style="grid-template-columns: repeat(6, 1fr);">
           <div class="stat-card"><div class="stat-title">Total Products</div><div class="stat-value" id="statProducts">0</div></div>
           <div class="stat-card"><div class="stat-title">Low Stock Items</div><div class="stat-value" id="statLowStock" style="color: var(--warning);">0</div></div>
           <div class="stat-card"><div class="stat-title">Fragrances Out of Stock</div><div class="stat-value" id="statOutFragrances" style="color: var(--danger);">0</div></div>
           <div class="stat-card"><div class="stat-title">Pending Orders</div><div class="stat-value" id="statOrders">0</div></div>
           <div class="stat-card"><div class="stat-title">Total Customers</div><div class="stat-value" id="statCustomers">0</div></div>
+          <div class="stat-card"><div class="stat-title">Website Views</div><div class="stat-value" id="statViews">0</div></div>
         </div>
 
         <h3 style="margin-bottom: 16px; font-weight: 500; font-size: 1.1rem; letter-spacing: 0.02em;">Priority Restock Queue</h3>
@@ -733,10 +734,14 @@ import AdminModals from '../components/AdminModals.astro';
     const statProducts = document.getElementById('statProducts');
     const statLowStock = document.getElementById('statLowStock');
     const statOrders = document.getElementById('statOrders');
+    const statViews = document.getElementById('statViews');
     
     if (statProducts) statProducts.textContent = inv.length;
     if (statLowStock) statLowStock.textContent = inv.filter(p => p.stock <= 40).length;
     if (statOrders) statOrders.textContent = ords.filter(o => o.status === 'Pending').length;
+    if (statViews) {
+      statViews.textContent = sessionStorage.getItem('lumiere_admin_site_views') || '0';
+    }
 
     const fragrancesBody = document.getElementById('outOfStockFragrancesBody');
     let totalOutFragrancesCount = 0;

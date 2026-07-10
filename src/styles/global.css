@@ -485,6 +485,11 @@ section.active {
 .custom-filter-dropdown.active .custom-filter-btn .arrow {
   transform: rotate(180deg);
 }
+.custom-filter-btn.applied {
+  border-color: var(--brand);
+  color: var(--brand);
+  font-weight: 500;
+}
 .custom-filter-menu {
   display: none;
   position: absolute;

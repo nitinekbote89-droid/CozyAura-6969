@@ -650,6 +650,19 @@ window.triggerSearch = function() {
     list.sort((a, b) => b.price - a.price);
   }
 
+  const customFilterBtn = document.getElementById('customFilterBtn');
+  if (customFilterBtn) {
+    const hasFragrance = checkedFragrances.length > 0;
+    const hasSort = sortBy !== 'default';
+    if (hasFragrance || hasSort) {
+      customFilterBtn.classList.add('applied');
+      customFilterBtn.innerHTML = 'Filters Applied <span class="arrow">▼</span>';
+    } else {
+      customFilterBtn.classList.remove('applied');
+      customFilterBtn.innerHTML = 'Sort & Filter <span class="arrow">▼</span>';
+    }
+  }
+
   window.renderProducts(list);
 };
 

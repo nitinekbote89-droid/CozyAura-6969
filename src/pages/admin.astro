@@ -545,10 +545,12 @@ import AdminModals from '../components/AdminModals.astro';
     const historyData = JSON.parse(sessionStorage.getItem('lumiere_admin_site_views_history') || '[]');
     tableBody.innerHTML = '';
 
+    let sum = 0;
     if (historyData.length === 0) {
       tableBody.innerHTML = `<tr><td colspan="2" style="padding: 16px; text-align: center; color: var(--text-muted);">No view history recorded yet.</td></tr>`;
     } else {
       historyData.forEach(row => {
+        sum += (Number(row.count) || 0);
         let formattedDate = row.date;
         try {
           const parts = row.date.split('-');
@@ -566,6 +568,11 @@ import AdminModals from '../components/AdminModals.astro';
         `;
         tableBody.appendChild(tr);
       });
+    }
+
+    const totalEl = document.getElementById('viewsHistoryTotal');
+    if (totalEl) {
+      totalEl.textContent = sum.toLocaleString('en-IN');
     }
 
     modal.classList.add('active');

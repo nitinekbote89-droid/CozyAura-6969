@@ -538,7 +538,7 @@ export async function GET({ request }) {
       supabase.from('coupons').select('*'),
       supabase.from('settings').select('*').eq('key', 'GLOBAL_FRAGRANCES').single(),
       supabase.from('settings').select('*').eq('key', 'STOREFRONT_IMAGES').single(),
-      supabase.from('settings').select('*').eq('key', 'site_views').maybeSingle(),
+      supabase.from('settings').select('*').eq('key', 'site_views_daily').maybeSingle(),
     ];
 
     let usersPromiseIdx = -1;
@@ -586,6 +586,26 @@ export async function GET({ request }) {
     const settings = results[3].data;
     const storefront_images_setting = results[4].data;
     const site_views_setting = results[5].data;
+    
+    const dailyViewsMap = site_views_setting?.value || {};
+    let totalViews = 0;
+    Object.values(dailyViewsMap).forEach(v => {
+      totalViews += (Number(v) || 0);
+    });
+
+    const todayStr = new Date().toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).split('/').reverse().join('-');
+
+    const todayViews = dailyViewsMap[todayStr] || 0;
+
+    const viewsHistory = Object.entries(dailyViewsMap).map(([date, count]) => ({
+      date,
+      count: Number(count) || 0
+    })).sort((a, b) => b.date.localeCompare(a.date));
 
     const users = usersPromiseIdx !== -1 ? results[usersPromiseIdx].data : [];
     let totalUserCount = usersPromiseIdx !== -1 ? results[usersPromiseIdx].count : 0;
@@ -715,7 +735,9 @@ export async function GET({ request }) {
         coupons,
         fragrances: settings ? settings.value : [],
         storefrontImages: storefront_images_setting ? storefront_images_setting.value : null,
-        siteViews: site_views_setting && site_views_setting.value ? (site_views_setting.value.count || 0) : 0,
+        siteViewsToday: todayViews,
+        siteViewsTotal: totalViews,
+        siteViewsHistory: viewsHistory,
         ...(tab === 'customers' ? {
           users: users || [],
           userAddresses: user_addresses || [],

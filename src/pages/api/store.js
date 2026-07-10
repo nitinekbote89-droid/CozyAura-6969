@@ -307,23 +307,29 @@ export async function POST({ request }) {
         const { data } = await supabase
           .from('settings')
           .select('value')
-          .eq('key', 'site_views')
+          .eq('key', 'site_views_daily')
           .maybeSingle();
 
-        let currentCount = 0;
-        if (data && data.value && typeof data.value.count === 'number') {
-          currentCount = data.value.count;
-        }
+        const dailyCounts = data?.value || {};
+        
+        // Get today's date in Indian Standard Time (IST)
+        const todayStr = new Date().toLocaleDateString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).split('/').reverse().join('-');
 
-        const newCount = currentCount + 1;
+        dailyCounts[todayStr] = (dailyCounts[todayStr] || 0) + 1;
+
         await supabase
           .from('settings')
           .upsert({
-            key: 'site_views',
-            value: { count: newCount }
+            key: 'site_views_daily',
+            value: dailyCounts
           });
 
-        return jsonRes({ success: true, count: newCount });
+        return jsonRes({ success: true, todayViews: dailyCounts[todayStr] });
       } catch (err) {
         return jsonRes({ success: false, error: err.message }, 500);
       }

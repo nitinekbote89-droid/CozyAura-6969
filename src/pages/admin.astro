@@ -93,13 +93,17 @@ import AdminModals from '../components/AdminModals.astro';
     <div class="content">
       <!-- Dashboard Pane -->
       <div id="tab-dashboard" class="tab-pane active">
-        <div class="stats-grid" style="grid-template-columns: repeat(6, 1fr);">
+        <div class="stats-grid" style="grid-template-columns: repeat(7, 1fr);">
           <div class="stat-card"><div class="stat-title">Total Products</div><div class="stat-value" id="statProducts">0</div></div>
           <div class="stat-card"><div class="stat-title">Low Stock Items</div><div class="stat-value" id="statLowStock" style="color: var(--warning);">0</div></div>
           <div class="stat-card"><div class="stat-title">Fragrances Out of Stock</div><div class="stat-value" id="statOutFragrances" style="color: var(--danger);">0</div></div>
           <div class="stat-card"><div class="stat-title">Pending Orders</div><div class="stat-value" id="statOrders">0</div></div>
           <div class="stat-card"><div class="stat-title">Total Customers</div><div class="stat-value" id="statCustomers">0</div></div>
-          <div class="stat-card"><div class="stat-title">Website Views</div><div class="stat-value" id="statViews">0</div></div>
+          <div class="stat-card"><div class="stat-title">Views Today</div><div class="stat-value" id="statViewsToday">0</div></div>
+          <div class="stat-card" style="position: relative;">
+            <div class="stat-title">Total Views</div>
+            <div class="stat-value" id="statViewsTotal" style="cursor: pointer; text-decoration: underline; text-decoration-style: dashed; text-underline-offset: 4px;" onclick="window.openViewsHistoryModal()" title="Click to view history breakdown">0</div>
+          </div>
         </div>
 
         <h3 style="margin-bottom: 16px; font-weight: 500; font-size: 1.1rem; letter-spacing: 0.02em;">Priority Restock Queue</h3>
@@ -533,6 +537,45 @@ import AdminModals from '../components/AdminModals.astro';
       }
   };
 
+  window.openViewsHistoryModal = function() {
+    const modal = document.getElementById('viewsHistoryModal');
+    const tableBody = document.getElementById('viewsHistoryTableBody');
+    if (!modal || !tableBody) return;
+
+    const historyData = JSON.parse(sessionStorage.getItem('lumiere_admin_site_views_history') || '[]');
+    tableBody.innerHTML = '';
+
+    if (historyData.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="2" style="padding: 16px; text-align: center; color: var(--text-muted);">No view history recorded yet.</td></tr>`;
+    } else {
+      historyData.forEach(row => {
+        let formattedDate = row.date;
+        try {
+          const parts = row.date.split('-');
+          if (parts.length === 3) {
+            const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+            formattedDate = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+          }
+        } catch (e) {}
+
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--border)';
+        tr.innerHTML = `
+          <td style="padding: 10px 8px; color: var(--text-main); font-family: 'Jost', sans-serif;">${formattedDate}</td>
+          <td style="padding: 10px 8px; text-align: right; font-weight: 500; color: var(--text-main); font-family: 'Jost', sans-serif;">${Number(row.count).toLocaleString('en-IN')}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    modal.classList.add('active');
+  };
+
+  window.closeViewsHistoryModal = function() {
+    const modal = document.getElementById('viewsHistoryModal');
+    if (modal) modal.classList.remove('active');
+  };
+
   window.adminLogout = function() {
       if (!confirm("Are you sure you want to log out of the admin panel?")) return;
       sessionStorage.clear();
@@ -734,13 +777,17 @@ import AdminModals from '../components/AdminModals.astro';
     const statProducts = document.getElementById('statProducts');
     const statLowStock = document.getElementById('statLowStock');
     const statOrders = document.getElementById('statOrders');
-    const statViews = document.getElementById('statViews');
+    const statViewsToday = document.getElementById('statViewsToday');
+    const statViewsTotal = document.getElementById('statViewsTotal');
     
     if (statProducts) statProducts.textContent = inv.length;
     if (statLowStock) statLowStock.textContent = inv.filter(p => p.stock <= 40).length;
     if (statOrders) statOrders.textContent = ords.filter(o => o.status === 'Pending').length;
-    if (statViews) {
-      statViews.textContent = sessionStorage.getItem('lumiere_admin_site_views') || '0';
+    if (statViewsToday) {
+      statViewsToday.textContent = sessionStorage.getItem('lumiere_admin_site_views_today') || '0';
+    }
+    if (statViewsTotal) {
+      statViewsTotal.textContent = sessionStorage.getItem('lumiere_admin_site_views_total') || '0';
     }
 
     const fragrancesBody = document.getElementById('outOfStockFragrancesBody');

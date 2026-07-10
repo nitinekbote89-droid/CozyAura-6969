@@ -55,7 +55,9 @@ window.syncCloudInventory = async function(page = null) {
             sessionStorage.setItem('lumiere_admin_coupons', JSON.stringify(json.data.coupons));
             sessionStorage.setItem('lumiere_admin_fragrances', JSON.stringify(json.data.fragrances));
             sessionStorage.setItem('lumiere_admin_storefront_images', JSON.stringify(json.data.storefrontImages || {}));
-            if (json.data.siteViews !== undefined) sessionStorage.setItem('lumiere_admin_site_views', String(json.data.siteViews));
+            if (json.data.siteViewsToday !== undefined) sessionStorage.setItem('lumiere_admin_site_views_today', String(json.data.siteViewsToday));
+            if (json.data.siteViewsTotal !== undefined) sessionStorage.setItem('lumiere_admin_site_views_total', String(json.data.siteViewsTotal));
+            if (json.data.siteViewsHistory !== undefined) sessionStorage.setItem('lumiere_admin_site_views_history', JSON.stringify(json.data.siteViewsHistory));
             if (json.data.users !== undefined) sessionStorage.setItem('lumiere_admin_users', JSON.stringify(json.data.users));
             if (json.data.userAddresses !== undefined) sessionStorage.setItem('lumiere_admin_user_addresses', JSON.stringify(json.data.userAddresses));
             if (json.data.wishlist !== undefined) sessionStorage.setItem('lumiere_admin_wishlist', JSON.stringify(json.data.wishlist));

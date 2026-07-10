@@ -314,6 +314,33 @@
     </div>
   </div>
 </div>
+<!-- Website Views History Modal -->
+<div class="modal-overlay" id="viewsHistoryModal" style="z-index: 1200;">
+  <div class="modal" style="max-width: 480px; width: 100%; display: flex; flex-direction: column;">
+    <div class="modal-header" style="flex-shrink: 0;">
+      <h3>Website Views History</h3>
+      <button onclick="window.closeViewsHistoryModal()" style="background:transparent; border:none; cursor:pointer; display:flex; color: var(--text-main);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+    <div style="flex: 1; min-height: 0; overflow-y: auto; margin-top: 16px; padding-right: 6px;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border); font-weight: 600; color: var(--brand);">
+            <th style="padding: 10px 8px;">Date</th>
+            <th style="padding: 10px 8px; text-align: right;">Views</th>
+          </tr>
+        </thead>
+        <tbody id="viewsHistoryTableBody">
+          <!-- Loaded dynamically -->
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer" style="margin-top: 24px; padding-top: 16px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; flex-shrink: 0;">
+      <button type="button" class="btn btn-secondary" onclick="window.closeViewsHistoryModal()">Close</button>
+    </div>
+  </div>
+</div>
 
 <style is:global>
   .btn-theme-adaptive {

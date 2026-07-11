@@ -124,7 +124,8 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
                   Cozy Aura Studio (2nd floor),<br>
                   above Vikrant Agencies, Subhash Chowk,<br>
                   Gunj Golai, Latur - 413512,<br>
-                  Maharashtra, India
+                  Maharashtra, India<br>
+                  Phone: +91 97303 18661
                 </p>
                 <p style="margin:0 0 8px; color:#1a1a2e; font-size:14px; font-weight:bold;">Pickup Hours:</p>
                 <p style="margin:0; color:#6b5d53; font-size:14px;">
@@ -132,7 +133,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
                 </p>
               </div>
               <div style="text-align:center; margin-top:24px;">
-                <a href="https://cozyaura-6969-production.up.railway.app/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
+                <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
               </div>
             </td>
           </tr>
@@ -151,7 +152,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 
   const trackSection = `
     <div style="margin-top:16px; text-align:center;">
-      <a href="https://cozyaura-6969-production.up.railway.app/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
+      <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
     </div>
   `;
 

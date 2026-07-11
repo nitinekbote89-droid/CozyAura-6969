@@ -373,6 +373,10 @@ async function sendViaSMTP({ to, subject, html }) {
 }
 
 async function sendEmail({ to, subject, html }) {
+  if (import.meta.env.SMTP_USER && import.meta.env.SMTP_PASS) {
+    const success = await sendViaSMTP({ to, subject, html });
+    if (success) return true;
+  }
   if (import.meta.env.BREVO_API_KEY) {
     const success = await sendViaBrevo({ to, subject, html });
     if (success) return true;

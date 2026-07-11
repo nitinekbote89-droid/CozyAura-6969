@@ -6,6 +6,19 @@ import PaytmChecksum from '../../lib/PaytmChecksum.js';
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const jsonRes = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
 
+async function getAuthenticatedUser(request) {
+  const authHeader = request.headers.get('Authorization') || '';
+  if (!authHeader.startsWith('Bearer ')) return null;
+  const token = authHeader.substring(7);
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) return null;
+    return user;
+  } catch (e) {
+    return null;
+  }
+}
+
 let catalogCache = null;
 let catalogCacheTime = 0;
 const CACHE_TTL = 30_000;
@@ -174,9 +187,6 @@ export async function GET({ request }) {
       return new Response(JSON.stringify(catalogCache), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
     await autoCleanInactiveVariants();
-    if (url.searchParams.get('siteToken') !== 'LUMIERE_STORE_2026') {
-      return jsonRes({ success: false, error: "Unauthorized endpoint origin." }, 401);
-    }
 
     const [
       { data: setRow },
@@ -307,9 +317,6 @@ export async function POST({ request }) {
   try {
     await autoCleanInactiveVariants();
     const body = await request.json();
-    if (body.siteToken !== 'LUMIERE_STORE_2026') {
-      return jsonRes({ success: false, error: "Missing origin validity token." }, 401);
-    }
 
     if (body.action === 'increment_views') {
       try {
@@ -329,14 +336,13 @@ export async function POST({ request }) {
           day: '2-digit'
         }).split('/').reverse().join('-');
 
-        dailyCounts[todayStr] = (dailyCounts[todayStr] || 0) + 1;
+        if (!dailyCounts[todayStr]) dailyCounts[todayStr] = 0;
+        dailyCounts[todayStr] += 1;
 
         await supabase
           .from('settings')
-          .upsert({
-            key: 'site_views_daily',
-            value: dailyCounts
-          });
+          .update({ value: dailyCounts })
+          .eq('key', 'site_views_daily');
 
         return jsonRes({ success: true, todayViews: dailyCounts[todayStr] });
       } catch (err) {
@@ -345,10 +351,21 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'acquire_locks') {
+      const user = await getAuthenticatedUser(request);
+      if (!user) {
+        return new Response(JSON.stringify({ success: false, error: "Unauthorized session token." }), { status: 401 });
+      }
+
       const { session_id, items, expires_in_minutes } = body;
       if (!session_id || !items) {
         return new Response(JSON.stringify({ success: false, error: "Missing required fields." }), { status: 400 });
       }
+
+      // Prepend user ID to lock session ID to isolate users and prevent lock injection
+      const lockSessionId = `sess_${user.id}_${session_id}`;
+
+      // Delete any existing locks for this user's session first to prevent infinite lock hoarding DoS
+      await supabase.from('inventory_locks').delete().eq('session_id', lockSessionId);
 
       const formattedItems = items.map(it => ({
         product_id: it.product.id,
@@ -357,7 +374,7 @@ export async function POST({ request }) {
       }));
 
       const { data: success, error } = await supabase.rpc('acquire_stock_locks', {
-        p_session_id: session_id,
+        p_session_id: lockSessionId,
         p_items: formattedItems,
         p_expires_in_minutes: expires_in_minutes || 10
       });
@@ -374,12 +391,18 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'release_locks') {
+      const user = await getAuthenticatedUser(request);
+      if (!user) {
+        return new Response(JSON.stringify({ success: false, error: "Unauthorized session token." }), { status: 401 });
+      }
+
       const { session_id } = body;
       if (!session_id) {
         return new Response(JSON.stringify({ success: false, error: "Missing session_id." }), { status: 400 });
       }
 
-      const { error } = await supabase.from('inventory_locks').delete().eq('session_id', session_id);
+      const lockSessionId = `sess_${user.id}_${session_id}`;
+      const { error } = await supabase.from('inventory_locks').delete().eq('session_id', lockSessionId);
       if (error) {
         return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
       }
@@ -412,6 +435,12 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'new_message') {
+      // 1. Honeypot check (Stealth rejection)
+      if (body.company_name_hp && body.company_name_hp.trim() !== '') {
+        console.warn("Spam honeypot triggered on contact form submission.");
+        return new Response(JSON.stringify({ success: true, message: "Message sent! We'll get back to you soon." }), { status: 200 });
+      }
+
       const { name, email, phone, subject, message } = body;
       if (!name || !email || !phone || !subject || !message) {
         return new Response(JSON.stringify({ success: false, error: "All contact fields are required." }), { status: 400 });
@@ -426,6 +455,22 @@ export async function POST({ request }) {
       const words = message.trim().split(/\s+/).filter(Boolean);
       if (words.length > 200) {
         return new Response(JSON.stringify({ success: false, error: "Message exceeds the maximum limit of 200 words." }), { status: 400 });
+      }
+
+      // 2. Email-based rate limiting (max 3 messages per hour)
+      try {
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { count, error: countErr } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_email', emailTrimmed)
+          .gt('created_at', oneHourAgo);
+
+        if (!countErr && (count || 0) >= 3) {
+          return new Response(JSON.stringify({ success: false, error: "Too many messages sent. Please try again in an hour." }), { status: 429 });
+        }
+      } catch (err) {
+        console.warn("Rate-limit check skipped due to query error:", err.message);
       }
 
       const { error: dbErr } = await supabase.from('messages').insert({
@@ -445,11 +490,18 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'create_payment_intent') {
-      const { items, couponCode, email, name, phone, addressId, shippingAddress, city, state, pincode, addressLabel, sessionId, deliveryMethod, giftCardLayoutId, isGift } = body;
+      const user = await getAuthenticatedUser(request);
+      if (!user) {
+        return new Response(JSON.stringify({ success: false, error: "Unauthorized session token." }), { status: 401 });
+      }
+
+      const { items, couponCode, name, phone, addressId, shippingAddress, city, state, pincode, addressLabel, sessionId, deliveryMethod, giftCardLayoutId, isGift } = body;
       
-      if (!items || !email || !name) {
+      if (!items || !name) {
         return new Response(JSON.stringify({ success: false, error: "Missing required fields for payment intent." }), { status: 400 });
       }
+
+      const email = user.email;
 
       let calculated;
       try {
@@ -528,6 +580,9 @@ export async function POST({ request }) {
         quantity: it.quantity
       }));
 
+      // Prepend user ID to lock session ID to isolate users and prevent lock injection
+      const lockSessionId = `sess_${user.id}_${sessionId || ('sess_' + Date.now().toString(36))}`;
+
       const { error: intentErr } = await supabase.from('payment_intents').insert([{
         razorpay_order_id: razorpayOrderId,
         expected_total: calculated.total,
@@ -544,8 +599,7 @@ export async function POST({ request }) {
         address_label: addressLabel || 'Home',
         items_summary: itemsSummary,
         raw_items: formattedRawItems,
-        // M17: Do not use email as session ID fallback — causes multi-tab lock conflicts
-        session_id: sessionId || ('sess_' + Date.now().toString(36)),
+        session_id: lockSessionId,
         gift_card_layout_id: giftCardLayoutId || null
       }]);
 
@@ -563,6 +617,11 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'new_order') {
+      const user = await getAuthenticatedUser(request);
+      if (!user) {
+        return new Response(JSON.stringify({ success: false, error: "Unauthorized session token." }), { status: 401 });
+      }
+
       const { 
         paymentId, 
         razorpayOrderId, 
@@ -574,7 +633,6 @@ export async function POST({ request }) {
         fname, 
         lname, 
         name, 
-        email, 
         phone, 
         shippingAddress, 
         city, 
@@ -592,13 +650,10 @@ export async function POST({ request }) {
       if (!paymentId) {
         return new Response(JSON.stringify({ success: false, error: "Missing payment ID." }), { status: 400 });
       }
-      if (!email) {
-        return new Response(JSON.stringify({ success: false, error: "Missing customer email." }), { status: 400 });
-      }
 
-      const userEmail = email.toLowerCase().trim();
+      const userEmail = user.email.toLowerCase().trim();
       // M17: Use sessionId from client; do NOT fall back to email (causes multi-tab lock conflicts)
-      const lockSessionId = sessionId || ('sess_' + Date.now().toString(36));
+      const lockSessionId = `sess_${user.id}_${sessionId || ('sess_' + Date.now().toString(36))}`;
 
       const cartItems = rawItems?.items || [];
       // H7: Harden COD — reject empty/malformed cart before total check
@@ -766,7 +821,7 @@ export async function POST({ request }) {
         p_state: state || '',
         p_pincode: pincode || '',
         p_address_label: addressLabel || 'Home',
-        p_total: isCOD ? parseFloat(String(total).replace(/[^0-9.]/g, '')) : null,
+        p_total: isCOD ? recalculated.total : null,
         p_discount: recalculated.discount || 0,
         p_shipping: recalculated.shipping || 0,
         p_items_summary: items,
@@ -825,7 +880,15 @@ export async function POST({ request }) {
     // C3: JWT-authenticated address & profile actions
     // All actions below require a valid Supabase access token matching the email.
     // ─────────────────────────────────────────────────────────────────────────
-    const isAuthAction = ['get_or_create_profile', 'add_address', 'edit_address', 'delete_address'].includes(body.action);
+    const isAuthAction = [
+      'get_or_create_profile', 
+      'add_address', 
+      'edit_address', 
+      'delete_address',
+      'get_wishlist',
+      'add_to_wishlist',
+      'remove_from_wishlist'
+    ].includes(body.action);
     if (isAuthAction) {
       const authHeader = request.headers.get('Authorization');
       const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -1053,6 +1116,11 @@ export async function POST({ request }) {
     }
 
     if (body.action === 'submit_feedback') {
+      const user = await getAuthenticatedUser(request);
+      if (!user) {
+        return new Response(JSON.stringify({ success: false, error: "Unauthorized session token." }), { status: 401 });
+      }
+
       const orderId = (body.orderId || '').trim();
       const rating = parseInt(body.rating) || 0;
       const comment = (body.comment || '').trim();
@@ -1071,8 +1139,17 @@ export async function POST({ request }) {
         .eq('id', orderId)
         .maybeSingle();
 
-      const userEmail = orderRow ? orderRow.shipping_email : '';
-      const customerName = orderRow ? `${orderRow.shipping_fname || ''} ${orderRow.shipping_lname || ''}`.trim() : '';
+      if (!orderRow) {
+        return new Response(JSON.stringify({ success: false, error: "Order not found." }), { status: 404 });
+      }
+
+      // Verify ownership: the verified user email must match the order's shipping email!
+      if (orderRow.shipping_email?.toLowerCase() !== user.email.toLowerCase()) {
+        return new Response(JSON.stringify({ success: false, error: "Unauthorized: You do not own this order." }), { status: 403 });
+      }
+
+      const userEmail = orderRow.shipping_email;
+      const customerName = `${orderRow.shipping_fname || ''} ${orderRow.shipping_lname || ''}`.trim();
 
       // Insert/update feedback record in feedbacks database table
       const { data, error } = await supabase

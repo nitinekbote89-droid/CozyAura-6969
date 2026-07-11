@@ -1,8 +1,29 @@
+let _currentAccessToken = null;
+
 // Global fetch interceptor to handle silent network failures (e.g. database sync error: Failed to fetch)
 const originalFetch = window.fetch;
-window.fetch = async function(...args) {
+window.fetch = async function(resource, config = {}) {
+  let requestArg = resource;
+  let configArg = config;
+
+  const resourceUrl = typeof resource === 'string' ? resource : (resource?.url || '');
+  if (resourceUrl.includes('/api/store') && _currentAccessToken) {
+    if (typeof resource === 'string') {
+      if (!configArg.headers) configArg.headers = {};
+      if (configArg.headers instanceof Headers) {
+        configArg.headers.set('Authorization', `Bearer ${_currentAccessToken}`);
+      } else {
+        configArg.headers['Authorization'] = `Bearer ${_currentAccessToken}`;
+      }
+    } else {
+      const headers = new Headers(resource.headers);
+      headers.set('Authorization', `Bearer ${_currentAccessToken}`);
+      requestArg = new Request(resource, { headers });
+    }
+  }
+
   try {
-    const res = await originalFetch(...args);
+    const res = await originalFetch(requestArg, configArg);
     // If the server was reached successfully, hide offline screen if it was active
     const offlineOverlay = document.getElementById('offlineOverlay');
     if (offlineOverlay && offlineOverlay.classList.contains('active')) {
@@ -1920,6 +1941,7 @@ document.getElementById('contactForm')?.addEventListener('submit', async functio
       body: JSON.stringify({
         action: 'new_message',
         siteToken: 'LUMIERE_STORE_2026',
+        company_name_hp: document.getElementById('contactCompanyNameHp')?.value || "",
         name: document.getElementById('contactName').value,
         email: window.getLoggedInEmail() || "",
         phone: document.getElementById('contactPhone').value,
@@ -4148,9 +4170,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Load Supabase and start auth observer
   const supabase = await getSupabase();
+  const { data: { session: initialSession } } = await supabase.auth.getSession();
+  _currentAccessToken = initialSession?.access_token || null;
   let isInitialAuthCheck = true;
 
   supabase.auth.onAuthStateChange(async (event, session) => {
+    _currentAccessToken = session?.access_token || null;
     const user = session?.user || null;
     authStore.setCurrentUser(user);
     window.renderAccountAvatar();

@@ -992,6 +992,9 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           Thank you — your message has been received. We'll get back to you shortly.
         </div>
         <form id="contactForm" class="contact-form">
+          <div style="display:none !important; visibility:hidden !important;">
+            <input type="text" id="contactCompanyNameHp" name="company_name_hp" tabindex="-1" autocomplete="off" />
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label for="contactName">Full Name</label>

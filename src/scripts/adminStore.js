@@ -1249,7 +1249,28 @@ function drawAdminOrderCard(layout) {
           ctx.drawImage(el.imgObj, el.x - size/2, el.y - size/2, size, size);
         }
       } else if (el.type === 'text') {
-        const fontStr = (el.isItalic ? 'italic ' : '') + (el.isBold ? 'bold ' : '') + el.size + "px " + (el.fontFamily === 'jost' ? "'Jost', sans-serif" : "'Cormorant Garamond', serif");
+        const adminCardFonts = {
+          'cormorant': "'Cormorant Garamond', serif",
+          'jost': "'Jost', sans-serif",
+          'sansserif': "sans-serif",
+          'telma': "'Telma', sans-serif",
+          'pencerio': "'Pencerio', cursive",
+          'sharpie': "'Sharpie', sans-serif",
+          'britney': "'Britney', cursive",
+          'kalam': "'Kalam', cursive",
+          'dancingscript': "'Dancing Script', cursive",
+          'pacifico': "'Pacifico', cursive",
+          'satisfy': "'Satisfy', cursive"
+        };
+        const fontName = adminCardFonts[el.fontFamily || 'cormorant'] || "'Cormorant Garamond', serif";
+        const fontStr = (el.isItalic ? 'italic ' : '') + (el.isBold ? 'bold ' : '') + el.size + "px " + fontName;
+
+        if (document.fonts && typeof document.fonts.load === 'function' && !document.fonts.check(fontStr)) {
+          document.fonts.load(fontStr).then(function() {
+            render();
+          });
+        }
+
         ctx.font = fontStr;
         ctx.fillStyle = el.color || '#5c5246';
         ctx.textAlign = el.align || 'center';
@@ -1274,6 +1295,20 @@ function drawAdminOrderCard(layout) {
         let currentY = el.y;
         lines.forEach(line => {
           ctx.fillText(line, el.x, currentY);
+
+          // Add simulated stroke weight for thin script font Pencerio
+          if (el.fontFamily === 'pencerio') {
+            ctx.strokeStyle = el.color || '#5c5246';
+            let strokeWidth = el.size * 0.025; // baseline weight
+            if (el.isBold) {
+              strokeWidth += el.size * 0.045; // extra bold weight
+            }
+            ctx.lineWidth = Math.max(0.5, strokeWidth);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeText(line, el.x, currentY);
+          }
+
           currentY += el.size * 1.25;
         });
       }

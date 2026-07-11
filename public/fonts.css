@@ -1,3 +1,4 @@
+
 @font-face {
   font-family: 'Cormorant Garamond';
   font-style: normal;
@@ -63,203 +64,35 @@
 }
 
 @font-face {
-  font-family: 'Montserrat';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/montserrat-italic-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Montserrat';
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/montserrat-italic-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Montserrat';
+  font-family: 'Kalam';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/montserrat-normal-400.woff2') format('woff2');
+  src: url('/fonts/kalam-normal-400.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Montserrat';
+  font-family: 'Kalam';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fonts/montserrat-normal-700.woff2') format('woff2');
+  src: url('/fonts/kalam-normal-700.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Poppins';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/poppins-italic-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Poppins';
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/poppins-italic-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Poppins';
+  font-family: 'Dancing Script';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/poppins-normal-400.woff2') format('woff2');
+  src: url('/fonts/dancing-script-normal-400.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Poppins';
+  font-family: 'Dancing Script';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fonts/poppins-normal-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Raleway';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/raleway-italic-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Raleway';
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/raleway-italic-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/raleway-normal-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Raleway';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/raleway-normal-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/playfair-display-italic-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/playfair-display-italic-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/playfair-display-normal-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/playfair-display-normal-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Bodoni Moda';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/bodoni-moda-italic-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Bodoni Moda';
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/bodoni-moda-italic-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Bodoni Moda';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/bodoni-moda-normal-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Bodoni Moda';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/bodoni-moda-normal-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'GFS Didot';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/gfs-didot-normal-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Bebas Neue';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/bebas-neue-normal-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Oswald';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/oswald-normal-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Oswald';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/oswald-normal-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Anton';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/anton-normal-400.woff2') format('woff2');
+  src: url('/fonts/dancing-script-normal-700.woff2') format('woff2');
 }
 
 @font-face {
@@ -271,14 +104,6 @@
 }
 
 @font-face {
-  font-family: 'Lobster';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/lobster-normal-400.woff2') format('woff2');
-}
-
-@font-face {
   font-family: 'Satisfy';
   font-style: normal;
   font-weight: 400;
@@ -287,81 +112,41 @@
 }
 
 @font-face {
-  font-family: 'Inter';
+  font-family: 'Telma';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/inter-normal-400.woff2') format('woff2');
+  src: url('/fonts/telma-normal-400.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Inter';
+  font-family: 'Telma';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fonts/inter-normal-700.woff2') format('woff2');
+  src: url('/fonts/telma-normal-700.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Roboto';
-  font-style: italic;
-  font-weight: 400;
+  font-family: 'Pencerio';
+  font-style: normal;
+  font-weight: 50;
   font-display: swap;
-  src: url('/fonts/roboto-italic-400.woff2') format('woff2');
+  src: url('/fonts/pencerio-normal-50.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Roboto';
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/roboto-italic-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Roboto';
+  font-family: 'Sharpie';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/roboto-normal-400.woff2') format('woff2');
+  src: url('/fonts/sharpie-normal-400.woff2') format('woff2');
 }
 
 @font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/roboto-normal-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/open-sans-italic-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-style: italic;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/open-sans-italic-700.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Open Sans';
+  font-family: 'Britney';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/open-sans-normal-400.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/open-sans-normal-700.woff2') format('woff2');
+  src: url('/fonts/britney-normal-400.woff2') format('woff2');
 }

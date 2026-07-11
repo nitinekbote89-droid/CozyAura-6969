@@ -1,12 +1,10 @@
 import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
+import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   output: 'server',
   prefetch: false,
-  adapter: node({
-    mode: 'standalone'
-  }),
+  adapter: netlify(),
   vite: {
     build: {
       modulePreload: {

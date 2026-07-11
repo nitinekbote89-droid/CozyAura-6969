@@ -2073,7 +2073,16 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
             cardCtx.strokeRect(el.x - 35, el.y - 35, 70, 70);
           }
         } else if (el.type === 'text') {
-          var fontStr = (el.isItalic ? 'italic ' : '') + (el.isBold ? 'bold ' : '') + el.size + "px " + cardFonts[el.fontFamily || 'cormorant'];
+          var fontName = cardFonts[el.fontFamily || 'cormorant'];
+          var fontStr = (el.isItalic ? 'italic ' : '') + (el.isBold ? 'bold ' : '') + el.size + "px " + fontName;
+
+          if (document.fonts && typeof document.fonts.load === 'function' && !document.fonts.check(fontStr)) {
+            document.fonts.load(fontStr).then(function() {
+              measureElement(el);
+              drawCardCanvas();
+            });
+          }
+
           cardCtx.font = fontStr;
           cardCtx.fillStyle = el.color || '#5c5246';
           cardCtx.textAlign = el.align || 'center';

@@ -2413,15 +2413,26 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       var isBold = document.getElementById('cardTextBold').classList.contains('active');
       var isItalic = document.getElementById('cardTextItalic').classList.contains('active');
 
-      if (cardSelectedElement && cardSelectedElement.type === 'text') {
+      var targetText = (cardSelectedElement && cardSelectedElement.type === 'text') ? cardSelectedElement : null;
+      if (!targetText) {
+        for (var i = 0; i < cardElements.length; i++) {
+          if (cardElements[i].type === 'text') {
+            targetText = cardElements[i];
+            break;
+          }
+        }
+      }
+
+      if (targetText) {
         // Update active text
-        cardSelectedElement.content = textVal;
-        cardSelectedElement.color = colorVal;
-        cardSelectedElement.size = sizeVal;
-        cardSelectedElement.fontFamily = familyVal;
-        cardSelectedElement.isBold = isBold;
-        cardSelectedElement.isItalic = isItalic;
-        measureElement(cardSelectedElement);
+        targetText.content = textVal;
+        targetText.color = colorVal;
+        targetText.size = sizeVal;
+        targetText.fontFamily = familyVal;
+        targetText.isBold = isBold;
+        targetText.isItalic = isItalic;
+        measureElement(targetText);
+        cardSelectedElement = targetText;
       } else {
         // Create new text
         var newText = {

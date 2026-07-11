@@ -38,10 +38,22 @@ test.describe('Cozy Aura Storefront Checkout with Greeting Card', () => {
     await page.addInitScript(() => {
       window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
       window.isUserLoggedIn = () => true;
-      localStorage.setItem('sb-test-auth-token', JSON.stringify({ 
+      const sessionObj = { 
         access_token: 'mock_test_jwt_token', 
-        user: { email: 'vasantiekbote085@gmail.com' } 
-      }));
+        token_type: 'bearer',
+        expires_in: 3600,
+        refresh_token: 'mock_refresh_token',
+        user: { 
+          id: 'mock-test-user-id', 
+          email: 'vasantiekbote085@gmail.com',
+          user_metadata: {
+            full_name: 'Playwright Tester'
+          }
+        },
+        expires_at: 9999999999
+      };
+      localStorage.setItem('sb-test-auth-token', JSON.stringify(sessionObj));
+      localStorage.setItem('sb-fxihqzepiayehvszyita-auth-token', JSON.stringify(sessionObj));
     });
 
     console.log("Navigating to:", SITE_URL);

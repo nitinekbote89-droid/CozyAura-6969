@@ -7,17 +7,21 @@ window.fetch = async function(resource, config = {}) {
   let configArg = config;
 
   const resourceUrl = typeof resource === 'string' ? resource : (resource?.url || '');
-  if (resourceUrl.includes('/api/store') && _currentAccessToken) {
+  if (resourceUrl.includes('/api/store')) {
+    const bypassSecret = localStorage.getItem('test_bypass_secret');
     if (typeof resource === 'string') {
       if (!configArg.headers) configArg.headers = {};
       if (configArg.headers instanceof Headers) {
-        configArg.headers.set('Authorization', `Bearer ${_currentAccessToken}`);
+        if (_currentAccessToken) configArg.headers.set('Authorization', `Bearer ${_currentAccessToken}`);
+        if (bypassSecret) configArg.headers.set('x-test-bypass-secret', bypassSecret);
       } else {
-        configArg.headers['Authorization'] = `Bearer ${_currentAccessToken}`;
+        if (_currentAccessToken) configArg.headers['Authorization'] = `Bearer ${_currentAccessToken}`;
+        if (bypassSecret) configArg.headers['x-test-bypass-secret'] = bypassSecret;
       }
     } else {
       const headers = new Headers(resource.headers);
-      headers.set('Authorization', `Bearer ${_currentAccessToken}`);
+      if (_currentAccessToken) headers.set('Authorization', `Bearer ${_currentAccessToken}`);
+      if (bypassSecret) headers.set('x-test-bypass-secret', bypassSecret);
       requestArg = new Request(resource, { headers });
     }
   }

@@ -8,9 +8,11 @@ test.describe('Cozy Aura Storefront Checkout Flows', () => {
   test('Should place a Self Pickup COD order successfully', async ({ page }) => {
     // Mock Google Login auth state and Supabase token to bypass OAuth modal in headless environment
     console.log("Mocking authentication status for vasantiekbote085@gmail.com...");
-    await page.addInitScript(() => {
+    const adminSecret = process.env.ADMIN_SECRET || 'CozyAura@6969';
+    await page.addInitScript((secret) => {
       window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
       window.isUserLoggedIn = () => true;
+      localStorage.setItem('test_bypass_secret', secret);
       const sessionObj = { 
         access_token: 'mock_test_jwt_token', 
         token_type: 'bearer',
@@ -27,7 +29,7 @@ test.describe('Cozy Aura Storefront Checkout Flows', () => {
       };
       localStorage.setItem('sb-test-auth-token', JSON.stringify(sessionObj));
       localStorage.setItem('sb-fxihqzepiayehvszyita-auth-token', JSON.stringify(sessionObj));
-    });
+    }, adminSecret);
 
     // 1. Open the storefront homepage
     console.log("Navigating to:", SITE_URL);

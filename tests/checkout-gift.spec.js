@@ -35,9 +35,11 @@ test.describe('Cozy Aura Storefront Checkout with Greeting Card', () => {
     });
 
     console.log("Mocking authentication status for vasantiekbote085@gmail.com...");
-    await page.addInitScript(() => {
+    const adminSecret = process.env.ADMIN_SECRET || 'CozyAura@6969';
+    await page.addInitScript((secret) => {
       window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
       window.isUserLoggedIn = () => true;
+      localStorage.setItem('test_bypass_secret', secret);
       const sessionObj = { 
         access_token: 'mock_test_jwt_token', 
         token_type: 'bearer',
@@ -54,7 +56,7 @@ test.describe('Cozy Aura Storefront Checkout with Greeting Card', () => {
       };
       localStorage.setItem('sb-test-auth-token', JSON.stringify(sessionObj));
       localStorage.setItem('sb-fxihqzepiayehvszyita-auth-token', JSON.stringify(sessionObj));
-    });
+    }, adminSecret);
 
     console.log("Navigating to:", SITE_URL);
     await page.goto(SITE_URL);

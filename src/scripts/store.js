@@ -1382,7 +1382,7 @@ window.calculatePrices = function() {
   }
   const shippingMethodNameEl = document.getElementById('shippingMethodName');
   if (shippingMethodNameEl) {
-    shippingMethodNameEl.textContent = window.deliveryMethod === 'Pickup' ? 'Self Pickup In Store' : 'India Post Speed Post';
+    shippingMethodNameEl.textContent = window.deliveryMethod === 'Pickup' ? 'Self Pickup In Store' : 'Standard Shipping';
   }
   const shippingMethodTitleEl = document.getElementById('shippingMethodSectionTitle');
   if (shippingMethodTitleEl) {

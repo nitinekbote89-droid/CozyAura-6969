@@ -538,7 +538,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
             <div style="display:flex; gap:12px;">
               <button type="button" id="deliveryMethodShippingBtn" onclick="window.setDeliveryMethod('Shipping')" style="flex:1; padding:0.8rem; border:2px solid var(--stone); background:var(--cream); cursor:pointer; font-size:0.78rem; font-family:'Jost',sans-serif; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; font-weight:500; transition:all 0.3s; display:flex; flex-direction:column; align-items:center; gap:2px;">
                 <span style="font-weight:600; color:var(--charcoal);">Shipping</span>
-                <span style="font-size:0.68rem; text-transform:none; color:var(--stone); font-weight:400;">Delivery via Speed Post</span>
+                <span style="font-size:0.68rem; text-transform:none; color:var(--stone); font-weight:400;">Standard Delivery</span>
               </button>
               <button type="button" id="deliveryMethodPickupBtn" onclick="window.setDeliveryMethod('Pickup')" style="flex:1; padding:0.8rem; border:1px solid var(--sand); background:white; cursor:pointer; font-size:0.78rem; font-family:'Jost',sans-serif; text-transform:uppercase; letter-spacing:0.05em; border-radius:2px; font-weight:500; transition:all 0.3s; display:flex; flex-direction:column; align-items:center; gap:2px;">
                 <span style="font-weight:600; color:var(--charcoal);">Self Pickup In Store</span>
@@ -727,7 +727,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <div class="checkout-section" style="display: none !important;">
             <h3 class="checkout-section-title" id="shippingMethodSectionTitle">Shipping method</h3>
             <div class="shipping-method-box">
-              <span class="shipping-method-name" id="shippingMethodName">India Post Speed Post</span>
+              <span class="shipping-method-name" id="shippingMethodName">Standard Shipping</span>
               <span class="shipping-method-price" id="shippingMethodPrice">Calculated at checkout</span>
             </div>
           </div>
@@ -1072,7 +1072,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       
       <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Order Processing</h3>
       <p>Orders are usually packed and dispatched within 1 business day after successful payment confirmation.</p>
-      <p>Orders placed on Sundays or India Post public holidays will be processed on the next working day.</p>
+      <p>Orders placed on Sundays or public holidays will be processed on the next working day.</p>
       <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Payment</h3>
       <p>We currently accept secure online payments through Paytm.</p>
       <p>Supported payment methods include:</p>
@@ -1086,7 +1086,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       <p>Cash on Delivery (COD) is currently not available.</p>
       
       <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold-dark); margin-top: 2rem; margin-bottom: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Delivery Timeline</h3>
-      <p>We primarily ship through India Post Speed Post.</p>
+      <p>We primarily ship through reliable courier partners.</p>
       <table style="width: 100%; border-collapse: collapse; margin-top: 1rem; margin-bottom: 1.5rem; background: var(--cream); border: 1px solid var(--sand);">
         <thead>
           <tr style="border-bottom: 1px solid var(--sand); text-align: left; background: var(--sand); opacity: 0.7;">
@@ -1115,7 +1115,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         <li>Select your order</li>
         <li>Click Track Package</li>
       </ol>
-      <p>You'll be redirected to the official India Post Speed Post Tracking page where you can view the latest delivery updates using your tracking ID.</p>
+      <p>You'll be redirected to the courier tracking page where you can view the latest delivery updates using your tracking ID.</p>
     </div>
   </section>
 
@@ -1253,7 +1253,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           <li>Select the order you'd like to track.</li>
           <li>Click <strong>Track Package</strong>.</li>
         </ol>
-        <p style="line-height: 1.6;">You'll be redirected to the official India Post tracking page using your tracking ID.</p>
+        <p style="line-height: 1.6;">You'll be redirected to the courier tracking page using your tracking ID.</p>
       </div>
       
       <div style="margin-bottom: 1.8rem;">

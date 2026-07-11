@@ -1050,6 +1050,16 @@ export async function POST({ request }) {
         const { data: order } = await supabase.from('orders').select('*').eq('id', data.orderId).maybeSingle();
         if (order?.shipping_email) {
           const origin = new URL(request.url).origin;
+          
+          // Fetch order items to include in shipment email details
+          const { data: orderItems } = await supabase.from('order_items').select('*').eq('order_id', order.id);
+          const items = (orderItems || []).map(item => ({
+            product_name: item.product_name,
+            variant_name: item.variant_name,
+            quantity: item.quantity,
+            price: item.price
+          }));
+
           await sendOrderShipped({
             email: order.shipping_email,
             name: `${order.shipping_fname || ''} ${order.shipping_lname || ''}`.trim(),
@@ -1058,7 +1068,21 @@ export async function POST({ request }) {
             courier: data.courier || order.courier || '',
             trackingLink: data.trackingLink || order.tracking_link || '',
             deliveryMethod: order.delivery_method,
-            siteOrigin: origin
+            siteOrigin: origin,
+            items,
+            subtotal: parseFloat(order.subtotal || 0).toFixed(2),
+            discount: parseFloat(order.discount || 0).toFixed(2),
+            shipping: parseFloat(order.shipping || 0).toFixed(2),
+            total: parseFloat(order.total || 0).toFixed(2),
+            address: {
+              fname: order.shipping_fname || '',
+              lname: order.shipping_lname || '',
+              address: order.shipping_address || '',
+              city: order.shipping_city || '',
+              state: order.shipping_state || '',
+              pincode: order.shipping_pincode || '',
+              phone: order.shipping_phone || ''
+            }
           });
         }
       }

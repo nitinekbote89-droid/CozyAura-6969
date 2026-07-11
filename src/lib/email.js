@@ -1,13 +1,6 @@
 import nodemailer from 'nodemailer';
 
-const SENDGRID_API = 'https://api.sendgrid.com/v3/mail/send';
-const BREVO_API = 'https://api.brevo.com/v3/smtp/email';
 
-function getFrom() {
-  const name = import.meta.env.EMAIL_FROM_NAME || 'CozyAura Soya Candles';
-  const email = import.meta.env.EMAIL_FROM || 'cozyaura@sendgrid.net';
-  return { email, name };
-}
 
 function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address, siteOrigin }) {
   const base = siteOrigin || 'https://cozyaura-6969-production.up.railway.app';
@@ -267,75 +260,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 </html>`;
 }
 
-async function sendViaBrevo({ to, subject, html }) {
-  const apiKey = import.meta.env.BREVO_API_KEY;
-  if (!apiKey) {
-    console.warn('BREVO_API_KEY not set — trying SendGrid fallback');
-    return false;
-  }
-  try {
-    const from = getFrom();
-    const res = await fetch(BREVO_API, {
-      method: 'POST',
-      headers: {
-        'api-key': apiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        sender: from,
-        to: [{ email: to }],
-        subject: subject,
-        htmlContent: html
-      })
-    });
-    if (res.ok) {
-      console.log(`Email sent via Brevo to ${to} (${subject})`);
-      return true;
-    } else {
-      const data = await res.text();
-      console.error(`Brevo API error for ${to}:`, data);
-      return false;
-    }
-  } catch (err) {
-    console.error(`Failed to send email via Brevo to ${to} (${subject}):`, err.message);
-    return false;
-  }
-}
 
-async function sendViaSendGrid({ to, subject, html }) {
-  const apiKey = import.meta.env.SENDGRID_API_KEY;
-  if (!apiKey) {
-    console.warn('SENDGRID_API_KEY not set — email not sent');
-    return false;
-  }
-  try {
-    const from = getFrom();
-    const res = await fetch(SENDGRID_API, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from,
-        subject,
-        content: [{ type: 'text/html', value: html }]
-      })
-    });
-    if (res.ok) {
-      console.log(`Email sent via SendGrid to ${to} (${subject})`);
-      return true;
-    } else {
-      const data = await res.text();
-      console.error(`SendGrid API error for ${to}:`, data);
-      return false;
-    }
-  } catch (err) {
-    console.error(`Failed to send email via SendGrid to ${to} (${subject}):`, err.message);
-    return false;
-  }
-}
 
 async function sendViaSMTP({ to, subject, html }) {
   const host = import.meta.env.SMTP_HOST || 'smtp.hostinger.com';
@@ -417,11 +342,8 @@ async function sendEmail({ to, subject, html }) {
     const success = await sendViaSMTP({ to, subject, html });
     if (success) return true;
   }
-  if (import.meta.env.BREVO_API_KEY) {
-    const success = await sendViaBrevo({ to, subject, html });
-    if (success) return true;
-  }
-  return sendViaSendGrid({ to, subject, html });
+  console.error("No active email providers configured or all failed.");
+  return false;
 }
 
 export async function sendOrderConfirmation({ email, name, orderId, items, subtotal, discount, shipping, total, address, siteOrigin }) {

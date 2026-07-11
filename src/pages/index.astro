@@ -1833,7 +1833,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
               <input type="range" id="cardFontSize" min="16" max="120" value="40" style="width: 100%; cursor: pointer;" oninput="window.addOrUpdateCardText()">
             </div>
 
-            <button class="builder-btn btn-solid" style="padding: 10px; width: 100%; margin-top: 10px;" onclick="window.addOrUpdateCardText()">Add / Update Text Box</button>
+            <button class="builder-btn btn-solid" style="padding: 10px; width: 100%; margin-top: 10px;" onclick="window.addOrUpdateCardText(true)">Add / Update Text Box</button>
           </div>
         </div>
 
@@ -2469,6 +2469,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         }
       } else {
         cardSelectedElement = null;
+        var textInput = document.getElementById('cardTextInput');
+        if (textInput) textInput.value = '';
       }
       drawCardCanvas();
       if (typeof window.updateSelectionUI === 'function') {
@@ -2517,8 +2519,20 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         cardIsDragging = true;
         cardDragStartX = x - clicked.x;
         cardDragStartY = y - clicked.y;
+        
+        // Update sidebar UI with values of selected element
+        if (clicked.type === 'text') {
+          document.getElementById('cardTextInput').value = clicked.content;
+          document.getElementById('cardTextColor').value = clicked.color || '#5c5246';
+          document.getElementById('cardFontSize').value = clicked.size;
+          document.getElementById('cardFontFamily').value = clicked.fontFamily || 'cormorant';
+          document.getElementById('cardTextBold').classList.toggle('active', !!clicked.isBold);
+          document.getElementById('cardTextItalic').classList.toggle('active', !!clicked.isItalic);
+        }
       } else {
         cardSelectedElement = null;
+        var textInput = document.getElementById('cardTextInput');
+        if (textInput) textInput.value = '';
       }
       drawCardCanvas();
       if (typeof window.updateSelectionUI === 'function') {
@@ -2680,7 +2694,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       window.addCardStickerAt(stickerPath, 150, 300);
     };
 
-    window.addOrUpdateCardText = function() {
+    window.addOrUpdateCardText = function(isButtonClick) {
       if (checkOfflineStatusAndBlock()) return;
       var textInput = document.getElementById('cardTextInput');
       var textVal = textInput ? textInput.value.trim() : '';
@@ -2692,18 +2706,26 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       var isBold = document.getElementById('cardTextBold').classList.contains('active');
       var isItalic = document.getElementById('cardTextItalic').classList.contains('active');
 
-      var targetText = (cardSelectedElement && cardSelectedElement.type === 'text') ? cardSelectedElement : null;
-      if (!targetText) {
-        for (var i = 0; i < cardElements.length; i++) {
-          if (cardElements[i].type === 'text') {
-            targetText = cardElements[i];
-            break;
+      var targetText = null;
+
+      if (!isButtonClick) {
+        if (cardSelectedElement && cardSelectedElement.type === 'text') {
+          targetText = cardSelectedElement;
+        } else {
+          for (var i = 0; i < cardElements.length; i++) {
+            if (cardElements[i].type === 'text') {
+              targetText = cardElements[i];
+              break;
+            }
           }
+        }
+      } else {
+        if (cardSelectedElement && cardSelectedElement.type === 'text') {
+          targetText = cardSelectedElement;
         }
       }
 
       if (targetText) {
-        // Update active text
         targetText.content = textVal;
         targetText.color = colorVal;
         targetText.size = sizeVal;
@@ -2713,12 +2735,16 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         measureElement(targetText);
         cardSelectedElement = targetText;
       } else {
-        // Create new text
+        var newY = 200;
+        while (cardElements.some(el => el.type === 'text' && Math.abs(el.y - newY) < 15)) {
+          newY += 35;
+        }
+
         var newText = {
           type: 'text',
           content: textVal,
           x: 150,
-          y: 200,
+          y: newY,
           color: colorVal,
           size: sizeVal,
           fontFamily: familyVal,
@@ -2729,6 +2755,11 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         measureElement(newText);
         cardElements.push(newText);
         cardSelectedElement = newText;
+
+        if (isButtonClick) {
+          textInput.value = '';
+          cardSelectedElement = null;
+        }
       }
       
       drawCardCanvas();

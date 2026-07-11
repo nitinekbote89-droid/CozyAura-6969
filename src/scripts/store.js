@@ -282,6 +282,17 @@ async function syncCatalogDataset() {
           if (sg) delete sg.dataset.ssr;
         }
         if (json.success && json.data) {
+            // Remove error banner if it exists
+            const banner = document.getElementById('databaseSyncErrorBanner');
+            if (banner) {
+              banner.remove();
+              window.showToast("Database sync restored successfully!", false);
+            }
+            if (window._syncRetryTimeout) {
+              clearTimeout(window._syncRetryTimeout);
+              window._syncRetryTimeout = null;
+            }
+
             window.PROMOS = (json.data.coupons || []).map(c => ({
               code: c.code,
               type: c.type,
@@ -354,21 +365,34 @@ async function syncCatalogDataset() {
     } catch(e) {
       console.error("Could not sync with Supabase instance.", e);
       
-      // Render visual warning banner on screen for diagnostics
-      const div = document.createElement('div');
-      div.style.position = 'fixed';
-      div.style.bottom = '0';
-      div.style.left = '0';
-      div.style.right = '0';
-      div.style.background = '#fee2e2';
-      div.style.color = '#991b1b';
-      div.style.padding = '1rem';
-      div.style.zIndex = '9999';
-      div.style.textAlign = 'center';
-      div.style.fontSize = '0.85rem';
-      div.style.borderTop = '1px solid #fca5a5';
+      // Render or update visual warning banner on screen for diagnostics
+      let div = document.getElementById('databaseSyncErrorBanner');
+      if (!div) {
+        div = document.createElement('div');
+        div.id = 'databaseSyncErrorBanner';
+        div.style.position = 'fixed';
+        div.style.bottom = '0';
+        div.style.left = '0';
+        div.style.right = '0';
+        div.style.background = '#fee2e2';
+        div.style.color = '#991b1b';
+        div.style.padding = '1rem';
+        div.style.zIndex = '9999';
+        div.style.textAlign = 'center';
+        div.style.fontSize = '0.85rem';
+        div.style.borderTop = '1px solid #fca5a5';
+        document.body.appendChild(div);
+      }
       div.innerHTML = `<strong>Database Sync Error:</strong> ${e.message || e}`;
-      document.body.appendChild(div);
+
+      // Schedule automated retry if online
+      if (window._syncRetryTimeout) clearTimeout(window._syncRetryTimeout);
+      window._syncRetryTimeout = setTimeout(() => {
+        if (navigator.onLine) {
+          console.log("Retrying database sync...");
+          syncCatalogDataset();
+        }
+      }, 5000);
 
       window.renderCategoryFilters();
       window.triggerSearch();
@@ -4685,6 +4709,9 @@ window.addEventListener('online', () => {
     offlineOverlay.classList.remove('active');
   }
   window.showToast("Connection restored. You are back online!", false);
+  if (typeof syncCatalogDataset === 'function') {
+    syncCatalogDataset();
+  }
 });
 
 window.addEventListener('offline', () => {
@@ -4718,7 +4745,9 @@ window.retryConnection = async function() {
         offlineOverlay.classList.remove('active');
         window.showToast("Connection restored. You are back online!", false);
       }
-      window.location.reload();
+      if (typeof syncCatalogDataset === 'function') {
+        syncCatalogDataset();
+      }
     } else {
       throw new Error();
     }

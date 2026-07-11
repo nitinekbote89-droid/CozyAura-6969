@@ -1,0 +1,93 @@
+---
+const url = new URL(Astro.request.url);
+const code = url.searchParams.get('code');
+const errorParam = url.searchParams.get('error') || url.searchParams.get('error_description');
+---
+<html><body>
+  <div id="status" style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;color:#666;">Completing sign in...</div>
+<script>
+import { supabase } from '../../lib/supabaseClient';
+
+async function handleAuth() {
+  const statusEl = document.getElementById('status');
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error') || params.get('error_description');
+
+  if (error) {
+    statusEl.textContent = 'Sign in failed: ' + error;
+    setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent(error); }, 2000);
+    return;
+  }
+
+  // 1. Check if a session already exists (e.g. auto-restored or parsed)
+  let session = null;
+  try {
+    const { data: { session: existingSession } } = await supabase.auth.getSession();
+    if (existingSession) {
+      session = existingSession;
+    }
+  } catch (e) {
+    console.warn('Get session error:', e);
+  }
+
+  // 2. If no session, but code is present, try exchanging it (PKCE)
+  if (!session && code) {
+    // CSRF state validation: compare URL state param against sessionStorage
+    const state = params.get('state');
+    const expectedState = sessionStorage.getItem('l_os');
+    if (state && expectedState && state !== expectedState) {
+      statusEl.textContent = 'Security check failed. Please try again.';
+      setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent('State mismatch'); }, 2000);
+      return;
+    }
+    sessionStorage.removeItem('l_os');
+
+    try {
+      statusEl.textContent = 'Exchanging code for session...';
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+      if (exchangeError) {
+        statusEl.textContent = 'Exchange error: ' + exchangeError.message;
+        setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent(exchangeError.message); }, 2000);
+        return;
+      }
+      session = data.session;
+    } catch (err) {
+      statusEl.textContent = 'Server error: ' + (err.message || 'Unknown error');
+      setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent(err.message || 'Server error'); }, 2000);
+      return;
+    }
+  }
+
+  // 3. If still no session but there's a hash fragment (implicit flow), wait slightly and recheck session
+  if (!session && window.location.hash) {
+    statusEl.textContent = 'Parsing session details...';
+    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      const { data: { session: hashSession } } = await supabase.auth.getSession();
+      if (hashSession) {
+        session = hashSession;
+      }
+    } catch (e) {
+      console.warn('Hash session fetch error:', e);
+    }
+  }
+
+  if (!session) {
+    statusEl.textContent = 'No active session found. Redirecting...';
+    setTimeout(() => { window.location.href = '/?auth_error=' + encodeURIComponent('No active session could be established'); }, 2000);
+    return;
+  }
+
+  statusEl.textContent = 'Sign in complete. Redirecting...';
+  const email = session.user?.email || '';
+  const name = session.user?.user_metadata?.full_name || email?.split('@')[0] || 'User';
+  const avatar = session.user?.user_metadata?.avatar_url || '';
+  const qs = new URLSearchParams({ user_email: email, user_name: name });
+  if (avatar) qs.set('user_avatar', avatar);
+  window.location.href = '/?' + qs.toString();
+}
+
+handleAuth();
+</script>
+</body></html>

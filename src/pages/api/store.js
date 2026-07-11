@@ -899,13 +899,8 @@ export async function POST({ request }) {
       'remove_from_wishlist'
     ].includes(body.action);
     if (isAuthAction) {
-      const authHeader = request.headers.get('Authorization');
-      const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-      if (!token) {
-        return new Response(JSON.stringify({ success: false, error: "Unauthorized: missing auth token." }), { status: 401 });
-      }
-      const { data: { user: authedUser }, error: authErr } = await supabase.auth.getUser(token);
-      if (authErr || !authedUser) {
+      const authedUser = await getAuthenticatedUser(request);
+      if (!authedUser) {
         return new Response(JSON.stringify({ success: false, error: "Unauthorized: invalid session." }), { status: 401 });
       }
       const requestedEmail = (body.email || '').toLowerCase().trim();

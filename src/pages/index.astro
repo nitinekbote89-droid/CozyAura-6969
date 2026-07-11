@@ -2336,8 +2336,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         var clientX = event.clientX - rect.left;
         var clientY = event.clientY - rect.top;
 
-        var canvasX = (clientX / rect.width) * canvas.width;
-        var canvasY = (clientY / rect.height) * canvas.height;
+        var canvasX = (clientX / rect.width) * 300;
+        var canvasY = (clientY / rect.height) * 600;
 
         window.addCardStickerAt(stickerPath, canvasX, canvasY);
       }
@@ -2375,7 +2375,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
     window.addCardSticker = function(stickerPath) {
       // Add in the center of the canvas by default if clicked
-      window.addCardStickerAt(stickerPath, 450, 900);
+      window.addCardStickerAt(stickerPath, 150, 300);
     };
 
     window.addOrUpdateCardText = function() {

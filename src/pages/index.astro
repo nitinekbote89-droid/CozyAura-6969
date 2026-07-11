@@ -1785,8 +1785,33 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
               <div class="builder-input-group" style="flex: 1; margin-bottom: 0;">
                 <label for="cardFontFamily">Font</label>
                 <select id="cardFontFamily" onchange="window.addOrUpdateCardText()" style="width: 100%; height: 38px; border: 1px solid #e6dfd5; border-radius: 6px; padding: 8px; background: #fff; font-family: inherit; font-size: 0.9rem;">
-                  <option value="cormorant">Classic Serif</option>
-                  <option value="jost">Modern Sans</option>
+                  <optgroup label="Elegant & Sophisticated">
+                    <option value="cormorant">Cormorant Garamond</option>
+                    <option value="playfair">Playfair Display</option>
+                    <option value="bodoni">Bodoni Moda</option>
+                    <option value="didot">GFS Didot</option>
+                  </optgroup>
+                  <optgroup label="Modern & Clean">
+                    <option value="jost">Jost (Futura style)</option>
+                    <option value="montserrat">Montserrat</option>
+                    <option value="poppins">Poppins</option>
+                    <option value="raleway">Raleway</option>
+                  </optgroup>
+                  <optgroup label="Bold & Eye-catching">
+                    <option value="bebas">Bebas Neue</option>
+                    <option value="oswald">Oswald</option>
+                    <option value="anton">Anton</option>
+                  </optgroup>
+                  <optgroup label="Trendy & Creative">
+                    <option value="pacifico">Pacifico</option>
+                    <option value="lobster">Lobster</option>
+                    <option value="satisfy">Satisfy</option>
+                  </optgroup>
+                  <optgroup label="Versatile Classics">
+                    <option value="inter">Inter</option>
+                    <option value="roboto">Roboto</option>
+                    <option value="opensans">Open Sans</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
@@ -1883,10 +1908,24 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       ? window.__INITIAL_CATALOG__.cardTemplates[0].image_url
       : '';
 
-    // Fonts
     var cardFonts = {
       'cormorant': "'Cormorant Garamond', serif",
-      'jost': "'Jost', sans-serif"
+      'jost': "'Jost', sans-serif",
+      'montserrat': "'Montserrat', sans-serif",
+      'poppins': "'Poppins', sans-serif",
+      'raleway': "'Raleway', sans-serif",
+      'playfair': "'Playfair Display', serif",
+      'bodoni': "'Bodoni Moda', serif",
+      'didot': "'GFS Didot', serif",
+      'bebas': "'Bebas Neue', sans-serif",
+      'oswald': "'Oswald', sans-serif",
+      'anton': "'Anton', sans-serif",
+      'pacifico': "'Pacifico', cursive",
+      'lobster': "'Lobster', cursive",
+      'satisfy': "'Satisfy', cursive",
+      'inter': "'Inter', sans-serif",
+      'roboto': "'Roboto', sans-serif",
+      'opensans': "'Open Sans', sans-serif"
     };
 
     window.saveCardLayoutToSession = function() {

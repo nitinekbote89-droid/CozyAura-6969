@@ -111,6 +111,10 @@ test.describe('Cozy Aura Storefront Checkout Flows', () => {
     console.log("Filling contact details...");
     await page.locator('#fname').fill('TestFirst');
     await page.locator('#lname').fill('TestLast');
+    const emailField = page.locator('#email');
+    if (!(await emailField.isDisabled())) {
+      await emailField.fill('vasantiekbote085@gmail.com');
+    }
     await page.locator('#phone').fill('+91 7517318391');
 
     // 10. Proceed to Payment Screen

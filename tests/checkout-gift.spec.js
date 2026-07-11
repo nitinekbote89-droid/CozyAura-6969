@@ -155,6 +155,10 @@ test.describe('Cozy Aura Storefront Checkout with Greeting Card', () => {
     console.log("Filling contact details...");
     await page.locator('#fname').fill('Playwright');
     await page.locator('#lname').fill('Tester');
+    const emailField = page.locator('#email');
+    if (!(await emailField.isDisabled())) {
+      await emailField.fill('vasantiekbote085@gmail.com');
+    }
     await page.locator('#phone').fill('+91 7517318391');
 
     console.log("Proceeding to payment screen...");

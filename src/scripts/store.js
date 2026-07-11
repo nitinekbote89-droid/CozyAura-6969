@@ -3670,7 +3670,7 @@ window.showOrderDetail = function(id, isAuto) {
     else if (order.status === 'Delivered') displayStatus = 'Completed';
   }
 
-  var step1Label = isPickup ? 'Pending' : 'Confirmed';
+  var step1Label = 'Confirmed';
   var step2Label = isPickup ? 'Ready to Pick' : 'Shipped';
   var step3Label = isPickup ? 'Completed' : 'Delivered';
 

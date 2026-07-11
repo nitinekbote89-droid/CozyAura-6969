@@ -9,7 +9,8 @@ function getFrom() {
   return { email, name };
 }
 
-function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address }) {
+function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address, siteOrigin }) {
+  const base = siteOrigin || 'https://cozyaura-6969-production.up.railway.app';
   const itemsRows = items.map(item => `
     <tr>
       <td style="padding: 10px 12px; border-bottom: 1px solid #e8e0d6;">${item.product_name} (${item.variant_name})</td>
@@ -22,8 +23,8 @@ function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipp
     ? `<tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Discount</td><td style="padding:6px 12px;text-align:right;color:#c0392b;font-size:14px;">-₹${discount}</td></tr>`
     : '';
   const shippingRow = shipping > 0
-    ? `<tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Shipping</td><td style="padding:6px 12px;text-align:right;color:#6b5d53;font-size:14px;">₹${shipping}</td></tr>`
-    : `<tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Shipping</td><td style="padding:6px 12px;text-align:right;color:#27ae60;font-size:14px;">Free</td></tr>`;
+    ? `<tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Shipping</td><td style="padding:6px 12px;text-align:right;color:#1a1a2e;font-size:14px;">₹${shipping}</td></tr>`
+    : `<tr><td style="padding:6px 12px;color:#6b5d53;font-size:14px;">Shipping</td><td style="padding:6px 12px;text-align:right;color:#27ae60;font-size:14px;font-weight:bold;">Free</td></tr>`;
 
   return `
 <!DOCTYPE html>
@@ -43,8 +44,8 @@ function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipp
           <tr>
             <td style="padding:32px 40px;">
               <h2 style="margin:0 0 6px;color:#1a1a2e;font-size:20px;">Thank you, ${name}!</h2>
-              <p style="margin:0 0 20px;color:#6b5d53;font-size:15px;line-height:1.5;">
-                Your order <strong style="color:#1a1a2e;">${orderId}</strong> has been confirmed. We'll notify you when it ships.
+              <p style="margin:0 0 16px;color:#6b5d53;font-size:15px;line-height:1.5;">
+                Your order <strong style="color:#1a1a2e;">#${orderId}</strong> has been confirmed. We'll notify you when it ships.
               </p>
 
               <table role="presentation" width="100%" style="border-collapse:collapse;">
@@ -72,6 +73,10 @@ function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipp
                 ${address.city}, ${address.state} — ${address.pincode}<br>
                 ${address.phone}
               </p>
+
+              <div style="text-align:center; margin-top:24px;">
+                <a href="${base}/?page=ordersPage" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Go to Your Orders</a>
+              </div>
             </td>
           </tr>
           <tr>
@@ -300,11 +305,11 @@ async function sendEmail({ to, subject, html }) {
   return sendViaSendGrid({ to, subject, html });
 }
 
-export async function sendOrderConfirmation({ email, name, orderId, items, subtotal, discount, shipping, total, address }) {
+export async function sendOrderConfirmation({ email, name, orderId, items, subtotal, discount, shipping, total, address, siteOrigin }) {
   return sendEmail({
     to: email,
     subject: `Order Confirmed — ${orderId}`,
-    html: orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address })
+    html: orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address, siteOrigin })
   });
 }
 

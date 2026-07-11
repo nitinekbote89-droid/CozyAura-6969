@@ -153,7 +153,8 @@ export async function POST({ request }) {
             state: intent.state || '',
             pincode: intent.pincode || '',
             phone: intent.phone || ''
-          }
+          },
+          siteOrigin: new URL(request.url).origin
         });
       } catch (emailErr) {
         console.error("Paytm Callback Email Send Error:", emailErr.message);

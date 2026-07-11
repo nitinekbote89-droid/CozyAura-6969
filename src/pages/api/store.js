@@ -810,7 +810,8 @@ export async function POST({ request }) {
           state: state || '',
           pincode: pincode || '',
           phone: phone || ''
-        }
+        },
+        siteOrigin: new URL(request.url).origin
       });
 
       return new Response(JSON.stringify({ 

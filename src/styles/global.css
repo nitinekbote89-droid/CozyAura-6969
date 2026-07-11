@@ -1257,7 +1257,7 @@ section.active {
 .tracker-node { display: flex; flex-direction: column; align-items: center; width: 90px; text-align: center; }
 .tracker-circle { width: 34px; height: 34px; border-radius: 50%; background: var(--warm-white); border: 1.5px solid rgba(196,181,160,0.3); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 500; color: var(--stone); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
 .tracker-node.active .tracker-circle { border-color: var(--gold); background: var(--gold); color: white; box-shadow: 0 0 14px rgba(184, 151, 90, 0.35); }
-.tracker-node.completed .tracker-circle { border-color: var(--gold); background: rgba(184,151,90,0.12); color: var(--gold-dark); }
+.tracker-node.completed .tracker-circle { border-color: var(--gold); background: var(--gold); color: white; box-shadow: 0 0 14px rgba(184, 151, 90, 0.35); }
 .tracker-label { margin-top: 0.8rem; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--stone); font-weight: 500; transition: color 0.3s; }
 .tracker-node.active .tracker-label { color: var(--black); font-weight: 600; }
 .tracker-node.completed .tracker-label { color: var(--charcoal); }

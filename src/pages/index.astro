@@ -2706,24 +2706,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       var isBold = document.getElementById('cardTextBold').classList.contains('active');
       var isItalic = document.getElementById('cardTextItalic').classList.contains('active');
 
-      var targetText = null;
-
-      if (!isButtonClick) {
-        if (cardSelectedElement && cardSelectedElement.type === 'text') {
-          targetText = cardSelectedElement;
-        } else {
-          for (var i = 0; i < cardElements.length; i++) {
-            if (cardElements[i].type === 'text') {
-              targetText = cardElements[i];
-              break;
-            }
-          }
-        }
-      } else {
-        if (cardSelectedElement && cardSelectedElement.type === 'text') {
-          targetText = cardSelectedElement;
-        }
-      }
+      // Only modify/update if a text element is currently selected
+      var targetText = (cardSelectedElement && cardSelectedElement.type === 'text') ? cardSelectedElement : null;
 
       if (targetText) {
         targetText.content = textVal;
@@ -2755,13 +2739,14 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         measureElement(newText);
         cardElements.push(newText);
         cardSelectedElement = newText;
-
-        if (isButtonClick) {
-          textInput.value = '';
-          cardSelectedElement = null;
-        }
       }
-      
+
+      // If button was clicked, clear textarea and deselect element to prepare for next text entry
+      if (isButtonClick) {
+        if (textInput) textInput.value = '';
+        cardSelectedElement = null;
+      }
+
       drawCardCanvas();
       saveCardLayoutToSession();
     };

@@ -3675,7 +3675,7 @@ window.showOrderDetail = function(id, isAuto) {
   var step3Label = isPickup ? 'Completed' : 'Delivered';
 
   var step1Icon = window.__svg.check;
-  var step2Icon = (order.status === 'Delivered') ? window.__svg.check : (isPickup ? window.__svg.package : window.__svg.truck);
+  var step2Icon = (order.status === 'Shipped' || order.status === 'Delivered') ? window.__svg.check : (isPickup ? window.__svg.package : window.__svg.truck);
   var step3Icon = (order.status === 'Delivered') ? window.__svg.check : (isPickup ? window.__svg.check_circle : window.__svg.home);
 
   var feedbackHtml = '';

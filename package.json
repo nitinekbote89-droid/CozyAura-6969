@@ -13,7 +13,8 @@
     "@supabase/supabase-js": "^2.49.0",
     "astro": "^5.0.0",
     "jspdf": "^4.2.1",
-    "playwright": "^1.61.1"
+    "playwright": "^1.61.1",
+    "pngjs": "^7.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1"

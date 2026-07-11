@@ -2271,6 +2271,21 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         } catch (e) {
           console.error("Failed to parse saved layout from sessionStorage:", e);
         }
+      } else {
+        // If layout was cleared after checkout/order placement, reset states completely
+        cardElements = [];
+        cardSelectedElement = null;
+        cardActiveTemplate = (window.__INITIAL_CATALOG__ && window.__INITIAL_CATALOG__.cardTemplates && window.__INITIAL_CATALOG__.cardTemplates.length > 0)
+          ? window.__INITIAL_CATALOG__.cardTemplates[0].image_url
+          : '';
+        var textInput = document.getElementById('cardTextInput');
+        if (textInput) textInput.value = '';
+        
+        var thumbs = document.querySelectorAll('.template-thumb');
+        thumbs.forEach((t, i) => {
+          if (i === 0) t.classList.add('active');
+          else t.classList.remove('active');
+        });
       }
 
       // Handle template changes

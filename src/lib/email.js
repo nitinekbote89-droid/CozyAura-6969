@@ -11,6 +11,7 @@ function getFrom() {
 
 function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address, siteOrigin }) {
   const base = siteOrigin || 'https://cozyaura-6969-production.up.railway.app';
+  const formattedOrderId = String(orderId).startsWith('#') ? orderId : `#${orderId}`;
   const itemsRows = items.map(item => `
     <tr>
       <td style="padding: 10px 12px; border-bottom: 1px solid #e8e0d6;">${item.product_name} (${item.variant_name})</td>
@@ -45,7 +46,7 @@ function orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipp
             <td style="padding:32px 40px;">
               <h2 style="margin:0 0 6px;color:#1a1a2e;font-size:20px;">Thank you, ${name}!</h2>
               <p style="margin:0 0 16px;color:#6b5d53;font-size:15px;line-height:1.5;">
-                Your order <strong style="color:#1a1a2e;">#${orderId}</strong> has been confirmed. We'll notify you when it ships.
+                Your order <strong style="color:#1a1a2e;">${formattedOrderId}</strong> has been confirmed. We'll notify you when it ships.
               </p>
 
               <table role="presentation" width="100%" style="border-collapse:collapse;">

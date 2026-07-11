@@ -1,11 +1,22 @@
 import { test, expect } from '@playwright/test';
 
 // Target the live production site
-const SITE_URL = 'https://cozyaura-6969-production.up.railway.app';
+const SITE_URL = 'https://cozyaura.netlify.app';
 
 test.describe('Cozy Aura Storefront Checkout Flows', () => {
   
   test('Should place a Self Pickup COD order successfully', async ({ page }) => {
+    // Mock Google Login auth state and Supabase token to bypass OAuth modal in headless environment
+    console.log("Mocking authentication status for vasantiekbote085@gmail.com...");
+    await page.addInitScript(() => {
+      window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
+      window.isUserLoggedIn = () => true;
+      localStorage.setItem('sb-test-auth-token', JSON.stringify({ 
+        access_token: 'mock_test_jwt_token', 
+        user: { email: 'vasantiekbote085@gmail.com' } 
+      }));
+    });
+
     // 1. Open the storefront homepage
     console.log("Navigating to:", SITE_URL);
     await page.goto(SITE_URL);
@@ -14,13 +25,6 @@ test.describe('Cozy Aura Storefront Checkout Flows', () => {
     // Wait for the initialization boot loader to disappear
     console.log("Waiting for boot loader to dismiss...");
     await page.waitForSelector('#globalBootLoader', { state: 'detached', timeout: 30000 });
-
-    // Mock Google Login auth state to bypass OAuth modal in headless environment
-    console.log("Mocking authentication status for vasantiekbote085@gmail.com...");
-    await page.evaluate(() => {
-      window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
-      window.isUserLoggedIn = () => true;
-    });
 
     // 2. Click "Explore the Collection" button to navigate to the Shop page
     console.log("Navigating to Shop page...");

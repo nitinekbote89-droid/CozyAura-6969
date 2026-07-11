@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const SITE_URL = 'https://cozyaura-6969-production.up.railway.app';
+const SITE_URL = 'https://cozyaura.netlify.app';
 
 test.describe('Cozy Aura Storefront Checkout with Greeting Card', () => {
   
@@ -34,18 +34,22 @@ test.describe('Cozy Aura Storefront Checkout with Greeting Card', () => {
       }
     });
 
+    console.log("Mocking authentication status for vasantiekbote085@gmail.com...");
+    await page.addInitScript(() => {
+      window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
+      window.isUserLoggedIn = () => true;
+      localStorage.setItem('sb-test-auth-token', JSON.stringify({ 
+        access_token: 'mock_test_jwt_token', 
+        user: { email: 'vasantiekbote085@gmail.com' } 
+      }));
+    });
+
     console.log("Navigating to:", SITE_URL);
     await page.goto(SITE_URL);
     await expect(page).toHaveTitle(/Cozy Aura/);
 
     console.log("Waiting for boot loader to dismiss...");
     await page.waitForSelector('#globalBootLoader', { state: 'detached', timeout: 30000 });
-
-    console.log("Mocking authentication status for vasantiekbote085@gmail.com...");
-    await page.evaluate(() => {
-      window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
-      window.isUserLoggedIn = () => true;
-    });
 
     console.log("Navigating to Shop page...");
     await page.locator('button:has-text("Explore the Collection")').click();

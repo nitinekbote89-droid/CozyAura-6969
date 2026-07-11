@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sendOrderConfirmation, sendContactMessage } from '../../lib/email.js';
 import { calculateShipping } from '../../lib/shipping.js';
 import PaytmChecksum from '../../lib/PaytmChecksum.js';
-
+const isProd = import.meta.env.PROD || process.env.NODE_ENV === 'production';
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const jsonRes = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
 
@@ -10,6 +10,12 @@ async function getAuthenticatedUser(request) {
   const authHeader = request.headers.get('Authorization') || '';
   if (!authHeader.startsWith('Bearer ')) return null;
   const token = authHeader.substring(7);
+
+  // Allow test mock token in non-production environment
+  if (!isProd && token === 'mock_test_jwt_token') {
+    return { id: 'mock-test-user-id', email: 'vasantiekbote085@gmail.com' };
+  }
+
   try {
     const { data: { user }, error } = await supabase.auth.getUser(token);
     if (error || !user) return null;
@@ -32,7 +38,7 @@ const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID;
 const paytmMerchantKey = import.meta.env.PAYTM_MERCHANT_KEY || process.env.PAYTM_MERCHANT_KEY;
 const paytmWebsite = import.meta.env.PAYTM_WEBSITE || process.env.PAYTM_WEBSITE || 'WEBSTAGING';
 const paytmEnvironment = import.meta.env.PAYTM_ENVIRONMENT || process.env.PAYTM_ENVIRONMENT || 'stage';
-const isProd = import.meta.env.PROD || process.env.NODE_ENV === 'production';
+
 
 if (isProd && (!paytmMid || !paytmMerchantKey)) {
   console.error("FATAL: Paytm credentials are required in production mode.");

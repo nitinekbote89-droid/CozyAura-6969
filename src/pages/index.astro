@@ -2092,6 +2092,20 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           var currentY = el.y;
           for (var j = 0; j < lines.length; j++) {
             cardCtx.fillText(lines[j], el.x, currentY);
+
+            // Add simulated stroke weight for thin script font Pencerio
+            if (el.fontFamily === 'pencerio') {
+              cardCtx.strokeStyle = el.color || '#5c5246';
+              var strokeWidth = el.size * 0.025; // baseline weight
+              if (el.isBold) {
+                strokeWidth += el.size * 0.045; // extra bold weight
+              }
+              cardCtx.lineWidth = Math.max(0.5, strokeWidth);
+              cardCtx.lineJoin = 'round';
+              cardCtx.lineCap = 'round';
+              cardCtx.strokeText(lines[j], el.x, currentY);
+            }
+
             currentY += el.size * 1.25;
           }
         }

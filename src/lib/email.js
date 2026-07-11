@@ -372,7 +372,47 @@ async function sendViaSMTP({ to, subject, html }) {
   }
 }
 
+async function sendViaResend({ to, subject, html }) {
+  const apiKey = import.meta.env.RESEND_API_KEY;
+  if (!apiKey) return false;
+
+  const fromEmail = import.meta.env.EMAIL_FROM || 'onboarding@resend.dev';
+  const fromName = import.meta.env.EMAIL_FROM_NAME || 'CozyAura';
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: `"${fromName}" <${fromEmail}>`,
+        to: [to],
+        subject,
+        html
+      })
+    });
+
+    if (res.ok) {
+      console.log(`Email sent via Resend to ${to} (${subject})`);
+      return true;
+    } else {
+      const errData = await res.json();
+      console.error(`Resend API error:`, errData);
+      return false;
+    }
+  } catch (err) {
+    console.error(`Failed to send email via Resend to ${to}:`, err.message);
+    return false;
+  }
+}
+
 async function sendEmail({ to, subject, html }) {
+  if (import.meta.env.RESEND_API_KEY) {
+    const success = await sendViaResend({ to, subject, html });
+    if (success) return true;
+  }
   if (import.meta.env.SMTP_USER && import.meta.env.SMTP_PASS) {
     const success = await sendViaSMTP({ to, subject, html });
     if (success) return true;

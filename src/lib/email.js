@@ -1,3 +1,5 @@
+import nodemailer from 'nodemailer';
+
 const SENDGRID_API = 'https://api.sendgrid.com/v3/mail/send';
 const BREVO_API = 'https://api.brevo.com/v3/smtp/email';
 
@@ -255,6 +257,41 @@ async function sendViaSendGrid({ to, subject, html }) {
   }
 }
 
+async function sendViaSMTP({ to, subject, html }) {
+  const host = import.meta.env.SMTP_HOST || 'smtp.hostinger.com';
+  const port = parseInt(import.meta.env.SMTP_PORT || '465', 10);
+  const user = import.meta.env.SMTP_USER;
+  const pass = import.meta.env.SMTP_PASS;
+
+  if (!user || !pass) {
+    console.warn('SMTP credentials (SMTP_USER/SMTP_PASS) not set — trying Brevo/SendGrid fallback for contact message');
+    return false;
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: { user, pass }
+    });
+
+    const fromName = import.meta.env.EMAIL_FROM_NAME || 'CozyAura Soya Candles';
+    const info = await transporter.sendMail({
+      from: `"${fromName}" <${user}>`,
+      to,
+      subject,
+      html
+    });
+
+    console.log(`Email sent via SMTP to ${to} (${subject}): ${info.messageId}`);
+    return true;
+  } catch (err) {
+    console.error(`Failed to send email via SMTP to ${to} (${subject}):`, err.message);
+    return false;
+  }
+}
+
 async function sendEmail({ to, subject, html }) {
   if (import.meta.env.BREVO_API_KEY) {
     const success = await sendViaBrevo({ to, subject, html });
@@ -283,9 +320,20 @@ export async function sendOrderShipped({ email, name, orderId, trackingNumber, c
 
 export async function sendContactMessage({ name, email, subject, message }) {
   const ownerEmail = import.meta.env.STORE_OWNER_EMAIL || 'nitinekbote89@gmail.com';
+  const mailHtml = `<p><strong>From:</strong> ${name} (${email})</p><p><strong>Subject:</strong> ${subject}</p><p><strong>Message:</strong></p><p>${message}</p>`;
+
+  if (import.meta.env.SMTP_USER && import.meta.env.SMTP_PASS) {
+    const success = await sendViaSMTP({
+      to: ownerEmail,
+      subject: `Contact: ${subject}`,
+      html: mailHtml
+    });
+    if (success) return true;
+  }
+
   return sendEmail({
     to: ownerEmail,
     subject: `Contact: ${subject}`,
-    html: `<p><strong>From:</strong> ${name} (${email})</p><p><strong>Subject:</strong> ${subject}</p><p><strong>Message:</strong></p><p>${message}</p>`
+    html: mailHtml
   });
 }

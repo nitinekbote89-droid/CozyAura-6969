@@ -26,6 +26,13 @@ test.describe('Cozy Aura Storefront Checkout Flows', () => {
     console.log("Waiting for boot loader to dismiss...");
     await page.waitForSelector('#globalBootLoader', { state: 'detached', timeout: 30000 });
 
+    // Mock Google Login auth state to bypass OAuth modal in headless environment
+    console.log("Mocking authentication status for vasantiekbote085@gmail.com...");
+    await page.evaluate(() => {
+      window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
+      window.isUserLoggedIn = () => true;
+    });
+
     // 2. Click "Explore the Collection" button to navigate to the Shop page
     console.log("Navigating to Shop page...");
     await page.locator('button:has-text("Explore the Collection")').click();

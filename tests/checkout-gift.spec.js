@@ -51,6 +51,12 @@ test.describe('Cozy Aura Storefront Checkout with Greeting Card', () => {
     console.log("Waiting for boot loader to dismiss...");
     await page.waitForSelector('#globalBootLoader', { state: 'detached', timeout: 30000 });
 
+    console.log("Mocking authentication status for vasantiekbote085@gmail.com...");
+    await page.evaluate(() => {
+      window.getLoggedInEmail = () => 'vasantiekbote085@gmail.com';
+      window.isUserLoggedIn = () => true;
+    });
+
     console.log("Navigating to Shop page...");
     await page.locator('button:has-text("Explore the Collection")').click();
     await expect(page.locator('#shop')).toBeVisible();

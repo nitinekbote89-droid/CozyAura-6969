@@ -99,9 +99,10 @@ test.describe('Cozy Aura Storefront Checkout Flows', () => {
     console.log("Adding product to cart...");
     await page.locator('#addToCartBtn').click();
     
-    // Close the Quickview modal using forced click to bypass overlay interceptors
-    console.log("Closing Quickview modal...");
-    await page.locator('#productModalOverlay .close-modal-btn').click({ force: true });
+    // Wait for the modal overlay to hide
+    console.log("Waiting for Quickview modal to close...");
+    await expect(page.locator('#productModalOverlay')).not.toHaveClass(/active/);
+    await page.waitForTimeout(500);
 
     // 6. Go to Cart page
     console.log("Opening Cart page...");

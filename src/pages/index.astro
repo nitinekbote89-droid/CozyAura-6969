@@ -1738,6 +1738,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
                     class="sticker-item" 
                     src={s.image_url} 
                     onclick={`window.addCardSticker('${s.image_url}')`} 
+                    ondragstart={`window.handleStickerDragStart(event, '${s.image_url}')`}
+                    draggable="true"
                     alt={s.name} 
                     style="width: 50px; height: 50px; object-fit: contain; padding: 2px; background: #fff; border: 1px solid #e6dfd5; border-radius: 6px; cursor: pointer;"
                   />
@@ -1810,7 +1812,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
     <!-- Canvas Frame -->
     <div class="builder-canvas-area">
       <div class="canvas-frame">
-        <canvas id="cardCanvas" width="900" height="1800"></canvas>
+        <canvas id="cardCanvas" width="900" height="1800" ondragover="window.handleCanvasDragOver(event)" ondrop="window.handleCanvasDrop(event)"></canvas>
       </div>
       <p class="canvas-hint" style="margin: 0; font-size: 0.78rem;">
         Click and drag stickers or text to position them on your card. Click an item to select it.
@@ -2302,7 +2304,46 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       saveCardLayoutToSession();
     };
 
-    window.addCardSticker = function(stickerPath) {
+    window.handleStickerDragStart = function(event, stickerPath) {
+      if (event && event.dataTransfer) {
+        event.dataTransfer.setData('text/plain', stickerPath);
+        event.dataTransfer.effectAllowed = 'copy';
+      }
+    };
+
+    window.handleCanvasDragOver = function(event) {
+      if (event) {
+        event.preventDefault();
+        if (event.dataTransfer) {
+          event.dataTransfer.dropEffect = 'copy';
+        }
+      }
+    };
+
+    window.handleCanvasDrop = function(event) {
+      if (event) {
+        event.preventDefault();
+        var stickerPath = '';
+        if (event.dataTransfer) {
+          stickerPath = event.dataTransfer.getData('text/plain');
+        }
+        if (!stickerPath) return;
+
+        var canvas = document.getElementById('cardCanvas');
+        if (!canvas) return;
+
+        var rect = canvas.getBoundingClientRect();
+        var clientX = event.clientX - rect.left;
+        var clientY = event.clientY - rect.top;
+
+        var canvasX = (clientX / rect.width) * canvas.width;
+        var canvasY = (clientY / rect.height) * canvas.height;
+
+        window.addCardStickerAt(stickerPath, canvasX, canvasY);
+      }
+    };
+
+    window.addCardStickerAt = function(stickerPath, x, y) {
       if (checkOfflineStatusAndBlock()) return;
       var img = new Image();
       img.crossOrigin = 'anonymous';
@@ -2312,8 +2353,8 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         type: 'sticker',
         content: stickerPath,
         imgObj: img,
-        x: 150,
-        y: 300,
+        x: x,
+        y: y,
         size: 70,
         width: 70,
         height: 70
@@ -2330,6 +2371,11 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       if (typeof window.updateSelectionUI === 'function') {
         window.updateSelectionUI();
       }
+    };
+
+    window.addCardSticker = function(stickerPath) {
+      // Add in the center of the canvas by default if clicked
+      window.addCardStickerAt(stickerPath, 450, 900);
     };
 
     window.addOrUpdateCardText = function() {

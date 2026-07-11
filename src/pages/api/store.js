@@ -866,7 +866,8 @@ export async function POST({ request }) {
           pincode: pincode || '',
           phone: phone || ''
         },
-        siteOrigin: new URL(request.url).origin
+        siteOrigin: new URL(request.url).origin,
+        giftCardFee: (finalLayoutId || isGift === true || isGift === 'true') ? '50.00' : '0.00'
       });
 
       return new Response(JSON.stringify({ 

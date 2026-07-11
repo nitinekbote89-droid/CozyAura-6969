@@ -755,13 +755,17 @@ window.downloadInvoiceBill = function() {
     const orderTotal = parseInt(String(order.total ?? '').replace(/[^\d]/g, '')) || 0;
     let discountAmt = parseFloat(order.discount) || 0;
     let shippingAmt = parseFloat(order.shipping) || 0;
-    let subtotalAmt = orderTotal + discountAmt - shippingAmt;
+    let giftCardFee = 0;
+    if (order.giftCardLayoutId || (order.itemsSummary && order.itemsSummary.toLowerCase().includes('personalized gift card'))) {
+      giftCardFee = 50;
+    }
+    let subtotalAmt = orderTotal + discountAmt - shippingAmt - giftCardFee;
     if (discountAmt === 0 && shippingAmt === 0) {
       const itemsSubtotal = items.reduce((sum, it) => sum + ((parseInt(it.price || it.variant?.price || it.product?.price) || 0) * it.quantity), 0);
-      if (itemsSubtotal > 0 && itemsSubtotal !== orderTotal) {
+      if (itemsSubtotal > 0 && itemsSubtotal !== (orderTotal - giftCardFee)) {
         subtotalAmt = itemsSubtotal;
-        shippingAmt = orderTotal - itemsSubtotal;
-        if (shippingAmt < 0) { shippingAmt = 0; subtotalAmt = orderTotal; }
+        shippingAmt = orderTotal - itemsSubtotal - giftCardFee;
+        if (shippingAmt < 0) { shippingAmt = 0; subtotalAmt = orderTotal - giftCardFee; }
       }
     }
 
@@ -769,6 +773,10 @@ window.downloadInvoiceBill = function() {
     doc.setFontSize(10);
     doc.text(`Subtotal: Rs. ${subtotalAmt.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
     y += 6;
+    if (giftCardFee > 0) {
+      doc.text(`Personalized Gift Card: Rs. ${giftCardFee.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
+      y += 6;
+    }
     if (shippingAmt > 0) {
       doc.text(`Shipping: Rs. ${shippingAmt.toLocaleString('en-IN')}`, 175, y, { align: 'right' });
     } else {

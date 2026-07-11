@@ -135,16 +135,21 @@ export async function POST({ request }) {
       // 7. Send order confirmation email
       const rawItems = intent.raw_items || [];
       const items = Array.isArray(rawItems) ? rawItems : [];
+      const subtotalVal = items.reduce((sum, i) => sum + (parseFloat(i.price) || 0) * (i.quantity || 0), 0);
+      const giftCardFeeVal = (intent.gift_card_layout_id || (intent.items_summary && intent.items_summary.toLowerCase().includes('personalized gift card'))) ? 50 : 0;
+      const expectedTotalVal = parseFloat(intent.expected_total) || 0;
+      const calculatedDiscount = Math.max(0, subtotalVal + giftCardFeeVal - expectedTotalVal);
+
       try {
         await sendOrderConfirmation({
           email: intent.email,
           name: intent.name,
           orderId: orderNumber,
           items,
-          subtotal: items.reduce((sum, i) => sum + (parseFloat(i.price) || 0) * (i.quantity || 0), 0).toFixed(2),
-          discount: parseFloat(intent.expected_total) > 0 ? (items.reduce((sum, i) => sum + (parseFloat(i.price) || 0) * (i.quantity || 0), 0) - parseFloat(intent.expected_total)).toFixed(2) : '0.00',
-          shipping: '0.00', // Free or dynamic shipping (can check shipping logic)
-          total: parseFloat(intent.expected_total).toFixed(2),
+          subtotal: subtotalVal.toFixed(2),
+          discount: calculatedDiscount.toFixed(2),
+          shipping: '0.00', 
+          total: expectedTotalVal.toFixed(2),
           address: {
             fname: intent.name?.split(' ')[0] || '',
             lname: intent.name?.split(' ').slice(1).join(' ') || '',
@@ -154,7 +159,8 @@ export async function POST({ request }) {
             pincode: intent.pincode || '',
             phone: intent.phone || ''
           },
-          siteOrigin: new URL(request.url).origin
+          siteOrigin: new URL(request.url).origin,
+          giftCardFee: giftCardFeeVal.toFixed(2)
         });
       } catch (emailErr) {
         console.error("Paytm Callback Email Send Error:", emailErr.message);

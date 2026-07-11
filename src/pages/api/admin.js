@@ -1050,7 +1050,6 @@ export async function POST({ request }) {
         const { data: order } = await supabase.from('orders').select('*').eq('id', data.orderId).maybeSingle();
         if (order?.shipping_email) {
           const origin = new URL(request.url).origin;
-          
           // Fetch order items to include in shipment email details
           const { data: orderItems } = await supabase.from('order_items').select('*').eq('order_id', order.id);
           const items = (orderItems || []).map(item => ({
@@ -1059,6 +1058,9 @@ export async function POST({ request }) {
             quantity: item.quantity,
             price: item.price
           }));
+
+          const calcSubtotal = items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+          const giftCardFee = (order.gift_card_layout_id || (order.items_summary && order.items_summary.toLowerCase().includes('personalized gift card'))) ? 50 : 0;
 
           await sendOrderShipped({
             email: order.shipping_email,
@@ -1070,7 +1072,7 @@ export async function POST({ request }) {
             deliveryMethod: order.delivery_method,
             siteOrigin: origin,
             items,
-            subtotal: parseFloat(order.subtotal || 0).toFixed(2),
+            subtotal: calcSubtotal.toFixed(2),
             discount: parseFloat(order.discount || 0).toFixed(2),
             shipping: parseFloat(order.shipping || 0).toFixed(2),
             total: parseFloat(order.total || 0).toFixed(2),
@@ -1082,9 +1084,9 @@ export async function POST({ request }) {
               state: order.shipping_state || '',
               pincode: order.shipping_pincode || '',
               phone: order.shipping_phone || ''
-            }
-          });
-        }
+            },
+            giftCardFee: giftCardFee.toFixed(2)
+          });}
       }
 
       return new Response(JSON.stringify({ success: true }), { status: 200 });

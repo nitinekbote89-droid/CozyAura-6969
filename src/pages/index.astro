@@ -2156,7 +2156,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
 
       pickerBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        var isHidden = pickerPopup.style.display === 'none';
+        var isHidden = pickerPopup.style.display === 'none' || pickerPopup.style.display === '';
         pickerPopup.style.display = isHidden ? 'block' : 'none';
         if (isHidden) {
           window.syncCustomColorUI();
@@ -2165,7 +2165,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
       });
 
       document.addEventListener('click', function(e) {
-        if (!pickerPopup.contains(e.target) && e.target !== pickerBtn) {
+        if (!pickerPopup.contains(e.target) && !pickerBtn.contains(e.target)) {
           pickerPopup.style.display = 'none';
         }
       });

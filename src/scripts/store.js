@@ -2768,6 +2768,7 @@ window.showLogin = function() {
 
 window.loginWithGoogle = async function() {
   window.showLoadingOverlay("Redirecting to Google...", "Please wait.");
+  await window.initializeSupabaseAuth();
   const supabase = await getSupabase();
   const osRand = generateSecureToken();
   sessionStorage.setItem('l_os', osRand);
@@ -4219,75 +4220,91 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // 3. Load Supabase and verify session in background
-  const supabase = await getSupabase();
-  const { data: { session: initialSession } } = await supabase.auth.getSession();
-  _currentAccessToken = initialSession?.access_token || null;
-  let isInitialAuthCheck = true;
+  // 3. Define Supabase initialization helper
+  let _supabaseAuthInitialized = false;
+  window.initializeSupabaseAuth = async function() {
+    if (_supabaseAuthInitialized) return;
+    _supabaseAuthInitialized = true;
 
-  supabase.auth.onAuthStateChange(async (event, session) => {
-    _currentAccessToken = session?.access_token || null;
-    const user = session?.user || null;
-    authStore.setCurrentUser(user);
-    window.renderAccountAvatar();
+    const supabase = await getSupabase();
+    const { data: { session: initialSession } } = await supabase.auth.getSession();
+    _currentAccessToken = initialSession?.access_token || null;
+    let isInitialAuthCheck = true;
 
-    if (user) {
-      window.syncUserProfile(user.email, () => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      _currentAccessToken = session?.access_token || null;
+      const user = session?.user || null;
+      authStore.setCurrentUser(user);
+      window.renderAccountAvatar();
+
+      if (user) {
+        window.syncUserProfile(user.email, () => {
+          const activePage = localStorage.getItem('lumiere_active_page');
+          if (activePage === 'payment') {
+            window.prefillCheckoutForm();
+          } else if (activePage === 'addressesPage') {
+            window.displayAddressesPageList();
+          } else if (activePage === 'contact') {
+            window.prefillContactForm();
+          }
+          window.checkAndAutoSendContactForm();
+        });
+        window.fetchMyOrders();
+      } else {
+        window.clearUserProfileState();
         const activePage = localStorage.getItem('lumiere_active_page');
-        if (activePage === 'payment') {
-          window.prefillCheckoutForm();
-        } else if (activePage === 'addressesPage') {
-          window.displayAddressesPageList();
-        } else if (activePage === 'contact') {
-          window.prefillContactForm();
-        }
-        window.checkAndAutoSendContactForm();
-      });
-      window.fetchMyOrders();
-    } else {
-      window.clearUserProfileState();
-      const activePage = localStorage.getItem('lumiere_active_page');
-      if (protectedPagesOnBoot.includes(activePage)) {
-        window.showPage('home');
-      }
-    }
-
-    // Handle initial app boot routing for protected pages once session is resolved
-    if (isInitialAuthCheck) {
-      isInitialAuthCheck = false;
-      
-      if (initialLoginRedirect) {
-        localStorage.removeItem('lumiere_login_redirect');
-      }
-
-      // If it was a protected page, check authorization and route accordingly
-      if (isProtected) {
-        if (!user) {
-          localStorage.setItem('lumiere_login_redirect', targetPage);
-          window.showLogin();
-          targetPage = 'home';
-        } else if (targetPage === 'payment') {
-          targetPage = 'cartPage'; // Redirect to cart if payment page visited directly
-        }
-
-        const url = new URL(window.location.href);
-        url.searchParams.set('page', targetPage);
-        window.history.replaceState({ pageId: targetPage }, '', url.pathname + url.search);
-        window.showPage(targetPage, false);
-      }
-
-      await syncCatalogDataset();
-
-      // If it was protected, we only hide loader now
-      if (isProtected) {
-        const bootLoaderEl = document.getElementById('globalBootLoader');
-        if (bootLoaderEl) {
-          bootLoaderEl.classList.remove('active');
-          setTimeout(() => bootLoaderEl.remove(), 300);
+        if (protectedPagesOnBoot.includes(activePage)) {
+          window.showPage('home');
         }
       }
-    }
-  });
+
+      // Handle initial app boot routing for protected pages once session is resolved
+      if (isInitialAuthCheck) {
+        isInitialAuthCheck = false;
+        
+        if (initialLoginRedirect) {
+          localStorage.removeItem('lumiere_login_redirect');
+        }
+
+        // If it was a protected page, check authorization and route accordingly
+        if (isProtected) {
+          if (!user) {
+            localStorage.setItem('lumiere_login_redirect', targetPage);
+            window.showLogin();
+            targetPage = 'home';
+          } else if (targetPage === 'payment') {
+            targetPage = 'cartPage'; // Redirect to cart if payment page visited directly
+          }
+
+          const url = new URL(window.location.href);
+          url.searchParams.set('page', targetPage);
+          window.history.replaceState({ pageId: targetPage }, '', url.pathname + url.search);
+          window.showPage(targetPage, false);
+
+          await syncCatalogDataset();
+
+          const bootLoaderEl = document.getElementById('globalBootLoader');
+          if (bootLoaderEl) {
+            bootLoaderEl.classList.remove('active');
+            setTimeout(() => bootLoaderEl.remove(), 300);
+          }
+        } else {
+          await syncCatalogDataset();
+        }
+      }
+    });
+  };
+
+  // 4. Run initialization conditionally on boot
+  const hasTokenInHash = window.location.hash.includes('access_token=') || window.location.hash.includes('id_token=') || window.location.hash.includes('error=');
+  const hasTokenInStorage = !!getAuthTokenFromStorage();
+
+  if (hasTokenInHash || hasTokenInStorage || isProtected) {
+    window.initializeSupabaseAuth();
+  } else {
+    // Guest user on a public page: resolve catalog sync immediately
+    syncCatalogDataset();
+  }
 });
 
 window.addEventListener('popstate', (e) => {
@@ -4432,6 +4449,7 @@ window.isProductWishlisted = function(productId, variantName) {
 };
 
 window.toggleWishlistFromModal = async function() {
+  await window.initializeSupabaseAuth();
   const email = window.getLoggedInEmail();
   if (!email) {
     window.showConfirmModal({
@@ -4513,6 +4531,7 @@ window.toggleWishlistFromModal = async function() {
 };
 
 window.fetchWishlist = async function() {
+  await window.initializeSupabaseAuth();
   const email = window.getLoggedInEmail();
   if (!email) {
     window.wishlistCache = [];

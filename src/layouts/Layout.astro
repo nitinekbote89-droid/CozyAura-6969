@@ -30,7 +30,8 @@ const paytmScriptUrl = paytmMid ? `${paytmHost}/merchantpgpui/checkoutjs/merchan
   {paytmMid && <link rel="preconnect" href={paytmHost} crossorigin>}
   <link rel="preload" href="/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/jost-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css" />
+  <link rel="stylesheet" href="/fonts.css" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="/fonts.css" /></noscript>
   <slot name="head" />
   {paytmScriptUrl && <script type="application/javascript" src={paytmScriptUrl} crossorigin="anonymous" defer></script>}
   <script type="application/ld+json" is:inline>

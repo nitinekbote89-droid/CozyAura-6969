@@ -5,10 +5,18 @@ const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID || '';
 const paytmEnvironment = import.meta.env.PAYTM_ENVIRONMENT || process.env.PAYTM_ENVIRONMENT || 'stage';
 const paytmHost = paytmEnvironment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
 const paytmScriptUrl = paytmMid ? `${paytmHost}/merchantpgpui/checkoutjs/merchants/${paytmMid}.js` : '';
+
+const runtimeEnv = Astro.locals.runtime?.env;
+const supabaseUrl = runtimeEnv?.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = runtimeEnv?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 ---
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script is:inline define:vars={{ supabaseUrl, supabaseAnonKey }}>
+    window.__SUPABASE_URL__ = supabaseUrl;
+    window.__SUPABASE_ANON_KEY__ = supabaseAnonKey;
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cozy Aura Candle | Premium Hand-Poured Soy Wax Candles</title>

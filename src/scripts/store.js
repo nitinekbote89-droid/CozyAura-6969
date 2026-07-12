@@ -350,7 +350,7 @@ async function syncCatalogDataset() {
                 }
                 return {
                    id: item.id, name: item.name, scent: normalizedCategory, price: item.price, category: normalizedCategory,
-                   image: item.coverImage ? `<img src="${item.coverImage}" alt="${item.name}" width="300" height="300" style="width:100%;height:100%;object-fit:cover;">` : `<div class="cream-fallback">${window.__svg.fire}</div>`,
+                   image: item.coverImage ? `<img src="${item.coverImage}" alt="${item.name}" width="300" height="300" style="width:100%;height:100%;object-fit:cover;">` : '',
                   description: item.description, specs: Array.isArray(item.specifications) ? item.specifications.join('\n') : item.specifications,
                   inStock: item.stock > 0, variants: vars,
                   totalSales: item.totalSales || 0,
@@ -4583,7 +4583,7 @@ window.renderWishlist = async function() {
     if (imgUrl) {
       imgHtml = `<img src="${cloudinaryOpt(imgUrl, 600, true)}" srcset="${cloudinaryOpt(imgUrl, 600, true)} 600w, ${cloudinaryOpt(imgUrl, 800, true)} 800w, ${cloudinaryOpt(imgUrl, 1200, true)} 1200w" sizes="(max-width: 480px) 600px, (max-width: 1024px) 800px, 1200px" alt="${prod.name}" style="width:100%; height:100%; object-fit:cover;">`;
     } else {
-      imgHtml = `<div class="cream-fallback" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--warm-white)" stroke-width="1.5"><circle cx="12" cy="14" r="3" fill="var(--warm-white)" opacity="0.3"/></svg></div>`;
+      imgHtml = '';
     }
 
     html += `

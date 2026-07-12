@@ -804,7 +804,6 @@ import AdminModals from '../components/AdminModals.astro';
       fragrancesBody.innerHTML = '';
       let outOfStockFragrancesQueue = [];
       
-      const fallbackSVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23E5E7EB'/%3E%3C/svg%3E";
 
       inv.forEach(item => {
           if (item.fragranceStocks && Object.keys(item.fragranceStocks).length > 0) {
@@ -862,7 +861,7 @@ import AdminModals from '../components/AdminModals.astro';
                   badgeColor = '#7E22CE';
               }
 
-              const fImg = fMat.imgSrc || fallbackSVG;
+              const fImg = fMat.imgSrc || '';
               const imgHTML = `<img src="${fImg}" style="width:18px; height:18px; object-fit:cover; border-radius:50%; border:1px solid var(--border); vertical-align:middle; margin-right:6px;">`;
 
               const tr = document.createElement('tr');
@@ -950,7 +949,6 @@ import AdminModals from '../components/AdminModals.astro';
     else if (sortingOption === 'stock-asc') { processedInventory.sort((a, b) => a.stock - b.stock); } 
     else if (sortingOption === 'stock-desc') { processedInventory.sort((a, b) => b.stock - a.stock); }
 
-    const fallbackSVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23E5E7EB'/%3E%3C/svg%3E";
 
     if (processedInventory.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding: 24px;">No matching records found.</td></tr>`;
@@ -972,14 +970,14 @@ import AdminModals from '../components/AdminModals.astro';
          });
          imagesClusterHTML += `</div>`;
       } else {
-         imagesClusterHTML = `<img src="${fallbackSVG}" style="width:28px; height:28px; object-fit:cover; border-radius:3px; border:1px solid var(--border);">`;
+         imagesClusterHTML = '';
       }
 
       let dynamicFragranceCells = '';
       if(item.fragranceStocks && Object.keys(item.fragranceStocks).length > 0) {
           dynamicFragranceCells = Object.entries(item.fragranceStocks).map(([f, qty]) => {
               const labelColor = qty <= 5 ? 'var(--danger)' : (qty <= 10 ? 'var(--warning)' : (qty <= 15 ? '#7E22CE' : 'var(--success)'));
-              const fImg = item.fragranceImages?.[f] || fallbackSVG;
+              const fImg = item.fragranceImages?.[f] || '';
               const imgHTML = `<img src="${fImg}" style="width:18px; height:18px; object-fit:cover; border-radius:50%; border:1px solid var(--border); vertical-align:middle; margin-right:6px;">`;
               return `<div style="display:flex; align-items:center; margin-bottom:4px;">${imgHTML}<span style="text-transform:capitalize;font-weight:500; margin-right:4px;">${esc(f)}</span>: &nbsp;<span style="color:${labelColor}; font-weight:600;">${qty}</span></div>`;
           }).join('');

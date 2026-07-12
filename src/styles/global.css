@@ -1635,8 +1635,7 @@ section.active {
   border-left: 1px solid rgba(196,181,160,0.15);
 }
 
-.bestseller-card-right img,
-.bestseller-card-right .cream-fallback {
+.bestseller-card-right img {
   width: 100%;
   height: 100%;
   object-fit: cover;

@@ -1406,7 +1406,7 @@ window.renderStorefrontImages = function() {
             </div>
             
                 <h4 style="font-weight: 500; font-size: 1.05rem; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; color: var(--gold-dark);">Instagram Feed ("Follow Along")</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Customize the 12 post boxes shown in the social integration grid at the bottom of the home tab. Uploading an image replaces the default gradient fallback.</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Customize the 12 post boxes shown in the social integration grid at the bottom of the home tab. Upload images to display in each slot.</p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px;">
                     ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => {
                         const key = `ig_${i}`;

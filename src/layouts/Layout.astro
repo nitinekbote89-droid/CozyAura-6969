@@ -1,0 +1,71 @@
+---
+import '/src/styles/global.css';
+
+const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID || '';
+const paytmEnvironment = import.meta.env.PAYTM_ENVIRONMENT || process.env.PAYTM_ENVIRONMENT || 'stage';
+const paytmHost = paytmEnvironment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
+const paytmScriptUrl = paytmMid ? `${paytmHost}/merchantpgpui/checkoutjs/merchants/${paytmMid}.js` : '';
+const runtimeEnv = Astro.locals?.runtime?.env || Astro.platform?.env || {};
+const supabaseUrl = runtimeEnv.PUBLIC_SUPABASE_URL || globalThis.PUBLIC_SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || globalThis.PUBLIC_SUPABASE_ANON_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script is:inline define:vars={{ supabaseUrl, supabaseAnonKey }}>
+    window.__SUPABASE_URL__ = supabaseUrl;
+    window.__SUPABASE_ANON_KEY__ = supabaseAnonKey;
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cozy Aura Candle | Premium Hand-Poured Soy Wax Candles</title>
+  <meta name="description" content="Discover premium hand-poured soy wax candles by Cozy Aura Candle. Thoughtfully crafted with elegant fragrances to create warmth, comfort, and timeless moments in every home." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="shortcut icon" href="/favicon.svg" />
+  <link rel="canonical" href="https://cozyaura.in/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Cozy Aura Candle" />
+  <meta property="og:title" content="Cozy Aura Candle | Premium Hand-Poured Soy Wax Candles" />
+  <meta property="og:description" content="Discover premium hand-poured soy wax candles by Cozy Aura Candle. Thoughtfully crafted with elegant fragrances to create warmth, comfort, and timeless moments in every home." />
+  <meta property="og:url" content="https://cozyaura.in/" />
+  <meta property="og:image" content="https://cozyaura.in/favicon.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Cozy Aura Candle | Premium Hand-Poured Soy Wax Candles" />
+  <meta name="twitter:description" content="Discover premium hand-poured soy wax candles by Cozy Aura Candle. Thoughtfully crafted with elegant fragrances to create warmth, comfort, and timeless moments in every home." />
+  <meta name="twitter:image" content="https://cozyaura.in/favicon.svg" />
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+  {paytmMid && <link rel="preconnect" href={paytmHost} crossorigin>}
+  <link rel="preload" href="/fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/jost-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="/fonts.css" /></noscript>
+  <slot name="head" />
+  {paytmScriptUrl && <script type="application/javascript" src={paytmScriptUrl} crossorigin="anonymous" defer></script>}
+  <script type="application/ld+json" is:inline>
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "CozyAura",
+    "url": "https://cozyaura.in/",
+    "description": "Hand-poured 100% natural soya candles crafted in small batches.",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "hello@cozyaura.in",
+      "telephone": "+91-98765-43210",
+      "contactType": "customer service"
+    }
+  }
+  </script>
+  <script type="application/ld+json" is:inline>
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "CozyAura",
+    "url": "https://cozyaura.in/"
+  }
+  </script>
+</head>
+<body>
+  <slot />
+</body>
+</html>

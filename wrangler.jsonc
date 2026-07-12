@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lumiere-store",
+  "compatibility_date": "2026-07-12",
+  "observability": {
+    "enabled": true
+  },
+  "main": "dist/_worker.js/index.js",
+  "compatibility_flags": [
+    "global_fetch_strictly_public",
+    "nodejs_compat"
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "dist"
+  },
+  "vars": {
+    "PUBLIC_SUPABASE_URL": "https://fxihqzepiayehvszyita.supabase.co",
+    "PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4aWhxemVwaWF5ZWh2c3p5aXRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTI3OTAsImV4cCI6MjA5NzI4ODc5MH0.pwMkJ1o8A2vO_ZnWQMEIsQ-2MErOvzfcERVSXASXjDU",
+    "SUPABASE_URL": "https://fxihqzepiayehvszyita.supabase.co",
+    "CLOUDINARY_CLOUD_NAME": "deein4hop",
+    "CLOUDINARY_API_KEY": "286614694633171",
+    "EMAIL_FROM_NAME": "CozyAura",
+    "EMAIL_FROM": "nitinekbote89@gmail.com",
+    "STORE_OWNER_EMAIL": "nitinekbote89@gmail.com",
+    "SMTP_HOST": "smtp.gmail.com",
+    "SMTP_PORT": "465"
+  }
+}

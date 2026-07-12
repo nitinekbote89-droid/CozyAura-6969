@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+*.local
+scratch/
+.astro/
+test-results/
+.netlify/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example

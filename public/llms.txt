@@ -1,0 +1,16 @@
+# Cozy Aura
+
+Premium hand-poured soy wax candles crafted with elegant fragrances to bring warmth, comfort, and timeless elegance into every home.
+
+## Navigation
+
+- [Storefront](https://cozyaura.netlify.app/): Home page to explore the collection, view product scents, custom personalized greeting cards, and check out.
+- [Cart](https://cozyaura.netlify.app/?page=cartPage): Manage cart items, checkout delivery settings, standard shipping standard delivery, and cash-on-delivery payments.
+- [Orders Portal](https://cozyaura.netlify.app/?page=ordersPage): View order histories, tracking data, and account details.
+- [Addresses Manager](https://cozyaura.netlify.app/?page=addressesPage): Create, update, and manage multiple saved shipping addresses.
+- [Admin Panel](https://cozyaura.netlify.app/admin): Administrator control panel to manage product inventories, variant stocks, order details, coupons, and client communications.
+
+## API Endpoints
+
+- [Store Proxy API](https://cozyaura.netlify.app/api/store): Handles core checkout, address sync, wishlist management, view logging, and inventory lock acquisitions.
+- [Admin Proxy API](https://cozyaura.netlify.app/api/admin): Authorized endpoint for inventory adjustments, order fulfillment, template updates, and data syncing.

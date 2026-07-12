@@ -1,0 +1,27 @@
+---
+import '/src/styles/admin.css';
+
+const runtimeEnv = Astro.locals?.runtime?.env || Astro.platform?.env || {};
+const supabaseUrl = runtimeEnv.PUBLIC_SUPABASE_URL || globalThis.PUBLIC_SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || globalThis.PUBLIC_SUPABASE_ANON_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+---
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <script is:inline define:vars={{ supabaseUrl, supabaseAnonKey }}>
+    window.__SUPABASE_URL__ = supabaseUrl;
+    window.__SUPABASE_ANON_KEY__ = supabaseAnonKey;
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CozyAura — Administration Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <link rel="stylesheet" href="/fonts.css" />
+  <slot name="head" />
+</head>
+<body>
+  <slot />
+</body>
+</html>

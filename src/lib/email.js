@@ -283,7 +283,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 
 
 
-async function sendViaSMTP({ to, subject, html, env = {} }) {
+async function sendViaSMTP({ to, subject, html, replyTo, env = {} }) {
   const host = env.SMTP_HOST || import.meta.env.SMTP_HOST || '';
   const port = parseInt(env.SMTP_PORT || import.meta.env.SMTP_PORT || '465', 10);
   const user = env.SMTP_USER || import.meta.env.SMTP_USER;
@@ -305,13 +305,17 @@ async function sendViaSMTP({ to, subject, html, env = {} }) {
     });
 
     const fromName = env.EMAIL_FROM_NAME || import.meta.env.EMAIL_FROM_NAME || 'CozyAura Soya Candles';
-    const info = await transporter.sendMail({
+    const mailOptions = {
       from: `"${fromName}" <${user}>`,
       to,
       subject,
       html
-    });
+    };
+    if (replyTo) {
+      mailOptions.replyTo = replyTo;
+    }
 
+    const info = await transporter.sendMail(mailOptions);
     console.log(`Email sent via SMTP to ${to} (${subject}): ${info.messageId}`);
     return true;
   } catch (err) {
@@ -320,7 +324,7 @@ async function sendViaSMTP({ to, subject, html, env = {} }) {
   }
 }
 
-async function sendViaSendGrid({ to, subject, html, env = {} }) {
+async function sendViaSendGrid({ to, subject, html, replyTo, env = {} }) {
   const apiKey = env.SENDGRID_API_KEY || import.meta.env.SENDGRID_API_KEY;
   if (!apiKey) return false;
 
@@ -328,18 +332,23 @@ async function sendViaSendGrid({ to, subject, html, env = {} }) {
   const fromName = env.EMAIL_FROM_NAME || import.meta.env.EMAIL_FROM_NAME || 'CozyAura';
 
   try {
+    const bodyParams = {
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: fromEmail, name: fromName },
+      subject,
+      content: [{ type: 'text/html', value: html }]
+    };
+    if (replyTo) {
+      bodyParams.reply_to = { email: replyTo };
+    }
+
     const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from: { email: fromEmail, name: fromName },
-        subject,
-        content: [{ type: 'text/html', value: html }]
-      })
+      body: JSON.stringify(bodyParams)
     });
 
     if (res.status === 200 || res.status === 202) {
@@ -356,7 +365,7 @@ async function sendViaSendGrid({ to, subject, html, env = {} }) {
   }
 }
 
-async function sendViaResend({ to, subject, html, env = {} }) {
+async function sendViaResend({ to, subject, html, replyTo, env = {} }) {
   const apiKey = env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY;
   if (!apiKey) return false;
 
@@ -364,18 +373,23 @@ async function sendViaResend({ to, subject, html, env = {} }) {
   const fromName = env.EMAIL_FROM_NAME || import.meta.env.EMAIL_FROM_NAME || 'CozyAura';
 
   try {
+    const bodyParams = {
+      from: `"${fromName}" <${fromEmail}>`,
+      to: [to],
+      subject,
+      html
+    };
+    if (replyTo) {
+      bodyParams.reply_to = replyTo;
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        from: `"${fromName}" <${fromEmail}>`,
-        to: [to],
-        subject,
-        html
-      })
+      body: JSON.stringify(bodyParams)
     });
 
     if (res.ok) {
@@ -392,17 +406,17 @@ async function sendViaResend({ to, subject, html, env = {} }) {
   }
 }
 
-async function sendEmail({ to, subject, html, env = {} }) {
+async function sendEmail({ to, subject, html, replyTo, env = {} }) {
   if (env.SENDGRID_API_KEY || import.meta.env.SENDGRID_API_KEY) {
-    const success = await sendViaSendGrid({ to, subject, html, env });
+    const success = await sendViaSendGrid({ to, subject, html, replyTo, env });
     if (success) return true;
   }
   if (env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY) {
-    const success = await sendViaResend({ to, subject, html, env });
+    const success = await sendViaResend({ to, subject, html, replyTo, env });
     if (success) return true;
   }
   if ((env.SMTP_USER || import.meta.env.SMTP_USER) && (env.SMTP_PASS || import.meta.env.SMTP_PASS)) {
-    const success = await sendViaSMTP({ to, subject, html, env });
+    const success = await sendViaSMTP({ to, subject, html, replyTo, env });
     if (success) return true;
   }
   console.error("No active email providers configured or all failed.");
@@ -437,6 +451,7 @@ export async function sendContactMessage({ name, email, subject, message }, env 
   if ((env.SMTP_USER || import.meta.env.SMTP_USER) && (env.SMTP_PASS || import.meta.env.SMTP_PASS)) {
     const success = await sendViaSMTP({
       to: ownerEmail,
+      replyTo: email,
       subject: `Contact: ${subject}`,
       html: mailHtml,
       env
@@ -446,6 +461,7 @@ export async function sendContactMessage({ name, email, subject, message }, env 
 
   return sendEmail({
     to: ownerEmail,
+    replyTo: email,
     subject: `Contact: ${subject}`,
     html: mailHtml,
     env

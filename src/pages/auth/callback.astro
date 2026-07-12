@@ -1,3 +1,4 @@
+---
 const url = new URL(Astro.request.url);
 const code = url.searchParams.get('code');
 const errorParam = url.searchParams.get('error') || url.searchParams.get('error_description');

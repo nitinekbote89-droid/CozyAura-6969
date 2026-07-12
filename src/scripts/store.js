@@ -2699,19 +2699,6 @@ window.executeSecurePayment = async function() {
         }
       };
 
-      if (json.razorpayOrderId.startsWith('order_mock_')) {
-        console.log("Mock Order ID detected. Bypassing Paytm modal in development mode.");
-        const mockTxnId = 'pay_mock_' + Math.random().toString(36).substring(2, 15);
-        const mockSignature = 'sig_mock_' + Math.random().toString(36).substring(2, 15);
-        config.handler.transactionStatus({
-          STATUS: 'TXN_SUCCESS',
-          TXNID: mockTxnId,
-          ORDERID: json.razorpayOrderId,
-          CHECKSUMHASH: mockSignature,
-          RESPMSG: 'Mock success'
-        });
-        return;
-      }
 
       if (window.Paytm && window.Paytm.CheckoutJS) {
         window.Paytm.CheckoutJS.init(config).then(function() {

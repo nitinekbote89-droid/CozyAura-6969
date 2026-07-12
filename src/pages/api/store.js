@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendOrderConfirmation, sendContactMessage } from '../../lib/email.js';
+import { sendOrderConfirmation } from '../../lib/email.js';
 import { calculateShipping } from '../../lib/shipping.js';
 import PaytmChecksum from '../../lib/PaytmChecksum.js';
 const isProd = import.meta.env.PROD || process.env.NODE_ENV === 'production';
@@ -12,13 +12,6 @@ async function getAuthenticatedUser(request) {
   const authHeader = request.headers.get('Authorization') || '';
   if (!authHeader.startsWith('Bearer ')) return null;
   const token = authHeader.substring(7);
-
-  // Allow test mock token if bypass secret header matches admin secret
-  const bypassHeader = request.headers.get('x-test-bypass-secret');
-  const adminSecret = _env.ADMIN_SECRET || import.meta.env.ADMIN_SECRET || process.env.ADMIN_SECRET || 'CozyAura@6969';
-  if (token === 'mock_test_jwt_token' && bypassHeader && bypassHeader === adminSecret) {
-    return { id: 'mock-test-user-id', email: 'vasantiekbote085@gmail.com' };
-  }
 
   try {
     const { data: { user }, error } = await supabase.auth.getUser(token);
@@ -528,7 +521,7 @@ export async function POST(context) {
       }
 
       let razorpayOrderId = 'order_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-      let txnToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
+      let txnToken = '';
 
       const paytmCfg = getPaytmConfig();
       if (paytmCfg.mid && paytmCfg.merchantKey) {
@@ -576,11 +569,7 @@ export async function POST(context) {
 
           txnToken = rBody.txnToken;
         } catch (err) {
-          if (isProd) {
-            return new Response(JSON.stringify({ success: false, error: "Paytm payment initiation failed: " + err.message }), { status: 500 });
-          }
-          console.warn("Paytm API call failed, falling back to mock Order ID in development:", err.message);
-          razorpayOrderId = 'order_mock_' + Math.random().toString(36).substring(2, 15);
+          return new Response(JSON.stringify({ success: false, error: "Paytm payment initiation failed: " + err.message }), { status: 500 });
         }
       } else if (isProd) {
         return new Response(JSON.stringify({ success: false, error: "Paytm credentials are missing in production environment." }), { status: 500 });
@@ -629,7 +618,7 @@ export async function POST(context) {
         success: true,
         razorpayOrderId,
         expectedTotal: calculated.total,
-        paytmMid: paytmCfg.mid || 'mock_mid',
+        paytmMid: paytmCfg.mid,
         txnToken
       }), { status: 200 });
     }

@@ -284,7 +284,7 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 
 
 async function sendViaSMTP({ to, subject, html, env = {} }) {
-  const host = env.SMTP_HOST || import.meta.env.SMTP_HOST || 'smtp.hostinger.com';
+  const host = env.SMTP_HOST || import.meta.env.SMTP_HOST || '';
   const port = parseInt(env.SMTP_PORT || import.meta.env.SMTP_PORT || '465', 10);
   const user = env.SMTP_USER || import.meta.env.SMTP_USER;
   const pass = env.SMTP_PASS || import.meta.env.SMTP_PASS;
@@ -324,7 +324,7 @@ async function sendViaResend({ to, subject, html, env = {} }) {
   const apiKey = env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY;
   if (!apiKey) return false;
 
-  const fromEmail = env.EMAIL_FROM || import.meta.env.EMAIL_FROM || 'onboarding@resend.dev';
+  const fromEmail = env.EMAIL_FROM || import.meta.env.EMAIL_FROM || '';
   const fromName = env.EMAIL_FROM_NAME || import.meta.env.EMAIL_FROM_NAME || 'CozyAura';
 
   try {

@@ -1,0 +1,23 @@
+# Supabase Configuration
+SUPABASE_URL="https://fxihqzepiayehvszyita.supabase.co"
+SUPABASE_ANON_KEY="your_supabase_anon_key"
+SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
+PUBLIC_SUPABASE_URL="https://fxihqzepiayehvszyita.supabase.co"
+PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+
+# Admin Authentication
+ADMIN_SECRET="your_admin_passcode"
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME="deein4hop"
+CLOUDINARY_API_KEY="286614694633171"
+CLOUDINARY_API_SECRET="your_cloudinary_api_secret"
+
+# Email Configuration
+EMAIL_FROM="your_email@example.com"
+EMAIL_FROM_NAME="CozyAura"
+STORE_OWNER_EMAIL="your_email@example.com"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="465"
+SMTP_USER="your_email@example.com"
+SMTP_PASS="your_smtp_app_password"

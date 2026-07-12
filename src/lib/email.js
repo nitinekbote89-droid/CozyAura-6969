@@ -1,4 +1,3 @@
-import nodemailer from 'nodemailer';
 
 
 
@@ -296,6 +295,8 @@ async function sendViaSMTP({ to, subject, html }) {
   }
 
   try {
+    const nodemailerModule = await import('nodemailer');
+    const nodemailer = nodemailerModule.default;
     const transporter = nodemailer.createTransport({
       host,
       port,

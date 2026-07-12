@@ -320,6 +320,42 @@ async function sendViaSMTP({ to, subject, html, env = {} }) {
   }
 }
 
+async function sendViaSendGrid({ to, subject, html, env = {} }) {
+  const apiKey = env.SENDGRID_API_KEY || import.meta.env.SENDGRID_API_KEY;
+  if (!apiKey) return false;
+
+  const fromEmail = env.EMAIL_FROM || import.meta.env.EMAIL_FROM || 'nitinekbote89@gmail.com';
+  const fromName = env.EMAIL_FROM_NAME || import.meta.env.EMAIL_FROM_NAME || 'CozyAura';
+
+  try {
+    const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: fromEmail, name: fromName },
+        subject,
+        content: [{ type: 'text/html', value: html }]
+      })
+    });
+
+    if (res.status === 200 || res.status === 202) {
+      console.log(`Email sent via SendGrid to ${to} (${subject})`);
+      return true;
+    } else {
+      const errText = await res.text();
+      console.error(`SendGrid API error [${res.status}]:`, errText);
+      return false;
+    }
+  } catch (err) {
+    console.error(`Failed to send email via SendGrid to ${to}:`, err.message);
+    return false;
+  }
+}
+
 async function sendViaResend({ to, subject, html, env = {} }) {
   const apiKey = env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY;
   if (!apiKey) return false;
@@ -357,6 +393,10 @@ async function sendViaResend({ to, subject, html, env = {} }) {
 }
 
 async function sendEmail({ to, subject, html, env = {} }) {
+  if (env.SENDGRID_API_KEY || import.meta.env.SENDGRID_API_KEY) {
+    const success = await sendViaSendGrid({ to, subject, html, env });
+    if (success) return true;
+  }
   if (env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY) {
     const success = await sendViaResend({ to, subject, html, env });
     if (success) return true;

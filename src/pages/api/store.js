@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { sendOrderConfirmation, sendContactMessage } from '../../lib/email.js';
+import { sendOrderConfirmation } from '../../lib/email.js';
 import { calculateShipping } from '../../lib/shipping.js';
 import PaytmChecksum from '../../lib/PaytmChecksum.js';
 const isProd = import.meta.env.PROD || process.env.NODE_ENV === 'production';
@@ -494,18 +494,6 @@ export async function POST(context) {
       if (dbErr) {
         console.error("Failed to insert message into Supabase database:", dbErr);
         return new Response(JSON.stringify({ success: false, error: "Database error: " + dbErr.message }), { status: 500 });
-      }
-
-      // Send email notification to store owner
-      try {
-        await sendContactMessage({
-          name: name.trim(),
-          email: emailTrimmed,
-          subject: subject.trim(),
-          message: message.trim()
-        }, _env);
-      } catch (emailErr) {
-        console.error("Failed to send contact message email notification:", emailErr.message);
       }
 
       return new Response(JSON.stringify({ success: true, message: "Message sent! We'll get back to you soon." }), { status: 200 });

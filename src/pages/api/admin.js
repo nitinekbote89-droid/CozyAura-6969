@@ -273,7 +273,10 @@ export async function GET(context) {
     await autoCleanInactiveVariants();
     const url = new URL(request.url);
     const env = context.locals?.runtime?.env || context.platform?.env || {};
-    const adminSecret = env.ADMIN_SECRET || globalThis.ADMIN_SECRET || process.env?.ADMIN_SECRET || import.meta.env.ADMIN_SECRET || 'CozyAura@6969';
+    const adminSecret = env.ADMIN_SECRET || globalThis.ADMIN_SECRET || process.env?.ADMIN_SECRET || import.meta.env.ADMIN_SECRET;
+    if (!adminSecret) {
+      return new Response(JSON.stringify({ success: false, error: "Server misconfiguration: ADMIN_SECRET not set in Cloudflare dashboard." }), { status: 503 });
+    }
     if (request.headers.get('x-admin-secret') !== adminSecret) {
       return new Response(JSON.stringify({ success: false, error: "Access Denied." }), { status: 401 });
     }
@@ -785,7 +788,10 @@ export async function POST(context) {
     await autoCleanInactiveVariants();
     const data = await request.json();
     const env = context.locals?.runtime?.env || context.platform?.env || {};
-    const adminSecretPost = env.ADMIN_SECRET || globalThis.ADMIN_SECRET || process.env?.ADMIN_SECRET || import.meta.env.ADMIN_SECRET || 'CozyAura@6969';
+    const adminSecretPost = env.ADMIN_SECRET || globalThis.ADMIN_SECRET || process.env?.ADMIN_SECRET || import.meta.env.ADMIN_SECRET;
+    if (!adminSecretPost) {
+      return new Response(JSON.stringify({ success: false, error: "Server misconfiguration: ADMIN_SECRET not set in Cloudflare dashboard." }), { status: 503 });
+    }
     if (data.adminSecret !== adminSecretPost) {
       return new Response(JSON.stringify({ success: false, error: "Access Denied." }), { status: 401 });
     }

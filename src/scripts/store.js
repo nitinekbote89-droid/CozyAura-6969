@@ -4346,7 +4346,11 @@ window.applyStorefrontImages = function() {
   // 1. Hero image
   const heroImg = document.getElementById('storefrontHeroImg');
   if (heroImg) {
-    let targetSrc = sf.home_hero || "https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&q=80&w=800";
+    let targetSrc = sf.home_hero || "";
+    // If no storefront hero image is set, use the first product's cover image
+    if (!targetSrc && window.PRODUCTS && window.PRODUCTS.length > 0) {
+      targetSrc = window.PRODUCTS[0].coverImage || "";
+    }
     if (targetSrc) {
       if (heroImg.getAttribute('src') !== targetSrc) {
         heroImg.style.opacity = '0';

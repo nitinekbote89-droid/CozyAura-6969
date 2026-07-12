@@ -2,8 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 import { sendOrderShipped } from '../../lib/email.js';
 
 let supabase;
+let _env = {};
 function initSupabase(context) {
   const env = context.locals?.runtime?.env || context.platform?.env || {};
+  _env = env;
   const url = env.SUPABASE_URL || env.PUBLIC_SUPABASE_URL || globalThis.SUPABASE_URL || globalThis.PUBLIC_SUPABASE_URL || process.env?.SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
   const key = env.SUPABASE_SERVICE_ROLE_KEY || env.PUBLIC_SUPABASE_ANON_KEY || globalThis.SUPABASE_SERVICE_ROLE_KEY || globalThis.PUBLIC_SUPABASE_ANON_KEY || process.env?.SUPABASE_SERVICE_ROLE_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
   supabase = createClient(url, key);
@@ -31,9 +33,9 @@ async function autoCleanInactiveVariants() {
 
 async function uploadToCloudinary(base64Payload, identifierToken) {
   try {
-    const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME;
-    const apiKey = import.meta.env.CLOUDINARY_API_KEY;
-    const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
+    const cloudName = _env.CLOUDINARY_CLOUD_NAME || import.meta.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = _env.CLOUDINARY_API_KEY || import.meta.env.CLOUDINARY_API_KEY;
+    const apiSecret = _env.CLOUDINARY_API_SECRET || import.meta.env.CLOUDINARY_API_SECRET;
 
     const timestamp = Math.round(new Date().getTime() / 1000);
     const signatureContextString = `public_id=${identifierToken}&timestamp=${timestamp}${apiSecret}`;
@@ -70,9 +72,9 @@ async function uploadToCloudinary(base64Payload, identifierToken) {
 async function deleteFromCloudinary(publicIds) {
   if (!publicIds || publicIds.length === 0) return;
   try {
-    const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME;
-    const apiKey = import.meta.env.CLOUDINARY_API_KEY;
-    const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
+    const cloudName = _env.CLOUDINARY_CLOUD_NAME || import.meta.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = _env.CLOUDINARY_API_KEY || import.meta.env.CLOUDINARY_API_KEY;
+    const apiSecret = _env.CLOUDINARY_API_SECRET || import.meta.env.CLOUDINARY_API_SECRET;
     if (!cloudName || !apiKey || !apiSecret) {
       console.error("Cloudinary credentials missing for deletion.");
       return;
@@ -164,9 +166,9 @@ async function executeCloudinaryCleanup() {
     }
 
     // 2. Fetch all images from Cloudinary using Admin API
-    const cloudName = import.meta.env.CLOUDINARY_CLOUD_NAME;
-    const apiKey = import.meta.env.CLOUDINARY_API_KEY;
-    const apiSecret = import.meta.env.CLOUDINARY_API_SECRET;
+    const cloudName = _env.CLOUDINARY_CLOUD_NAME || import.meta.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = _env.CLOUDINARY_API_KEY || import.meta.env.CLOUDINARY_API_KEY;
+    const apiSecret = _env.CLOUDINARY_API_SECRET || import.meta.env.CLOUDINARY_API_SECRET;
 
     if (!cloudName || !apiKey || !apiSecret) {
       return new Response(JSON.stringify({ success: false, error: "Cloudinary credentials missing." }), { status: 500 });
@@ -1098,7 +1100,7 @@ export async function POST(context) {
               phone: order.shipping_phone || ''
             },
             giftCardFee: giftCardFee.toFixed(2)
-          });}
+          }, _env);}
       }
 
       return new Response(JSON.stringify({ success: true }), { status: 200 });

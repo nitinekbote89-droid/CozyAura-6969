@@ -283,11 +283,11 @@ function orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink
 
 
 
-async function sendViaSMTP({ to, subject, html }) {
-  const host = import.meta.env.SMTP_HOST || 'smtp.hostinger.com';
-  const port = parseInt(import.meta.env.SMTP_PORT || '465', 10);
-  const user = import.meta.env.SMTP_USER;
-  const pass = import.meta.env.SMTP_PASS;
+async function sendViaSMTP({ to, subject, html, env = {} }) {
+  const host = env.SMTP_HOST || import.meta.env.SMTP_HOST || 'smtp.hostinger.com';
+  const port = parseInt(env.SMTP_PORT || import.meta.env.SMTP_PORT || '465', 10);
+  const user = env.SMTP_USER || import.meta.env.SMTP_USER;
+  const pass = env.SMTP_PASS || import.meta.env.SMTP_PASS;
 
   if (!user || !pass) {
     console.warn('SMTP credentials (SMTP_USER/SMTP_PASS) not set — trying Brevo/SendGrid fallback for contact message');
@@ -304,7 +304,7 @@ async function sendViaSMTP({ to, subject, html }) {
       auth: { user, pass }
     });
 
-    const fromName = import.meta.env.EMAIL_FROM_NAME || 'CozyAura Soya Candles';
+    const fromName = env.EMAIL_FROM_NAME || import.meta.env.EMAIL_FROM_NAME || 'CozyAura Soya Candles';
     const info = await transporter.sendMail({
       from: `"${fromName}" <${user}>`,
       to,
@@ -320,12 +320,12 @@ async function sendViaSMTP({ to, subject, html }) {
   }
 }
 
-async function sendViaResend({ to, subject, html }) {
-  const apiKey = import.meta.env.RESEND_API_KEY;
+async function sendViaResend({ to, subject, html, env = {} }) {
+  const apiKey = env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY;
   if (!apiKey) return false;
 
-  const fromEmail = import.meta.env.EMAIL_FROM || 'onboarding@resend.dev';
-  const fromName = import.meta.env.EMAIL_FROM_NAME || 'CozyAura';
+  const fromEmail = env.EMAIL_FROM || import.meta.env.EMAIL_FROM || 'onboarding@resend.dev';
+  const fromName = env.EMAIL_FROM_NAME || import.meta.env.EMAIL_FROM_NAME || 'CozyAura';
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
@@ -356,47 +356,50 @@ async function sendViaResend({ to, subject, html }) {
   }
 }
 
-async function sendEmail({ to, subject, html }) {
-  if (import.meta.env.RESEND_API_KEY) {
-    const success = await sendViaResend({ to, subject, html });
+async function sendEmail({ to, subject, html, env = {} }) {
+  if (env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY) {
+    const success = await sendViaResend({ to, subject, html, env });
     if (success) return true;
   }
-  if (import.meta.env.SMTP_USER && import.meta.env.SMTP_PASS) {
-    const success = await sendViaSMTP({ to, subject, html });
+  if ((env.SMTP_USER || import.meta.env.SMTP_USER) && (env.SMTP_PASS || import.meta.env.SMTP_PASS)) {
+    const success = await sendViaSMTP({ to, subject, html, env });
     if (success) return true;
   }
   console.error("No active email providers configured or all failed.");
   return false;
 }
 
-export async function sendOrderConfirmation({ email, name, orderId, items, subtotal, discount, shipping, total, address, siteOrigin, giftCardFee = 0 }) {
+export async function sendOrderConfirmation({ email, name, orderId, items, subtotal, discount, shipping, total, address, siteOrigin, giftCardFee = 0 }, env = {}) {
   return sendEmail({
     to: email,
     subject: `Order Confirmed — ${orderId}`,
-    html: orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address, siteOrigin, giftCardFee })
+    html: orderConfirmationHTML({ orderId, name, items, subtotal, discount, shipping, total, address, siteOrigin, giftCardFee }),
+    env
   });
 }
 
-export async function sendOrderShipped({ email, name, orderId, trackingNumber, courier, trackingLink, deliveryMethod, siteOrigin, items, subtotal, discount, shipping, total, address, giftCardFee = 0 }) {
+export async function sendOrderShipped({ email, name, orderId, trackingNumber, courier, trackingLink, deliveryMethod, siteOrigin, items, subtotal, discount, shipping, total, address, giftCardFee = 0 }, env = {}) {
   const isPickup = deliveryMethod === 'Pickup';
   const formattedOrderId = String(orderId).startsWith('#') ? orderId : `#${orderId}`;
   const subject = isPickup ? `Order Ready for Pickup — ${formattedOrderId}` : `Order Shipped — ${formattedOrderId}`;
   return sendEmail({
     to: email,
     subject,
-    html: orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink, deliveryMethod, siteOrigin, items, subtotal, discount, shipping, total, address, giftCardFee })
+    html: orderShippedHTML({ orderId, name, trackingNumber, courier, trackingLink, deliveryMethod, siteOrigin, items, subtotal, discount, shipping, total, address, giftCardFee }),
+    env
   });
 }
 
-export async function sendContactMessage({ name, email, subject, message }) {
-  const ownerEmail = import.meta.env.STORE_OWNER_EMAIL || 'nitinekbote89@gmail.com';
+export async function sendContactMessage({ name, email, subject, message }, env = {}) {
+  const ownerEmail = env.STORE_OWNER_EMAIL || import.meta.env.STORE_OWNER_EMAIL || 'nitinekbote89@gmail.com';
   const mailHtml = `<p><strong>From:</strong> ${name} (${email})</p><p><strong>Subject:</strong> ${subject}</p><p><strong>Message:</strong></p><p>${message}</p>`;
 
-  if (import.meta.env.SMTP_USER && import.meta.env.SMTP_PASS) {
+  if ((env.SMTP_USER || import.meta.env.SMTP_USER) && (env.SMTP_PASS || import.meta.env.SMTP_PASS)) {
     const success = await sendViaSMTP({
       to: ownerEmail,
       subject: `Contact: ${subject}`,
-      html: mailHtml
+      html: mailHtml,
+      env
     });
     if (success) return true;
   }
@@ -404,6 +407,7 @@ export async function sendContactMessage({ name, email, subject, message }) {
   return sendEmail({
     to: ownerEmail,
     subject: `Contact: ${subject}`,
-    html: mailHtml
+    html: mailHtml,
+    env
   });
 }

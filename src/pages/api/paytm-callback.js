@@ -3,8 +3,10 @@ import { sendOrderConfirmation } from '../../lib/email.js';
 import PaytmChecksum from '../../lib/PaytmChecksum.js';
 
 let supabase;
+let _env = {};
 function initSupabase(context) {
   const env = context.locals?.runtime?.env || context.platform?.env || {};
+  _env = env;
   const url = env.SUPABASE_URL || env.PUBLIC_SUPABASE_URL || globalThis.SUPABASE_URL || globalThis.PUBLIC_SUPABASE_URL || process.env?.SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
   const key = env.SUPABASE_SERVICE_ROLE_KEY || env.PUBLIC_SUPABASE_ANON_KEY || globalThis.SUPABASE_SERVICE_ROLE_KEY || globalThis.PUBLIC_SUPABASE_ANON_KEY || process.env?.SUPABASE_SERVICE_ROLE_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
   supabase = createClient(url, key);
@@ -34,9 +36,9 @@ export async function POST(context) {
     }
 
     // 2. Fetch Paytm Credentials from Env
-    const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID;
-    const paytmMerchantKey = import.meta.env.PAYTM_MERCHANT_KEY || process.env.PAYTM_MERCHANT_KEY;
-    const paytmEnvironment = import.meta.env.PAYTM_ENVIRONMENT || process.env.PAYTM_ENVIRONMENT || 'stage';
+    const paytmMid = _env.PAYTM_MID || import.meta.env.PAYTM_MID || process.env?.PAYTM_MID;
+    const paytmMerchantKey = _env.PAYTM_MERCHANT_KEY || import.meta.env.PAYTM_MERCHANT_KEY || process.env?.PAYTM_MERCHANT_KEY;
+    const paytmEnvironment = _env.PAYTM_ENVIRONMENT || import.meta.env.PAYTM_ENVIRONMENT || process.env?.PAYTM_ENVIRONMENT || 'stage';
 
     // 3. Verify Paytm Signature
     const isChecksumValid = PaytmChecksum.verifySignature(bodyParams, paytmMerchantKey, checksumHash);
@@ -166,7 +168,7 @@ export async function POST(context) {
           },
           siteOrigin: new URL(request.url).origin,
           giftCardFee: giftCardFeeVal.toFixed(2)
-        });
+        }, _env);
       } catch (emailErr) {
         console.error("Paytm Callback Email Send Error:", emailErr.message);
       }

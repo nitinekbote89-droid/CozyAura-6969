@@ -48,9 +48,12 @@ async function fetchCatalogData(runtimeEnv) {
   } catch (e) {}
 
   const storefrontImages = sfRow?.value || null;
-  let heroImageUrl = "https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&q=80&w=800";
+  let heroImageUrl = null;
   if (storefrontImages?.home_hero) {
     heroImageUrl = storefrontImages.home_hero;
+  } else if (dbProducts && dbProducts.length > 0) {
+    // Use the first product's cover image as a fallback hero when no storefront image is configured
+    heroImageUrl = dbProducts[0].cover_image || null;
   }
 
   const variantsByProductId = {};

@@ -6,6 +6,8 @@ const isProd = import.meta.env.PROD || process.env.NODE_ENV === 'production';
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const jsonRes = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
 
+let _env = {};
+
 async function getAuthenticatedUser(request) {
   const authHeader = request.headers.get('Authorization') || '';
   if (!authHeader.startsWith('Bearer ')) return null;
@@ -13,7 +15,7 @@ async function getAuthenticatedUser(request) {
 
   // Allow test mock token if bypass secret header matches admin secret
   const bypassHeader = request.headers.get('x-test-bypass-secret');
-  const adminSecret = import.meta.env.ADMIN_SECRET || process.env.ADMIN_SECRET || 'CozyAura@6969';
+  const adminSecret = _env.ADMIN_SECRET || import.meta.env.ADMIN_SECRET || process.env.ADMIN_SECRET || 'CozyAura@6969';
   if (token === 'mock_test_jwt_token' && bypassHeader && bypassHeader === adminSecret) {
     return { id: 'mock-test-user-id', email: 'vasantiekbote085@gmail.com' };
   }
@@ -34,19 +36,19 @@ const CACHE_TTL = 30_000;
 let supabase;
 function initSupabase(context) {
   const env = context.locals?.runtime?.env || context.platform?.env || {};
+  _env = env;
   const url = env.SUPABASE_URL || env.PUBLIC_SUPABASE_URL || globalThis.SUPABASE_URL || globalThis.PUBLIC_SUPABASE_URL || process.env?.SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
   const key = env.SUPABASE_SERVICE_ROLE_KEY || env.PUBLIC_SUPABASE_ANON_KEY || globalThis.SUPABASE_SERVICE_ROLE_KEY || globalThis.PUBLIC_SUPABASE_ANON_KEY || process.env?.SUPABASE_SERVICE_ROLE_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
   supabase = createClient(url, key);
 }
 
-const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID;
-const paytmMerchantKey = import.meta.env.PAYTM_MERCHANT_KEY || process.env.PAYTM_MERCHANT_KEY;
-const paytmWebsite = import.meta.env.PAYTM_WEBSITE || process.env.PAYTM_WEBSITE || 'WEBSTAGING';
-const paytmEnvironment = import.meta.env.PAYTM_ENVIRONMENT || process.env.PAYTM_ENVIRONMENT || 'stage';
-
-
-if (isProd && (!paytmMid || !paytmMerchantKey)) {
-  console.error("FATAL: Paytm credentials are required in production mode.");
+function getPaytmConfig() {
+  return {
+    mid: _env.PAYTM_MID || import.meta.env.PAYTM_MID || process.env?.PAYTM_MID || '',
+    merchantKey: _env.PAYTM_MERCHANT_KEY || import.meta.env.PAYTM_MERCHANT_KEY || process.env?.PAYTM_MERCHANT_KEY || '',
+    website: _env.PAYTM_WEBSITE || import.meta.env.PAYTM_WEBSITE || process.env?.PAYTM_WEBSITE || 'WEBSTAGING',
+    environment: _env.PAYTM_ENVIRONMENT || import.meta.env.PAYTM_ENVIRONMENT || process.env?.PAYTM_ENVIRONMENT || 'stage'
+  };
 }
 
 function getCanonicalItemsString(items) {
@@ -528,13 +530,14 @@ export async function POST(context) {
       let razorpayOrderId = 'order_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
       let txnToken = 'mock_token_' + Math.random().toString(36).substring(2, 15);
 
-      if (paytmMid && paytmMerchantKey) {
+      const paytmCfg = getPaytmConfig();
+      if (paytmCfg.mid && paytmCfg.merchantKey) {
         try {
           const paytmParams = {
             body: {
               requestType: "Payment",
-              mid: paytmMid,
-              websiteName: paytmWebsite,
+              mid: paytmCfg.mid,
+              websiteName: paytmCfg.website,
               orderId: razorpayOrderId,
               txnAmount: {
                 value: calculated.total.toFixed(2),
@@ -547,13 +550,13 @@ export async function POST(context) {
             }
           };
 
-          const signature = await PaytmChecksum.generateSignature(JSON.stringify(paytmParams.body), paytmMerchantKey);
+          const signature = await PaytmChecksum.generateSignature(JSON.stringify(paytmParams.body), paytmCfg.merchantKey);
           paytmParams.head = {
             signature: signature
           };
 
-          const paytmHost = paytmEnvironment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
-          const rRes = await fetch(`${paytmHost}/theia/api/v1/initiateTransaction?mid=${paytmMid}&orderId=${razorpayOrderId}`, {
+          const paytmHost = paytmCfg.environment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
+          const rRes = await fetch(`${paytmHost}/theia/api/v1/initiateTransaction?mid=${paytmCfg.mid}&orderId=${razorpayOrderId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(paytmParams)
@@ -626,7 +629,7 @@ export async function POST(context) {
         success: true,
         razorpayOrderId,
         expectedTotal: calculated.total,
-        paytmMid: paytmMid || 'mock_mid',
+        paytmMid: paytmCfg.mid || 'mock_mid',
         txnToken
       }), { status: 200 });
     }
@@ -722,19 +725,20 @@ export async function POST(context) {
           return new Response(JSON.stringify({ success: false, error: "Missing Paytm verification tokens." }), { status: 400 });
         }
 
-        if (paytmMid && paytmMerchantKey) {
+        const paytmCfg2 = getPaytmConfig();
+        if (paytmCfg2.mid && paytmCfg2.merchantKey) {
           try {
             const parsedParams = JSON.parse(razorpaySignature);
-            const isChecksumValid = PaytmChecksum.verifySignature(parsedParams, paytmMerchantKey, parsedParams.CHECKSUMHASH);
+            const isChecksumValid = PaytmChecksum.verifySignature(parsedParams, paytmCfg2.merchantKey, parsedParams.CHECKSUMHASH);
             if (!isChecksumValid) {
               return new Response(JSON.stringify({ success: false, error: "Paytm signature verification failed. Security alert!" }), { status: 400 });
             }
 
             const statusQueryBody = {
-              mid: paytmMid,
+              mid: paytmCfg2.mid,
               orderId: razorpayOrderId
             };
-            const queryChecksum = await PaytmChecksum.generateSignature(statusQueryBody, paytmMerchantKey);
+            const queryChecksum = await PaytmChecksum.generateSignature(statusQueryBody, paytmCfg2.merchantKey);
 
             const statusQueryPayload = {
               body: statusQueryBody,
@@ -743,7 +747,7 @@ export async function POST(context) {
               }
             };
 
-            const paytmHost = paytmEnvironment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
+            const paytmHost = paytmCfg2.environment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
             const statusRes = await fetch(`${paytmHost}/v3/order/status`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -883,7 +887,7 @@ export async function POST(context) {
         },
         siteOrigin: new URL(request.url).origin,
         giftCardFee: (finalLayoutId || isGift === true || isGift === 'true') ? '50.00' : '0.00'
-      });
+      }, _env);
 
       return new Response(JSON.stringify({ 
         success: true, 

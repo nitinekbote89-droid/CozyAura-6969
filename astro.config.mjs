@@ -2,9 +2,9 @@ import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 import cloudflare from "@astrojs/cloudflare";
 
-const adapter = process.env.CF_PAGES === '1' || process.env.CLOUDFLARE === 'true'
-  ? cloudflare()
-  : netlify();
+const adapter = process.env.NETLIFY === 'true'
+  ? netlify()
+  : cloudflare();
 
 export default defineConfig({
   output: 'server',

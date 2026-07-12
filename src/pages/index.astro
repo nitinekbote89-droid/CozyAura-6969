@@ -8,9 +8,6 @@ const supabase = createClient(
   import.meta.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-let ssrCatalogCache = null;
-let ssrCatalogCacheTime = 0;
-let ssrCacheRefreshing = false;
 const SSR_CACHE_FRESH_TTL = 600_000;
 const SSR_CACHE_STALE_TTL = 86_400_000;
 
@@ -80,30 +77,36 @@ async function fetchCatalogData() {
 }
 
 // Stale-while-revalidate: serve cached instantly, refresh in background if stale
+if (!globalThis.ssrCatalogCache) {
+  globalThis.ssrCatalogCache = null;
+  globalThis.ssrCatalogCacheTime = 0;
+  globalThis.ssrCacheRefreshing = false;
+}
+
 let initialCatalog = null;
 let heroImageUrl = null;
 const now = Date.now();
 
-if (ssrCatalogCache && (now - ssrCatalogCacheTime) < SSR_CACHE_STALE_TTL) {
-  const cached = ssrCatalogCache;
+if (globalThis.ssrCatalogCache && (now - globalThis.ssrCatalogCacheTime) < SSR_CACHE_STALE_TTL) {
+  const cached = globalThis.ssrCatalogCache;
   initialCatalog = cached.initialCatalog;
   heroImageUrl = cached.heroImageUrl;
-  if ((now - ssrCatalogCacheTime) > SSR_CACHE_FRESH_TTL && !ssrCacheRefreshing) {
-    ssrCacheRefreshing = true;
+  if ((now - globalThis.ssrCatalogCacheTime) > SSR_CACHE_FRESH_TTL && !globalThis.ssrCacheRefreshing) {
+    globalThis.ssrCacheRefreshing = true;
     fetchCatalogData().then(result => {
-      ssrCatalogCache = result;
-      ssrCatalogCacheTime = Date.now();
-      ssrCacheRefreshing = false;
+      globalThis.ssrCatalogCache = result;
+      globalThis.ssrCatalogCacheTime = Date.now();
+      globalThis.ssrCacheRefreshing = false;
     }).catch(() => {
-      ssrCacheRefreshing = false;
+      globalThis.ssrCacheRefreshing = false;
     });
   }
 } else try {
   const result = await fetchCatalogData();
   initialCatalog = result.initialCatalog;
   heroImageUrl = result.heroImageUrl;
-  ssrCatalogCache = result;
-  ssrCatalogCacheTime = Date.now();
+  globalThis.ssrCatalogCache = result;
+  globalThis.ssrCatalogCacheTime = Date.now();
 } catch (e) {
   console.warn('SSR catalog query failed, will load client-side');
 }

@@ -4172,7 +4172,54 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
   window.updateCart();
 
-  // Load Supabase and start auth observer
+  // 1. Determine target page synchronously on boot
+  const initialLoginRedirect = localStorage.getItem('lumiere_login_redirect');
+  const savedPage = localStorage.getItem('lumiere_active_page');
+  const urlPage = params.get('page');
+
+  let targetPage = 'home';
+  if (initialLoginRedirect) {
+    targetPage = initialLoginRedirect;
+  } else if (urlPage && pages.includes(urlPage)) {
+    targetPage = urlPage;
+  } else if (savedPage && pages.includes(savedPage)) {
+    targetPage = savedPage;
+  }
+
+  const protectedPagesOnBoot = ['ordersPage', 'addressesPage', 'wishlistPage', 'payment'];
+  const isProtected = protectedPagesOnBoot.includes(targetPage);
+
+  // 2. If target page is public, show page and hide boot loader immediately (non-blocking)
+  if (!isProtected) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', targetPage);
+    window.history.replaceState({ pageId: targetPage }, '', url.pathname + url.search);
+    window.showPage(targetPage, false);
+    
+    // Initialize catalog dataset synchronously if available
+    if (window.__INITIAL_CATALOG__) {
+      window.PROMOS = (window.__INITIAL_CATALOG__.coupons || []).map(c => ({
+        code: c.code, type: c.type, discount: c.discount, min_order_value: parseFloat(c.min_order_value) || 0, is_public: c.is_public !== false
+      }));
+      window.PRODUCTS = window.__INITIAL_CATALOG__.inventory.map(item => {
+        let vars = Object.entries(item.fragranceStocks || {}).map(([fName, qty]) => ({
+          id: fName, name: fName, price: item.price, inStock: qty > 0, maxStock: qty,
+          image: item.fragranceImages?.[fName] ? `<img src="${item.fragranceImages[fName]}" alt="${item.name}" width="300" height="300" style="width:100%;height:100%;object-fit:cover;">` : ''
+        }));
+        return { ...item, variants: vars };
+      });
+      delete window.__INITIAL_CATALOG__;
+    }
+
+    // Hide loader immediately
+    const bootLoaderEl = document.getElementById('globalBootLoader');
+    if (bootLoaderEl) {
+      bootLoaderEl.classList.remove('active');
+      setTimeout(() => bootLoaderEl.remove(), 300);
+    }
+  }
+
+  // 3. Load Supabase and verify session in background
   const supabase = await getSupabase();
   const { data: { session: initialSession } } = await supabase.auth.getSession();
   _currentAccessToken = initialSession?.access_token || null;
@@ -4185,7 +4232,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     window.renderAccountAvatar();
 
     if (user) {
-      // Sync profile & load orders/wishlist
       window.syncUserProfile(user.email, () => {
         const activePage = localStorage.getItem('lumiere_active_page');
         if (activePage === 'payment') {
@@ -4195,68 +4241,50 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (activePage === 'contact') {
           window.prefillContactForm();
         }
-        
-        // Auto-restore and send cached contact form message
         window.checkAndAutoSendContactForm();
       });
       window.fetchMyOrders();
     } else {
-      // Sign out event or unauthenticated state
       window.clearUserProfileState();
-      
-      // Auto-slide back to home if user was on a protected page
       const activePage = localStorage.getItem('lumiere_active_page');
-      const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage', 'payment'];
-      if (protectedPages.includes(activePage)) {
+      if (protectedPagesOnBoot.includes(activePage)) {
         window.showPage('home');
       }
     }
 
-    // Handle initial app boot routing once session is resolved
+    // Handle initial app boot routing for protected pages once session is resolved
     if (isInitialAuthCheck) {
       isInitialAuthCheck = false;
-
-      const initialLoginRedirect = localStorage.getItem('lumiere_login_redirect');
+      
       if (initialLoginRedirect) {
         localStorage.removeItem('lumiere_login_redirect');
       }
 
-      const savedPage = localStorage.getItem('lumiere_active_page');
-      const urlPage = params.get('page');
+      // If it was a protected page, check authorization and route accordingly
+      if (isProtected) {
+        if (!user) {
+          localStorage.setItem('lumiere_login_redirect', targetPage);
+          window.showLogin();
+          targetPage = 'home';
+        } else if (targetPage === 'payment') {
+          targetPage = 'cartPage'; // Redirect to cart if payment page visited directly
+        }
 
-      let targetPage = 'home';
-      if (initialLoginRedirect) {
-        targetPage = initialLoginRedirect;
-      } else if (urlPage && pages.includes(urlPage)) {
-        targetPage = urlPage;
-      } else if (savedPage && pages.includes(savedPage)) {
-        targetPage = savedPage;
+        const url = new URL(window.location.href);
+        url.searchParams.set('page', targetPage);
+        window.history.replaceState({ pageId: targetPage }, '', url.pathname + url.search);
+        window.showPage(targetPage, false);
       }
-
-      // Check access permission for target page
-      const protectedPages = ['ordersPage', 'addressesPage', 'wishlistPage'];
-      if (protectedPages.includes(targetPage) && !user) {
-        localStorage.setItem('lumiere_login_redirect', targetPage);
-        window.showLogin();
-        targetPage = 'home';
-      }
-
-      if (targetPage === 'payment' && !user) {
-        targetPage = 'cartPage';
-      }
-
-      // Initialize route and load catalog
-      const url = new URL(window.location.href);
-      url.searchParams.set('page', targetPage);
-      window.history.replaceState({ pageId: targetPage }, '', url.pathname + url.search);
-      window.showPage(targetPage, false);
 
       await syncCatalogDataset();
 
-      // Fade out and remove boot loader
-      if (bootLoader) {
-        bootLoader.classList.remove('active');
-        setTimeout(() => bootLoader.remove(), 300);
+      // If it was protected, we only hide loader now
+      if (isProtected) {
+        const bootLoaderEl = document.getElementById('globalBootLoader');
+        if (bootLoaderEl) {
+          bootLoaderEl.classList.remove('active');
+          setTimeout(() => bootLoaderEl.remove(), 300);
+        }
       }
     }
   });

@@ -87,7 +87,7 @@ if (!globalThis.ssrCatalogCache) {
   globalThis.ssrCacheRefreshing = false;
 }
 
-const runtimeEnv = Astro.locals.runtime?.env;
+const runtimeEnv = Astro.locals?.runtime?.env || Astro.platform?.env || {};
 
 let initialCatalog = null;
 let heroImageUrl = null;

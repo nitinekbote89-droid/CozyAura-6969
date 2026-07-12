@@ -1,7 +1,7 @@
 ---
 import '/src/styles/admin.css';
 
-const runtimeEnv = Astro.locals.runtime?.env || {};
+const runtimeEnv = Astro.locals?.runtime?.env || Astro.platform?.env || {};
 const supabaseUrl = runtimeEnv.PUBLIC_SUPABASE_URL || globalThis.PUBLIC_SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || globalThis.PUBLIC_SUPABASE_ANON_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 ---

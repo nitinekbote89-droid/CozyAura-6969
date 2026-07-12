@@ -3,7 +3,7 @@ import { sendOrderShipped } from '../../lib/email.js';
 
 let supabase;
 function initSupabase(context) {
-  const env = context.locals.runtime?.env || {};
+  const env = context.locals?.runtime?.env || context.platform?.env || {};
   const url = env.SUPABASE_URL || env.PUBLIC_SUPABASE_URL || globalThis.SUPABASE_URL || globalThis.PUBLIC_SUPABASE_URL || process.env?.SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
   const key = env.SUPABASE_SERVICE_ROLE_KEY || env.PUBLIC_SUPABASE_ANON_KEY || globalThis.SUPABASE_SERVICE_ROLE_KEY || globalThis.PUBLIC_SUPABASE_ANON_KEY || process.env?.SUPABASE_SERVICE_ROLE_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
   supabase = createClient(url, key);

@@ -5,8 +5,9 @@ import { createClient } from '@supabase/supabase-js';
 
 let supabase;
 function initSupabase(runtimeEnv) {
-  const url = runtimeEnv?.SUPABASE_URL || import.meta.env.SUPABASE_URL;
-  const key = runtimeEnv?.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+  const env = runtimeEnv || {};
+  const url = env.SUPABASE_URL || globalThis.SUPABASE_URL || process.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL || '';
+  const key = env.SUPABASE_SERVICE_ROLE_KEY || globalThis.SUPABASE_SERVICE_ROLE_KEY || process.env?.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY || '';
   supabase = createClient(url, key);
 }
 

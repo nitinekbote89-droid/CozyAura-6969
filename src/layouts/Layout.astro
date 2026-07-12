@@ -5,10 +5,9 @@ const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID || '';
 const paytmEnvironment = import.meta.env.PAYTM_ENVIRONMENT || process.env.PAYTM_ENVIRONMENT || 'stage';
 const paytmHost = paytmEnvironment === 'prod' ? 'https://securegw.paytm.in' : 'https://securegw-stage.paytm.in';
 const paytmScriptUrl = paytmMid ? `${paytmHost}/merchantpgpui/checkoutjs/merchants/${paytmMid}.js` : '';
-
-const runtimeEnv = Astro.locals.runtime?.env;
-const supabaseUrl = runtimeEnv?.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = runtimeEnv?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+const runtimeEnv = Astro.locals.runtime?.env || {};
+const supabaseUrl = runtimeEnv.PUBLIC_SUPABASE_URL || globalThis.PUBLIC_SUPABASE_URL || process.env?.PUBLIC_SUPABASE_URL || import.meta.env.PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = runtimeEnv.PUBLIC_SUPABASE_ANON_KEY || globalThis.PUBLIC_SUPABASE_ANON_KEY || process.env?.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 ---
 <!DOCTYPE html>
 <html lang="en">

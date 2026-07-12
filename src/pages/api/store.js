@@ -33,11 +33,10 @@ const CACHE_TTL = 30_000;
 
 let supabase;
 function initSupabase(context) {
-  const env = context.locals.runtime?.env || process.env || import.meta.env;
-  supabase = createClient(
-    env.SUPABASE_URL || import.meta.env.SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  const env = context.locals.runtime?.env || {};
+  const url = env.SUPABASE_URL || globalThis.SUPABASE_URL || process.env?.SUPABASE_URL || import.meta.env.SUPABASE_URL || '';
+  const key = env.SUPABASE_SERVICE_ROLE_KEY || globalThis.SUPABASE_SERVICE_ROLE_KEY || process.env?.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  supabase = createClient(url, key);
 }
 
 const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID;

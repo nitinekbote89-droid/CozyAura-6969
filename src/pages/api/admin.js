@@ -1,7 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { sendOrderShipped } from '../../lib/email.js';
 
-const supabase = createClient(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_SERVICE_ROLE_KEY);
+let supabase;
+function initSupabase(context) {
+  const env = context.locals.runtime?.env || process.env || import.meta.env;
+  supabase = createClient(
+    env.SUPABASE_URL || import.meta.env.SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
 
 async function autoCleanInactiveVariants() {
   try {
@@ -260,7 +267,9 @@ if (typeof process !== 'undefined') {
   startAutomaticCleanupSchedule();
 }
 
-export async function GET({ request }) {
+export async function GET(context) {
+  initSupabase(context);
+  const { request } = context;
   try {
     await autoCleanInactiveVariants();
     const url = new URL(request.url);
@@ -772,7 +781,9 @@ export async function GET({ request }) {
   }
 }
 
-export async function POST({ request }) {
+export async function POST(context) {
+  initSupabase(context);
+  const { request } = context;
   try {
     await autoCleanInactiveVariants();
     const data = await request.json();

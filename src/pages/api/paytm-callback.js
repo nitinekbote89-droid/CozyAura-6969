@@ -2,12 +2,18 @@ import { createClient } from '@supabase/supabase-js';
 import { sendOrderConfirmation } from '../../lib/email.js';
 import PaytmChecksum from '../../lib/PaytmChecksum.js';
 
-const supabase = createClient(
-  import.meta.env.SUPABASE_URL,
-  import.meta.env.SUPABASE_SERVICE_ROLE_KEY
-);
+let supabase;
+function initSupabase(context) {
+  const env = context.locals.runtime?.env || process.env || import.meta.env;
+  supabase = createClient(
+    env.SUPABASE_URL || import.meta.env.SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
 
-export async function POST({ request }) {
+export async function POST(context) {
+  initSupabase(context);
+  const { request } = context;
   let bodyParams = {};
   let customerName = '';
   let orderId = '';

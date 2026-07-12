@@ -31,10 +31,14 @@ let catalogCache = null;
 let catalogCacheTime = 0;
 const CACHE_TTL = 30_000;
 
-const supabase = createClient(
-  import.meta.env.SUPABASE_URL,
-  import.meta.env.SUPABASE_SERVICE_ROLE_KEY
-);
+let supabase;
+function initSupabase(context) {
+  const env = context.locals.runtime?.env || process.env || import.meta.env;
+  supabase = createClient(
+    env.SUPABASE_URL || import.meta.env.SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+}
 
 const paytmMid = import.meta.env.PAYTM_MID || process.env.PAYTM_MID;
 const paytmMerchantKey = import.meta.env.PAYTM_MERCHANT_KEY || process.env.PAYTM_MERCHANT_KEY;
@@ -187,7 +191,9 @@ async function autoCleanInactiveVariants() {
   }
 }
 
-export async function GET({ request }) {
+export async function GET(context) {
+  initSupabase(context);
+  const { request } = context;
   try {
     const url = new URL(request.url);
     const now = Date.now();
@@ -321,7 +327,9 @@ export async function GET({ request }) {
   }
 }
 
-export async function POST({ request }) {
+export async function POST(context) {
+  initSupabase(context);
+  const { request } = context;
   try {
     await autoCleanInactiveVariants();
     const body = await request.json();

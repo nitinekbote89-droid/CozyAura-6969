@@ -191,9 +191,9 @@ async function autoCleanInactiveVariants() {
 }
 
 export async function GET(context) {
-  initSupabase(context);
-  const { request } = context;
   try {
+    initSupabase(context);
+    const { request } = context;
     const url = new URL(request.url);
     const now = Date.now();
     if (catalogCache && (now - catalogCacheTime) < CACHE_TTL) {
@@ -327,9 +327,9 @@ export async function GET(context) {
 }
 
 export async function POST(context) {
-  initSupabase(context);
-  const { request } = context;
   try {
+    initSupabase(context);
+    const { request } = context;
     await autoCleanInactiveVariants();
     const body = await request.json();
 

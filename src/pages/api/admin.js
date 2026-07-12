@@ -267,9 +267,9 @@ if (typeof process !== 'undefined') {
 }
 
 export async function GET(context) {
-  initSupabase(context);
-  const { request } = context;
   try {
+    initSupabase(context);
+    const { request } = context;
     await autoCleanInactiveVariants();
     const url = new URL(request.url);
     const adminSecret = import.meta.env.ADMIN_SECRET;
@@ -781,9 +781,9 @@ export async function GET(context) {
 }
 
 export async function POST(context) {
-  initSupabase(context);
-  const { request } = context;
   try {
+    initSupabase(context);
+    const { request } = context;
     await autoCleanInactiveVariants();
     const data = await request.json();
     const adminSecretPost = import.meta.env.ADMIN_SECRET;

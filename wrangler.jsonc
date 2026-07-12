@@ -17,10 +17,18 @@
   "vars": {
     "PUBLIC_SUPABASE_URL": "https://fxihqzepiayehvszyita.supabase.co",
     "PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4aWhxemVwaWF5ZWh2c3p5aXRhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTI3OTAsImV4cCI6MjA5NzI4ODc5MH0.pwMkJ1o8A2vO_ZnWQMEIsQ-2MErOvzfcERVSXASXjDU",
+    "SUPABASE_URL": "https://fxihqzepiayehvszyita.supabase.co",
+    "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4aWhxemVwaWF5ZWh2c3p5aXRhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTcxMjc5MCwiZXhwIjoyMDk3Mjg4NzkwfQ.Rbke2hVSbPZA5dp-XdLrlrFRTwnpRAnxTjke7RjOEPg",
+    "ADMIN_SECRET": "CozyAura@6969",
     "CLOUDINARY_CLOUD_NAME": "deein4hop",
     "CLOUDINARY_API_KEY": "286614694633171",
+    "CLOUDINARY_API_SECRET": "-0Khc2pZjuP44CPIx9U6R71C0xY",
+    "EMAIL_FROM": "nitinekbote89@gmail.com",
     "EMAIL_FROM_NAME": "CozyAura",
+    "STORE_OWNER_EMAIL": "nitinekbote89@gmail.com",
     "SMTP_HOST": "smtp.gmail.com",
-    "SMTP_PORT": "465"
+    "SMTP_PORT": "465",
+    "SMTP_USER": "nitinekbote89@gmail.com",
+    "SMTP_PASS": "mhepoqlscgecshta"
   }
 }

@@ -1634,7 +1634,7 @@ window.acquireCheckoutLocks = async function() {
   }
 
   try {
-    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+    const res = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1657,7 +1657,7 @@ window.releaseCheckoutLocks = async function() {
   const sessionId = sessionStorage.getItem('lumiere_checkout_session');
   if (!sessionId) return;
   try {
-    await fetch(CORE_STORE_PROXY_ROUTE, {
+    await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -2482,7 +2482,7 @@ window.executeSecurePayment = async function() {
       if (!layoutData.id) {
         layoutData.id = 'layout_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
       }
-      const saveRes = await fetch(CORE_STORE_PROXY_ROUTE, {
+      const saveRes = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2543,7 +2543,7 @@ window.executeSecurePayment = async function() {
     };
 
     try {
-      const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+      const res = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -2596,7 +2596,7 @@ window.executeSecurePayment = async function() {
     };
 
     try {
-      const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+      const res = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(intentPayload)
@@ -2655,7 +2655,7 @@ window.executeSecurePayment = async function() {
               };
 
               try {
-                const orderRes = await fetch(CORE_STORE_PROXY_ROUTE, {
+                const orderRes = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(payload)
@@ -4346,7 +4346,7 @@ window.applyStorefrontImages = function() {
   // 1. Hero image
   const heroImg = document.getElementById('storefrontHeroImg');
   if (heroImg) {
-    let targetSrc = sf.home_hero || "";
+    let targetSrc = sf.home_hero || "https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&q=80&w=800";
     if (targetSrc) {
       if (heroImg.getAttribute('src') !== targetSrc) {
         heroImg.style.opacity = '0';
@@ -4504,7 +4504,7 @@ window.toggleWishlistFromModal = async function() {
   }
 
   try {
-    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+    const res = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4538,7 +4538,7 @@ window.fetchWishlist = async function() {
     return;
   }
   try {
-    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+    const res = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4629,7 +4629,7 @@ window.removeFromWishlist = async function(productId, variantName) {
   if (!email) return;
 
   try {
-    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+    const res = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4739,7 +4739,7 @@ window.submitFeedbackToDatabase = async function(orderId) {
   
   window.showLoadingOverlay("Submitting feedback...");
   try {
-    const res = await fetch(CORE_STORE_PROXY_ROUTE, {
+    const res = await fetchWithAuth(CORE_STORE_PROXY_ROUTE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -272,7 +272,8 @@ export async function GET(context) {
     const { request } = context;
     await autoCleanInactiveVariants();
     const url = new URL(request.url);
-    const adminSecret = import.meta.env.ADMIN_SECRET;
+    const env = context.locals?.runtime?.env || context.platform?.env || {};
+    const adminSecret = env.ADMIN_SECRET || globalThis.ADMIN_SECRET || process.env?.ADMIN_SECRET || import.meta.env.ADMIN_SECRET;
     if (!adminSecret) {
       return new Response(JSON.stringify({ success: false, error: "Server misconfiguration: ADMIN_SECRET not set." }), { status: 503 });
     }
@@ -786,7 +787,8 @@ export async function POST(context) {
     const { request } = context;
     await autoCleanInactiveVariants();
     const data = await request.json();
-    const adminSecretPost = import.meta.env.ADMIN_SECRET;
+    const env = context.locals?.runtime?.env || context.platform?.env || {};
+    const adminSecretPost = env.ADMIN_SECRET || globalThis.ADMIN_SECRET || process.env?.ADMIN_SECRET || import.meta.env.ADMIN_SECRET;
     if (!adminSecretPost) {
       return new Response(JSON.stringify({ success: false, error: "Server misconfiguration: ADMIN_SECRET not set." }), { status: 503 });
     }

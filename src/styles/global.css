@@ -2457,6 +2457,13 @@ section.active {
     font-size: 0.75rem !important;
     padding: 0.6rem !important;
   }
+  .checkout-discount-box button {
+    font-size: 0.75rem !important;
+    padding: 0.6rem 1.2rem !important;
+  }
+  .payment-method-desc {
+    display: none !important;
+  }
 }
 
 /* WISHLIST PAGE & HEART BUTTON */

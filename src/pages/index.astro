@@ -758,7 +758,7 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
                   <label class="payment-radio-label-custom">
                     <input type="radio" name="paymentMethodSelect" value="Online" checked />
                     <span class="radio-custom-circle"></span>
-                    <span class="payment-method-title">Paytm Secure (UPI, Cards, NetBanking, Wallets)</span>
+                    <span class="payment-method-title">Paytm Secure <span class="payment-method-desc">(UPI, Cards, NetBanking, Wallets)</span></span>
                   </label>
                   <div class="payment-icons">
                     <svg viewBox="0 0 34 18" width="28" height="15" style="border:1px solid #e2e8f0; border-radius:2px; padding:2px; background:white; vertical-align:middle; margin-right:3px;">
@@ -1623,22 +1623,23 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           display: none !important;
         }
         .gift-card-modal {
-          padding: 10px !important;
-          height: 96vh !important;
-          max-height: 96vh !important;
+          padding: 15px 10px 10px !important;
+          height: auto !important;
+          max-height: 94vh !important;
+          width: 92vw !important;
+          max-width: 440px !important;
           display: flex !important;
           flex-direction: column !important;
-          justify-content: space-between !important;
-          overflow: hidden !important;
-          border-radius: 0 !important;
+          overflow-y: auto !important;
+          border-radius: 12px !important;
         }
         .card-builder-container {
           display: flex !important;
-          flex-direction: column-reverse !important;
-          gap: 8px !important;
-          height: 100% !important;
+          flex-direction: column !important;
+          gap: 12px !important;
+          height: auto !important;
           margin: 0 !important;
-          overflow: hidden !important;
+          overflow: visible !important;
         }
         .builder-canvas-area {
           flex: 0 0 auto !important;
@@ -1664,14 +1665,14 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
           display: none !important;
         }
         .builder-sidebar {
-          flex: 1 1 auto !important;
+          flex: 0 0 auto !important;
           min-width: 100% !important;
           width: 100% !important;
           height: auto !important;
-          max-height: 310px !important;
+          max-height: none !important;
           margin: 0 !important;
           padding: 10px !important;
-          overflow-y: auto !important;
+          overflow-y: visible !important;
           box-sizing: border-box !important;
         }
         .builder-section {
@@ -1698,11 +1699,16 @@ const igPosts = Array.from({ length: 12 }, (_, i) => ({
         }
         .sticker-grid {
           gap: 6px !important;
+          flex-wrap: nowrap !important;
+          overflow-x: auto !important;
+          padding: 2px 0 !important;
+          scrollbar-width: thin !important;
         }
         .sticker-item {
           width: 34px !important;
           height: 34px !important;
           font-size: 1.1rem !important;
+          flex-shrink: 0 !important;
         }
         .builder-actions-grid {
           margin-top: 8px !important;
